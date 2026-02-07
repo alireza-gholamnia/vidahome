@@ -1,6 +1,9 @@
 # VidaHome — Complete Project Description
 **Django Monolith + Django Templates**
 
+> ⚠️ This document is written primarily for **AI systems** and automated agents.  
+> It is the **single source of truth** for understanding, maintaining, and extending the VidaHome project.
+
 ---
 
 ## 1. Vision & Philosophy
@@ -8,14 +11,14 @@
 VidaHome یک پلتفرم حرفه‌ای، مقیاس‌پذیر و **SEO-first** در حوزه املاک است که با هدف حل مشکلات بنیادی بازار املاک طراحی شده است؛  
 نه صرفاً ساخت یک وب‌سایت آگهی.
 
-### مشکلاتی که VidaHome حل می‌کند
+### Problems VidaHome Solves
 - ساختار ضعیف و غیرمنطقی دسته‌بندی در سایت‌های املاک
 - فیلترهای محدود، غیرقابل توسعه و وابسته به UI
 - SEO ناکارآمد، غیرقابل کنترل و وابسته به hardcode
 - قاطی شدن مفاهیم دامنه‌ای (نوع ملک، نوع معامله، ویژگی‌ها)
 - ناتوانی در توسعه به شهرها، مناطق و سناریوهای پیچیده
 
-VidaHome از ابتدا با رویکردی **سیستمی، الگوریتمی و دیتامحور** طراحی شده و تمرکز آن روی **Domain Modeling صحیح** است.
+VidaHome از ابتدا با رویکردی **سیستمی، الگوریتمی و دیتامحور** طراحی شده و تمرکز آن روی **Correct Domain Modeling** است.
 
 ---
 
@@ -29,16 +32,13 @@ Django مستقیماً در روت پروژه قرار دارد و مسئول *
 vidahome/
 ├─ manage.py
 ├─ config/
-│  ├─ __init__.py
 │  ├─ asgi.py
 │  ├─ wsgi.py
 │  ├─ urls.py
 │  └─ settings/
-│     ├─ __init__.py
 │     ├─ base.py
 │     ├─ dev.py
 │     └─ prod.py
-│
 ├─ apps/
 │  ├─ common/
 │  ├─ locations/
@@ -47,12 +47,11 @@ vidahome/
 │  ├─ listings/
 │  ├─ blog/
 │  └─ seo/
-│
 ├─ templates/
 ├─ static/
 ├─ media/
 └─ docs/
-فلسفه این معماری
+Architectural Rationale
 سادگی عملیاتی و کاهش پیچیدگی ذهنی
 
 SEO طبیعی و قابل کنترل با Server-Side Rendering
@@ -61,35 +60,33 @@ SEO طبیعی و قابل کنترل با Server-Side Rendering
 
 کنترل کامل HTML خروجی
 
-مناسب بازار ایران و crawl گوگل
+مناسب crawl گوگل و بازار ایران
 
 3. Rendering Strategy
 Django Templates (SSR)
-تمام صفحات با Django Templates رندر می‌شوند
+Full server-side HTML rendering
 
-HTML کامل در سمت سرور ساخته می‌شود
+Data fetched directly from ORM
 
-داده‌ها مستقیم از ORM دریافت می‌شوند
+JavaScript is optional and UX-only
 
-JavaScript صرفاً برای بهبود UX (اختیاری)
+Result
 
-نتیجه:
+Fast
 
-سریع
+Crawlable
 
-قابل Crawl
+Debuggable
 
-قابل Debug
+Stable
 
-پایدار
-
-4. URL System (Final & Approved)
+4. URL System (Final & Non-Negotiable)
 Static Pages
 /
- /about
- /contact
- /terms
- /privacy
+/about
+/contact
+/terms
+/privacy
 Directory Pages
 /cities
 /categories
@@ -100,175 +97,47 @@ Search Engine (Core)
 /s/{city}/{category}
 /s/{city}/{area}
 /s/{city}/{area}/{category}
-Rules (Non-Negotiable)
-city / area / category → فقط در URL path
+Rules
+city / area / category → URL path only
 
-deal → فقط query param (?deal=rent)
+deal → query param only (?deal=rent)
 
-attributes → فقط query param
+attributes → query params only
 
-deal پیش‌فرض = buy
+Default deal = buy
 
-هیچ redirect در پروژه Django انجام نمی‌شود
+❌ No redirects allowed in backend
 
 Listing Detail Page
 /l/{listingId}-{slug}
-ID منبع حقیقت (Source of Truth)
+ID = source of truth
 
-slug صرفاً برای SEO
+slug = SEO only
 
-مستقل از city و category
+Independent from city/category paths
 
-5. Backend Domain Design (Django Apps)
-5.1 locations app (⏳ Domain Designed)
-مدیریت ساختار جغرافیایی.
+5. Backend Domain Design (Planned)
+locations
+Geographical hierarchy: Province → City → Area
+Used for local SEO and search routing.
 
-Entities
+categories
+Defines what is listed (apartment, villa, land, commercial).
+Stable, URL-path based, deal-independent.
 
-Province
+attributes
+Dynamic attribute system inspired by e-commerce platforms.
+Category-bound, server-validated.
 
-City
+listings
+Core search engine.
+Combines path params + query params with ORM-based filtering.
 
-Area
+seo
+Database-driven SEO system.
+Titles, meta, H1, content, canonical, noindex — no hardcoding.
 
-Shared Fields
-
-name (فارسی)
-
-en_name (انگلیسی)
-
-slug (SEO)
-
-is_active
-
-sort_order
-
-Behavior
-
-slug از en_name ساخته می‌شود (Admin)
-
-slug قابل ویرایش است
-
-Area در سطح City یکتا است
-
-Usage
-
-ساخت صفحات /cities
-
-ساخت مسیرهای سرچ
-
-پایه SEO محلی
-
-5.2 categories app (⏳ Designed)
-نمایانگر «چه چیزی لیست شده».
-
-Examples
-
-apartment
-
-villa
-
-land
-
-commercial
-
-Rules
-
-مستقل از deal
-
-استفاده در URL path
-
-پایدار و کم‌تغییر
-
-5.3 attributes app (⏳ Core System)
-سیستم ویژگی‌های پویا (الهام‌گرفته از E-commerce).
-
-Entities
-
-Attribute
-
-AttributeOption
-
-ListingAttribute
-
-Rules
-
-Attribute به Category متصل است
-
-Types:
-
-select
-
-number
-
-boolean
-
-text
-
-اعتبارسنجی سمت سرور
-
-Example
-
-Category: land
-Attributes:
-- usage (residential, commercial)
-- area_size
-- document
-«مسکونی» Attribute است، نه Category.
-
-5.4 listings app (⏳ Core Engine)
-Listing Fields
-
-city
-
-area
-
-category
-
-deal (buy | rent)
-
-attributes (dynamic)
-
-images (ordered)
-
-status / publish state
-
-Search Logic
-
-ترکیب path params + query params
-
-ORM-based filtering
-
-pagination
-
-آماده cache شدن
-
-5.5 seo app (⏳ Strategic Advantage)
-SEOPage
-
-path
-
-deal (optional)
-
-title
-
-meta description
-
-h1
-
-content
-
-canonical
-
-noindex
-
-Result
-
-هزاران landing page بدون hardcode
-
-کنترل کامل SEO از Admin
-
-6. Templates System
+6. Templates System (Planned)
 templates/
 ├─ base.html
 ├─ partials/
@@ -283,60 +152,45 @@ templates/
 │  └─ listing_detail.html
 └─ errors/
    └─ 404.html
-7. Current Implementation Status
-✅ Version 0 — Completed (Project Bootstrap)
-Django project initialized
+📘 Documentation & Update Protocol (MANDATORY)
+This README is a living document and the only authoritative reference for this project.
 
-Clean monolithic folder structure created
+Update Rules
+After every meaningful commit, a new entry must be added to the Change Log below.
 
-Multi-environment settings (base / dev / prod)
+Each entry must clearly describe:
 
-All domain apps scaffolded (without models)
+What was implemented or changed
 
-Fresh Git repository initialized and pushed
+Why it was implemented (architectural intent)
 
-README and architecture documentation completed
+What the next logical step is
 
-⏳ Upcoming Work
-Locations domain models
+Any AI reading this file must be able to continue development without asking clarifying questions.
 
-Categories domain models
+🧱 Project Change Log (Single Source of Truth)
+Version 0 — Project Bootstrap (Completed)
+Scope: Infrastructure & architectural foundation.
 
-Attributes system
+Work done
 
-Listings engine
+Django monolithic project initialized (root-based).
 
-SEO system
+Clean, scalable folder structure created.
 
-Templates implementation
+Multi-environment settings implemented (base / dev / prod).
 
-8. Design Principles (Final)
-Django-first
+All domain apps scaffolded (no business logic yet).
 
-Server-side rendering
+Git repository freshly initialized and pushed.
 
-SEO driven by database
+Architecture, rules, and roadmap documented here.
 
-No JS dependency for core UX
+Result
+The project is structurally stable and ready for domain-driven implementation.
 
-Clear domain separation
+Next step
+➡️ Implement categories domain model (first real business logic).
 
-Query-based filtering
-
-9. Roadmap (Logical Order)
-categories app
-
-attributes app
-
-listings engine
-
-search template
-
-SEO system
-
-performance & cache
-
-deployment
-
-10. Project Identity (One-liner)
+Project Identity
 VidaHome is a Django-based, SEO-first real estate platform designed with a domain-driven architecture to handle complex property data, scalable search, and database-controlled SEO — without frontend frameworks.
