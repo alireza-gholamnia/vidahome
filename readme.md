@@ -1,3 +1,4 @@
+````md
 # VidaHome — Complete Project Description
 **Django Monolith + Django Templates**
 
@@ -51,93 +52,185 @@ vidahome/
 ├─ static/
 ├─ media/
 └─ docs/
-Architectural Rationale
-سادگی عملیاتی و کاهش پیچیدگی ذهنی
+````
 
-SEO طبیعی و قابل کنترل با Server-Side Rendering
+### Architectural Rationale
 
-عدم نیاز به hydration، SPA routing یا frontend framework
+* سادگی عملیاتی و کاهش پیچیدگی ذهنی
+* SEO طبیعی و قابل کنترل با Server-Side Rendering
+* عدم نیاز به hydration، SPA routing یا frontend framework
+* کنترل کامل HTML خروجی
+* مناسب crawl گوگل و بازار ایران
 
-کنترل کامل HTML خروجی
+---
 
-مناسب crawl گوگل و بازار ایران
+## 3. Rendering Strategy
 
-3. Rendering Strategy
-Django Templates (SSR)
-Full server-side HTML rendering
+### Django Templates (SSR)
 
-Data fetched directly from ORM
+* Full server-side HTML rendering
+* Data fetched directly from ORM
+* JavaScript is optional and UX-only
 
-JavaScript is optional and UX-only
+**Result**
 
-Result
+* Fast
+* Crawlable
+* Debuggable
+* Stable
 
-Fast
+---
 
-Crawlable
+## 4. URL System (Final & Non-Negotiable)
 
-Debuggable
+### Static Pages
 
-Stable
-
-4. URL System (Final & Non-Negotiable)
-Static Pages
+```text
 /
 /about
 /contact
 /terms
 /privacy
-Directory Pages
+```
+
+### Directory Pages
+
+```text
 /cities
 /categories
-Search Engine (Core)
+```
+
+### Search Engine (Core)
+
+```text
 /s
 /s/{category}
 /s/{city}
 /s/{city}/{category}
 /s/{city}/{area}
 /s/{city}/{area}/{category}
-Rules
-city / area / category → URL path only
+```
 
-deal → query param only (?deal=rent)
+### Rules
 
-attributes → query params only
+* `city / area / category` → URL path only
+* `deal` → query param only (`?deal=rent`)
+* `attributes` → query params only
+* Default deal = `buy`
+* ❌ No redirects allowed in backend
 
-Default deal = buy
+### Listing Detail Page
 
-❌ No redirects allowed in backend
-
-Listing Detail Page
+```text
 /l/{listingId}-{slug}
-ID = source of truth
+```
 
-slug = SEO only
+* ID = source of truth
+* slug = SEO only
+* Independent from city/category paths
 
-Independent from city/category paths
+---
 
-5. Backend Domain Design (Planned)
-locations
-Geographical hierarchy: Province → City → Area
-Used for local SEO and search routing.
+## 5. Backend Domain Design (Planned)
 
-categories
-Defines what is listed (apartment, villa, land, commercial).
-Stable, URL-path based, deal-independent.
+### 5.1 locations
 
-attributes
-Dynamic attribute system inspired by e-commerce platforms.
-Category-bound, server-validated.
+**Purpose:** Geographical hierarchy and local SEO.
 
-listings
-Core search engine.
-Combines path params + query params with ORM-based filtering.
+* Hierarchy: Province → City → Area
+* Used for:
 
-seo
-Database-driven SEO system.
-Titles, meta, H1, content, canonical, noindex — no hardcoding.
+  * `/cities` directory pages
+  * Search routing
+  * Local SEO foundations
 
-6. Templates System (Planned)
+### 5.2 categories
+
+**Purpose:** Define *what is listed*.
+
+* Examples:
+
+  * apartment
+  * villa
+  * land
+  * commercial
+* Rules:
+
+  * Stable
+  * Deal-independent
+  * Used directly in URL path
+
+### 5.3 attributes
+
+**Purpose:** Dynamic, category-based attribute system (E-commerce inspired).
+
+* Attribute types:
+
+  * select
+  * number
+  * boolean
+  * text
+* Server-side validation
+* Category-bound
+
+**Example**
+
+```text
+Category: land
+Attributes:
+- usage (residential, commercial)
+- area_size
+- document
+```
+
+> “Residential” is an **attribute**, not a category.
+
+### 5.4 listings
+
+**Purpose:** Core search engine.
+
+* Fields:
+
+  * city
+  * area
+  * category
+  * deal (buy | rent)
+  * dynamic attributes
+  * ordered images
+  * publish state
+* Search logic:
+
+  * Path params + query params
+  * ORM-based filtering
+  * Pagination
+  * Cache-ready
+
+### 5.5 seo
+
+**Purpose:** Fully database-driven SEO system.
+
+* SEOPage fields:
+
+  * path
+  * deal (optional)
+  * title
+  * meta description
+  * h1
+  * content
+  * canonical
+  * noindex
+
+**Result**
+
+* Thousands of landing pages
+* Zero hardcoded SEO
+* Full admin-level control
+
+---
+
+## 6. Templates System (Planned)
+
+```text
 templates/
 ├─ base.html
 ├─ partials/
@@ -152,45 +245,53 @@ templates/
 │  └─ listing_detail.html
 └─ errors/
    └─ 404.html
-📘 Documentation & Update Protocol (MANDATORY)
-This README is a living document and the only authoritative reference for this project.
+```
 
-Update Rules
-After every meaningful commit, a new entry must be added to the Change Log below.
+---
 
-Each entry must clearly describe:
+## 📘 Documentation & Update Protocol (MANDATORY)
 
-What was implemented or changed
+This README is a **living document** and the only authoritative reference for this project.
 
-Why it was implemented (architectural intent)
+### Update Rules
 
-What the next logical step is
+* After **every meaningful commit**, a new entry **must** be added to the Change Log below.
+* Each entry must clearly describe:
 
-Any AI reading this file must be able to continue development without asking clarifying questions.
+  * What was implemented or changed
+  * Why it was implemented (architectural intent)
+  * What the next logical step is
 
-🧱 Project Change Log (Single Source of Truth)
-Version 0 — Project Bootstrap (Completed)
-Scope: Infrastructure & architectural foundation.
+Any AI reading this file must be able to **continue development without asking clarifying questions**.
 
-Work done
+---
 
-Django monolithic project initialized (root-based).
+## 🧱 Project Change Log (Single Source of Truth)
 
-Clean, scalable folder structure created.
+### Version 0 — Project Bootstrap (Completed)
 
-Multi-environment settings implemented (base / dev / prod).
+**Scope:** Infrastructure & architectural foundation.
 
-All domain apps scaffolded (no business logic yet).
+**Work done**
 
-Git repository freshly initialized and pushed.
+* Django monolithic project initialized (root-based).
+* Clean, scalable folder structure created.
+* Multi-environment settings implemented (`base / dev / prod`).
+* All domain apps scaffolded (no business logic yet).
+* Git repository freshly initialized and pushed.
+* Architecture, rules, and roadmap documented here.
 
-Architecture, rules, and roadmap documented here.
-
-Result
+**Result**
 The project is structurally stable and ready for domain-driven implementation.
 
-Next step
-➡️ Implement categories domain model (first real business logic).
+**Next step**
+➡️ Implement **categories** domain model (first real business logic).
 
-Project Identity
-VidaHome is a Django-based, SEO-first real estate platform designed with a domain-driven architecture to handle complex property data, scalable search, and database-controlled SEO — without frontend frameworks.
+---
+
+## Project Identity
+
+**VidaHome is a Django-based, SEO-first real estate platform designed with a domain-driven architecture to handle complex property data, scalable search, and database-controlled SEO — without frontend frameworks.**
+
+```
+```
