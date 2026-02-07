@@ -454,3 +454,35 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the `Listing` model and connect these paths to real ORM-based search results, keeping `deal` and attributes as query params.
+---
+
+### Version 6 — Fix `/s/{slug}` Ambiguity with Single Resolver (Completed)
+
+**Scope:** Resolve routing ambiguity between `/s/{category}` and `/s/{city}`.
+
+**Problem**
+- Both `/s/{category}` and `/s/{city}` have identical URL shape and cannot coexist as separate routes.
+- Django matched the first pattern, causing `/s/{city}` to incorrectly hit `category_landing` and return 404.
+
+**What was implemented**
+- Replaced separate one-segment routes with a single resolver:
+  - `/s/{slug}/` → resolves deterministically to:
+    1) City landing (if City.slug matches)
+    2) Category landing (if Category.slug matches)
+    3) 404 otherwise
+- Kept existing resolver for two-segment routes:
+  - `/s/{city}/{area}/` (Area scoped to city, resolved first)
+  - `/s/{city}/{category}/` (Category resolved if no Area match)
+- Maintained `/s/` as a namespace-only redirect to `/`.
+
+**Architectural intent**
+- URL patterns must remain non-negotiable while avoiding ambiguous Django routing.
+- A single resolver preserves clean paths and keeps the system deterministic.
+- Location semantics stay dominant (City > Category, Area > Category).
+
+**Result**
+- `/s/{city}/` works reliably alongside `/s/{category}/` with no routing conflicts.
+- Search URL grammar is now stable and ready for listings integration.
+
+**Next step**
+➡️ Implement the `Listing` model and wire real ORM filtering into these landing pages.
