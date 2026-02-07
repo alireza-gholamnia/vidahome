@@ -388,3 +388,30 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the `categories` domain model and add `/s/{city}/{category}/`.
+
+
+---
+
+### Version 4 — Categories Domain (Tree-Based) (Completed)
+
+**Scope:** Implement a stable, extensible category taxonomy with parent/child hierarchy.
+
+**What was implemented**
+- Implemented the `Category` domain model as a tree using a self-referential parent relation.
+- Categories now support:
+  - optional `parent` (for hierarchy)
+  - reverse `children` relation (for sub-categories)
+- Enforced global uniqueness for `Category.slug` to keep URL paths unambiguous.
+- Added safeguards to prevent invalid trees (self-parenting and cyclic parent chains).
+- Implemented Django Admin for category management with automatic slug generation.
+
+**Architectural intent**
+- Categories represent *what is listed* and remain deal-independent.
+- Parent/child hierarchy is for taxonomy and attribute binding; it is not exposed in URL paths.
+- Global unique slugs ensure deterministic routing for `/s/{city}/{category}` and related paths.
+
+**Result**
+- Category taxonomy is ready for search routing integration and for binding dynamic attributes.
+
+**Next step**
+➡️ Implement the resolver and routing strategy for `/s/{slug}/` and `/s/{city}/{category}/` without path ambiguity.
