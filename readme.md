@@ -285,7 +285,7 @@ Any AI reading this file must be able to **continue development without asking c
 The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
-➡️ Implement **categories** domain model (first real business logic).
+➡️ Implement **location** domain model (first real business logic).
 
 ---
 
@@ -295,3 +295,33 @@ The project is structurally stable and ready for domain-driven implementation.
 
 ```
 ```
+
+---
+
+### Version 1 — Locations Domain & Cities Directory (Completed)
+
+**Scope:** Core geographical domain + first public directory page.
+
+**What was implemented**
+- Finalized `locations` domain models:
+  - Province (DB-only, not used in URL)
+  - City (globally unique slug, used in `/s/{city}`)
+  - Area (unique per city, used in `/s/{city}/{area}`)
+- Enforced domain rules using database-level constraints.
+- Implemented Django Admin for Province, City, and Area with slug automation.
+- Created root-based templates system (`templates/`).
+- Implemented `/cities/` directory page showing all active cities.
+- Established SSR rendering flow: Model → View → Template → URL.
+
+**Architectural intent**
+- Province is intentionally excluded from URL structure.
+- City slug is globally unique to avoid routing ambiguity.
+- Area slug is scoped per city to align with path-based search.
+- Templates are root-based for clarity, reuse, and SEO control.
+
+**Result**
+- First complete vertical slice achieved (DB → UI).
+- Location system is stable, extensible, and SEO-safe.
+
+**Next step**
+➡️ Implement search entry page for `/s/{city}`.

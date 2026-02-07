@@ -1,0 +1,21 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  {% include "base/head.html" %}
+  <title>{% block title %}VidaHome{% endblock %}</title>
+  {% block meta %}{% endblock %}
+</head>
+<body>
+
+  {% include "partials/header.html" %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "partials/footer.html" %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

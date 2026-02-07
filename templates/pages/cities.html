@@ -1,0 +1,19 @@
+{% extends "base/base.html" %}
+
+{% block title %}شهرها | VidaHome{% endblock %}
+
+{% block content %}
+<section class="cities-directory">
+  <h1>شهرها</h1>
+
+  <ul class="city-list">
+    {% for city in cities %}
+      <li>
+        <a href="/s/{{ city.slug }}">{{ city.fa_name }}</a>
+      </li>
+    {% empty %}
+      <li>شهری ثبت نشده است.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
