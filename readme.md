@@ -297,31 +297,37 @@ The project is structurally stable and ready for domain-driven implementation.
 ```
 
 ---
+---
 
 ### Version 1 — Locations Domain & Cities Directory (Completed)
 
-**Scope:** Core geographical domain + first public directory page.
+**Scope:** Foundational geographical domain and first public discovery page.
 
 **What was implemented**
-- Finalized `locations` domain models:
-  - Province (DB-only, not used in URL)
-  - City (globally unique slug, used in `/s/{city}`)
-  - Area (unique per city, used in `/s/{city}/{area}`)
-- Enforced domain rules using database-level constraints.
-- Implemented Django Admin for Province, City, and Area with slug automation.
-- Created root-based templates system (`templates/`).
-- Implemented `/cities/` directory page showing all active cities.
-- Established SSR rendering flow: Model → View → Template → URL.
+
+- Implemented the **Locations domain model** with three explicit entities:
+  - **Province**: backend-only geographical taxonomy (not exposed in URLs).
+  - **City**: primary public location unit, exposed in URLs (`/s/{city}`) with a globally unique slug.
+  - **Area**: sub-location scoped to a city, exposed in URLs (`/s/{city}/{area}`) with per-city uniqueness.
+- Enforced all critical domain rules at the **database level** using constraints to prevent invalid or ambiguous data.
+- Implemented Django Admin interfaces for managing provinces, cities, and areas, including automatic slug generation.
+- Established a **root-based template architecture** for SSR and SEO control.
+- Implemented the `/cities/` directory page to list all active cities as the first public entry point.
+- Completed the first full vertical slice: database → ORM → view → template → URL.
 
 **Architectural intent**
-- Province is intentionally excluded from URL structure.
-- City slug is globally unique to avoid routing ambiguity.
-- Area slug is scoped per city to align with path-based search.
-- Templates are root-based for clarity, reuse, and SEO control.
+
+- Province is intentionally excluded from the URL structure to keep routing simple and stable while remaining available for internal organization and future expansion.
+- City slugs are globally unique to eliminate routing ambiguity.
+- Area slugs are unique per city to align with path-based search URLs.
+- All pages are rendered server-side to ensure crawlability, performance, and predictable HTML output.
 
 **Result**
-- First complete vertical slice achieved (DB → UI).
-- Location system is stable, extensible, and SEO-safe.
+
+- The location system is stable, extensible, and SEO-safe.
+- URL rules are strictly enforced by the database.
+- The project now has a reliable foundation for search and listings.
 
 **Next step**
-➡️ Implement search entry page for `/s/{city}`.
+
+➡️ Implement the search entry page for `/s/{city}`.
