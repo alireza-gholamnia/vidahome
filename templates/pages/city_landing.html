@@ -7,11 +7,9 @@
   <h1>املاک {{ city.fa_name }}</h1>
 
   <h2>مناطق</h2>
-  <ul>
+  <ul class="area-list">
     {% for area in areas %}
-      <li>
-        <a href="/s/{{ city.slug }}/{{ area.slug }}/">{{ area.fa_name }}</a>
-      </li>
+      <li><a href="/s/{{ city.slug }}/{{ area.slug }}/">{{ area.fa_name }}</a></li>
     {% empty %}
       <li>برای این شهر منطقه‌ای ثبت نشده است.</li>
     {% endfor %}

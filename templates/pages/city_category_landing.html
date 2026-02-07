@@ -1,0 +1,13 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ category.fa_name }} در {{ city.fa_name }} | VidaHome{% endblock %}
+
+{% block content %}
+<section class="city-category-landing">
+  <h1>{{ category.fa_name }} در {{ city.fa_name }}</h1>
+
+  <p class="placeholder">
+    مرحله بعد: نمایش آگهی‌های این دسته در این شهر + فیلترها.
+  </p>
+</section>
+{% endblock %}

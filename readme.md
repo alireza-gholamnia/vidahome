@@ -415,3 +415,42 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the resolver and routing strategy for `/s/{slug}/` and `/s/{city}/{category}/` without path ambiguity.
+
+
+---
+
+### Version 5 — Search URL System Completed (City/Area/Category) (Completed)
+
+**Scope:** Implement the full search path grammar under `/s` as defined in the non-negotiable URL spec.
+
+**What was implemented**
+- Implemented `/s` as a namespace-only route:
+  - `/s` and `/s/` redirect to `/` (no thin “search root” page).
+- Implemented Category Landing:
+  - `/s/{category}/` → `category_landing`
+- Implemented City Landing:
+  - `/s/{city}/` → `city_landing` (lists active areas for discovery and internal linking)
+- Implemented City Context Resolver (2nd segment under city):
+  - `/s/{city}/{area}/` → Area Landing (resolved first, scoped to city)
+  - `/s/{city}/{category}/` → City + Category Landing
+- Implemented Area + Category Landing:
+  - `/s/{city}/{area}/{category}/` → `area_category`
+
+**Architectural intent**
+- `/s` is a routing namespace, not a page.
+- Location/category context must be path-based; `deal` and dynamic attributes remain query-param only.
+- The route shape `/s/{city}/{x}` is ambiguous by design, so a resolver is required.
+  - The resolver prioritizes Area (scoped to city) over Category to preserve location semantics.
+- Pages are SSR landings (placeholders for now) and are intentionally named as landings/contexts, not “results”.
+
+**Result**
+- The project now supports all required search URL patterns with deterministic resolution:
+  - `/s/{category}`
+  - `/s/{city}`
+  - `/s/{city}/{category}`
+  - `/s/{city}/{area}`
+  - `/s/{city}/{area}/{category}`
+- Ready for the Listings engine integration (ORM filtering + pagination + caching).
+
+**Next step**
+➡️ Implement the `Listing` model and connect these paths to real ORM-based search results, keeping `deal` and attributes as query params.

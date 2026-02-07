@@ -1,0 +1,13 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ category.fa_name }} | VidaHome{% endblock %}
+
+{% block content %}
+<section class="category-landing">
+  <h1>{{ category.fa_name }}</h1>
+
+  <p class="placeholder">
+    مرحله بعد: نمایش آگهی‌های این دسته + فیلترها (deal و attributes فقط query param).
+  </p>
+</section>
+{% endblock %}
