@@ -331,3 +331,35 @@ The project is structurally stable and ready for domain-driven implementation.
 **Next step**
 
 ➡️ Implement the search entry page for `/s/{city}`.
+
+
+---
+
+### Version 2 — Search Namespace + City Landing (Completed)
+
+**Scope:** Establish the `/s/` search namespace and implement the first search landing page: `/s/{city}`.
+
+**What was implemented**
+- Implemented the `/s/` URL namespace as the non-negotiable entry for all search-related paths.
+- Explicitly **removed** the concept of a “search root page”:
+  - Requests to `/s/` (or `/s`) are redirected to the home page (`/`) to avoid thin/meaningless content.
+- Implemented the **City Landing** page at:
+  - `/s/{city}/`
+- City resolution is performed by `City.slug` (globally unique) and only active cities are accessible.
+- Implemented a dedicated SSR template for the city landing page as the foundation for future listings, filters, and SEO content injection.
+
+**Architectural intent**
+- `/s/` is a **namespace**, not a page.
+- Landing pages must only exist when a valid **context** exists (city / area / category). `/s/` alone has no context, so it must not render a page.
+- `City.slug` remains globally unique to eliminate routing ambiguity for `/s/{city}`.
+- The City Landing is intentionally named `city_landing` (not `search_city`) to keep it future-proof and compatible with database-driven SEO pages.
+
+**Result**
+- Search routing foundation is now established and stable.
+- `/s/{city}/` is live as the first public search landing page and is ready to be extended with:
+  - `/s/{city}/{area}/`
+  - `/s/{city}/{category}/`
+  - query-param filtering for `deal` and dynamic `attributes`.
+
+**Next step**
+➡️ Implement the `categories` domain model and add `/s/{city}/{category}/`.
