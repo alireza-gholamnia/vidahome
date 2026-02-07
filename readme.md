@@ -486,3 +486,33 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the `Listing` model and wire real ORM filtering into these landing pages.
+
+---
+
+### Version 7 — Prevent Slug Collisions + Fix Circular Imports (Completed)
+
+**Scope:** Ensure deterministic routing under `/s` by preventing slug collisions and fixing circular imports between apps.
+
+**Problem**
+- `/s/{slug}` can resolve to either City or Category. If `City.slug == Category.slug`, one becomes unreachable.
+- `/s/{city}/{context}` can resolve to either Area or Category. If `Area.slug == Category.slug`, one becomes unreachable.
+- Adding cross-app validation introduced circular imports (`categories.models` ↔ `locations.models`).
+
+**What was implemented**
+- Enforced slug collision prevention at the application level:
+  - Category slugs are treated as **reserved**:
+    - `Category.slug` must not match any existing `City.slug` (prevents `/s/{slug}` ambiguity).
+    - `Area.slug` must not match any existing `Category.slug` (prevents `/s/{city}/{context}` ambiguity).
+- Implemented cross-app validation using `apps.get_model(...)` (or lazy imports) to avoid circular import issues.
+
+**Architectural intent**
+- Keep URL system non-negotiable while guaranteeing deterministic resolution.
+- Avoid implicit precedence bugs (City > Category, Area > Category) from making pages unreachable.
+- Keep domain apps decoupled: no hard imports across app model modules.
+
+**Result**
+- Routing under `/s` remains clean and deterministic even as the dataset grows.
+- Admin-level data entry is protected from creating ambiguous slugs.
+
+**Next step**
+➡️ Implement the `Listing` model and connect ORM-based filtering to the established `/s` landing routes.

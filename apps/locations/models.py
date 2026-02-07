@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
-
+from apps.categories.models import Category
 
 class BaseLocation(models.Model):
     """
@@ -89,6 +89,15 @@ class Area(BaseLocation):
             models.UniqueConstraint(fields=["city", "slug"], name="uniq_area_slug_in_city"),
             models.UniqueConstraint(fields=["city", "en_name"], name="uniq_area_en_name_in_city"),
         ]
+    def clean(self):
+        """
+        Prevent Area.slug collision with Category slugs.
+        This avoids ambiguity in:
+        /s/{city}/{context}
+        where context can be Area or Category.
+        """
+        if self.slug and Category.objects.filter(slug=self.slug).exists():
+            raise ValidationError({"slug": "This slug is reserved for categories. Choose a different slug for Area."})
 
     def save(self, *args, **kwargs):
         if not self.slug:

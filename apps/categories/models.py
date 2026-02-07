@@ -45,17 +45,19 @@ class Category(models.Model):
         return self.parent_id is None
 
     def clean(self):
-        """
-        Prevent cyclic parent chains (A -> B -> A).
-        """
+        # --- 1) Prevent Category.slug collision with City slugs ---
+        from apps.locations.models import City  # lazy import (avoids circular import)
+
+        if self.slug and City.objects.filter(slug=self.slug).exists():
+            raise ValidationError({"slug": "This slug is reserved for an existing city."})
+
+        # --- 2) Prevent cycles in category tree ---
         ancestor = self.parent
         while ancestor is not None:
             if self.pk and ancestor.pk == self.pk:
-                raise ValidationError(
-                    {"parent": "Invalid parent: cyclic category hierarchy."}
-                )
+                raise ValidationError({"parent": "Invalid parent: cyclic category hierarchy."})
             ancestor = ancestor.parent
-
+        
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.en_name)
