@@ -363,3 +363,28 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the `categories` domain model and add `/s/{city}/{category}/`.
+
+---
+
+### Version 3 — Area Discovery + Area Landing (Completed)
+
+**Scope:** Extend search paths to support area-level navigation and discovery.
+
+**What was implemented**
+- Implemented area discovery on the City Landing page:
+  - `/s/{city}/` now lists all active areas of the resolved city for internal linking.
+- Implemented Area Landing page:
+  - `/s/{city}/{area}/`
+- Area resolution is scoped to the resolved city to ensure path consistency and avoid ambiguity.
+
+**Architectural intent**
+- City Landing acts as a discovery hub for sub-locations (areas) without introducing province into any URL.
+- Area Landing establishes the canonical path structure for future listing results and SEO content injection.
+- URL structure remains path-driven for location context; filtering (deal/attributes) will remain query-driven.
+
+**Result**
+- Search navigation now supports city → area progression with clean SSR pages.
+- The system is ready for connecting listings and adding category paths.
+
+**Next step**
+➡️ Implement the `categories` domain model and add `/s/{city}/{category}/`.

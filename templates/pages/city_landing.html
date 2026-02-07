@@ -1,13 +1,20 @@
 {% extends "base/base.html" %}
 
-{% block title %}
-املاک {{ city.fa_name }} | VidaHome
-{% endblock %}
+{% block title %}املاک {{ city.fa_name }} | VidaHome{% endblock %}
 
 {% block content %}
 <section class="city-landing">
-  <h1> {{ city.fa_name }}</h1>
+  <h1>املاک {{ city.fa_name }}</h1>
 
-
+  <h2>مناطق</h2>
+  <ul>
+    {% for area in areas %}
+      <li>
+        <a href="/s/{{ city.slug }}/{{ area.slug }}/">{{ area.fa_name }}</a>
+      </li>
+    {% empty %}
+      <li>برای این شهر منطقه‌ای ثبت نشده است.</li>
+    {% endfor %}
+  </ul>
 </section>
 {% endblock %}
