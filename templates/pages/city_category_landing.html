@@ -1,12 +1,22 @@
 {% extends "base/base.html" %}
-{% block title %}{{ category.fa_name }} در {{ city.fa_name }} | VidaHome{% endblock %}
 
 {% block content %}
-<h1 class="h4">
-  {{ category.fa_name }} در {{ city.fa_name }}
-</h1>
+  <h1 class="mb-3">{{ seo_h1|default:category.fa_name }}</h1>
 
-<p class="text-muted">
-  جستجو ترکیبی شهر + دسته‌بندی
-</p>
+  <p class="text-muted mb-4">
+    {{ category.fa_name }} در
+    <a href="/s/{{ city.slug }}/" class="link-secondary text-decoration-none">
+      {{ city.fa_name }}
+    </a>
+  </p>
+
+  {% if intro_content %}
+    <p class="lead">{{ intro_content }}</p>
+  {% endif %}
+
+  {% if main_content %}
+    <div class="content mt-5">
+      {{ main_content|safe }}
+    </div>
+  {% endif %}
 {% endblock %}

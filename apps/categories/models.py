@@ -1,9 +1,13 @@
 from django.db import models
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.apps import apps
+
+from apps.seo.base import BaseSEO
+from ckeditor.fields import RichTextField
 
 
-class Category(models.Model):
+class Category(BaseSEO, models.Model):
     """
     Category with parent/child hierarchy.
     Slug is globally unique to keep URL paths unambiguous.
@@ -26,6 +30,10 @@ class Category(models.Model):
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
 
+    # --- Landing content ---
+    intro_content = models.TextField(blank=True)
+    main_content = RichTextField(blank=True)
+
     class Meta:
         ordering = ("sort_order", "id")
         constraints = [
@@ -46,8 +54,7 @@ class Category(models.Model):
 
     def clean(self):
         # --- 1) Prevent Category.slug collision with City slugs ---
-        from apps.locations.models import City  # lazy import (avoids circular import)
-
+        City = apps.get_model("locations", "City")
         if self.slug and City.objects.filter(slug=self.slug).exists():
             raise ValidationError({"slug": "This slug is reserved for an existing city."})
 
@@ -57,7 +64,7 @@ class Category(models.Model):
             if self.pk and ancestor.pk == self.pk:
                 raise ValidationError({"parent": "Invalid parent: cyclic category hierarchy."})
             ancestor = ancestor.parent
-        
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.en_name)

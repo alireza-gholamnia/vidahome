@@ -2,30 +2,25 @@
 {% block title %}املاک {{ city.fa_name }} | VidaHome{% endblock %}
 
 {% block content %}
-<h1 class="h4 mb-3">املاک {{ city.fa_name }}</h1>
+<h1 class="mb-3">{{ seo_h1 }}</h1>
 
-<div class="row g-3">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">مناطق</div>
-      <div class="list-group list-group-flush">
-        {% for area in areas %}
-          <a class="list-group-item list-group-item-action"
-             href="/s/{{ city.slug }}/{{ area.slug }}/">
-            {{ area.fa_name }}
-          </a>
-        {% empty %}
-          <div class="p-3 text-muted">منطقه‌ای ثبت نشده</div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+{% if intro_content %}
+  <p class="lead">{{ intro_content }}</p>
+{% endif %}
 
-  <div class="col-md-6">
-    <div class="alert alert-info h-100">
-      فیلترها فقط از طریق Query Param اعمال می‌شوند  
-      <br><code>?deal=rent</code>
-    </div>
+{# لیست محله‌ها #}
+{% if areas %}
+  <div class="mt-4">
+    {% for a in areas %}
+      <a href="/s/{{ city.slug }}/{{ a.slug }}/" class="btn btn-outline-secondary m-1">{{ a.fa_name }}</a>
+    {% endfor %}
   </div>
-</div>
+{% endif %}
+
+{% if main_content %}
+  <div class="content mt-5">
+    {{ main_content|safe }}
+  </div>
+{% endif %}
+
 {% endblock %}

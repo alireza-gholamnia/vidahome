@@ -563,3 +563,216 @@ The project is structurally stable and ready for domain-driven implementation.
 ➡️ Implement the `Listing` model and wire real ORM-based results + pagination into the `/s/...` landing pages (keeping `deal` and attributes as query params).
 
 ---
+## Version 9 — SEO Landing System for All Search Combinations
+
+**Status:** Completed  
+**Scope:** Database-driven SEO & content system for all `/s/...` search routes.
+
+---
+
+### 🎯 Goal
+
+Enable full **admin-level SEO and content control** for all search landing pages, including:
+- City
+- Area
+- Category
+- City + Category
+- City + Area + Category
+
+Without:
+- Hardcoded SEO
+- Frontend frameworks
+- URL changes
+
+---
+
+## 🧱 Architecture Overview
+
+### Central Principle
+> **SEO is data, not code**
+
+All SEO logic is:
+- Stored in the database
+- Resolved server-side (SSR)
+- Injected into templates deterministically
+
+---
+
+## 1️⃣ Base SEO Layer
+
+### BaseSEO (Abstract Model)
+Located in: `apps/seo/base.py`
+
+Defines shared SEO fields for all landing pages:
+
+- `seo_title`
+- `seo_meta_description`
+- `seo_h1`
+- `seo_canonical`
+- `seo_noindex`
+- `allow_index`
+
+This ensures:
+- Consistent SEO behavior
+- Single source of truth
+- Predictable fallback logic
+
+---
+
+## 2️⃣ City & Area SEO Completion
+
+### City
+URL:
+/s/{city}/
+
+
+Enhancements:
+- Inherits from `BaseSEO`
+- Supports:
+  - Intro content
+  - Rich main content
+- Fully controllable from Django Admin
+
+---
+
+### Area
+URL:
+/s/{city}/{area}/
+
+
+Enhancements:
+- Inherits from `BaseSEO`
+- Scoped strictly to its city
+- Prevents slug collisions with categories
+- Supports full SEO + content overrides
+
+---
+
+## 3️⃣ Category SEO Completion
+
+### Category
+URL:
+/s/{category}/
+
+
+Enhancements:
+- Extended with `BaseSEO`
+- Supports intro and main content
+- Global SEO overrides without city context
+
+---
+
+## 4️⃣ Composite SEO Models (Key Feature)
+
+Some URL combinations cannot rely on City / Area / Category alone.
+For these, **dedicated SEO landing models** were introduced.
+
+### CityCategory
+URL:
+/s/{city}/{category}/
+
+
+Purpose:
+- Override SEO & content for a specific city + category combination
+
+Rules:
+- Unique per `(city, category)`
+- Optional (fallback works if missing)
+
+---
+
+### CityAreaCategory
+URL:
+/s/{city}/{area}/{category}/
+
+
+Purpose:
+- Most granular SEO control
+- Highest-intent landing pages
+
+Rules:
+- Unique per `(area, category)`
+- Enforces `area.city == city`
+- Fully optional with safe fallback logic
+
+---
+
+## 5️⃣ Routing & Resolver Logic
+
+### Deterministic Resolution Order
+
+| URL Pattern | Resolution Priority |
+|------------|---------------------|
+| `/s/{slug}` | City → Category |
+| `/s/{city}/{context}` | Area → Category |
+| `/s/{city}/{area}/{category}` | Explicit |
+
+This avoids:
+- Ambiguous routing
+- Redirect hacks
+- SEO-unsafe fallbacks
+
+---
+
+## 6️⃣ SEO Builder Functions
+
+Dedicated helper functions generate final SEO values using:
+- DB overrides (highest priority)
+- Deterministic fallbacks
+- Runtime canonical URL resolution
+
+Guarantees:
+- One `<h1>` per page
+- Correct `robots` behavior
+- Valid canonical on all pages
+
+---
+
+## 7️⃣ Template Layer
+
+All pages:
+- Use SSR with Django Templates
+- Extend `base/base.html`
+- Inject SEO via `base/head.html`
+
+SEO Output Includes:
+- `<title>`
+- `<meta description>`
+- `<meta robots>`
+- `<link rel="canonical">`
+- OpenGraph tags
+- Single semantic `<h1>`
+
+No SEO logic exists in HTML.
+
+---
+
+## 8️⃣ Migration Consistency Fix
+
+A migration/schema mismatch was detected where:
+- Migrations were marked as applied
+- DB tables did not exist
+
+Resolved safely by:
+```bash
+python manage.py migrate seo zero --fake
+python manage.py migrate seo
+Verified tables:
+
+seo_citycategory
+
+seo_cityareacategory
+
+✅ Result
+All /s/... routes are now:
+
+SEO-first
+
+Database-driven
+
+Fully SSR
+
+Admin can control thousands of landing pages without code changes
+
+Architecture is stable, scalable, and AI-friendly
+

@@ -1,10 +1,10 @@
 {% load static %}
 <!doctype html>
-<html lang="fa" dir="rtl"> 
+<html lang="fa" dir="rtl">
 <head>
   {% include "base/head.html" %}
-  {% include "partials/seo_block.html" %}
-  <title>{% block title %}VidaHome{% endblock %}</title>
+  {# optional: extra head injections per page #}
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-light">
 
@@ -20,4 +20,3 @@
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
-
