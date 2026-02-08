@@ -1,13 +1,12 @@
 {% extends "base/base.html" %}
-
-{% block title %}املاک {{ area.fa_name }} {{ city.fa_name }} | VidaHome{% endblock %}
+{% block title %}املاک {{ area.fa_name }} | VidaHome{% endblock %}
 
 {% block content %}
-<section class="area-landing">
-  <h1>املاک {{ area.fa_name }} ({{ city.fa_name }})</h1>
+<h1 class="h4">
+  املاک {{ area.fa_name }} – {{ city.fa_name }}
+</h1>
 
-  <p class="placeholder">
-    مرحله بعد: نمایش آگهی‌ها در این منطقه + فیلترها.
-  </p>
-</section>
+<p class="text-muted">
+  این صفحه پایه جستجو برای منطقه است.
+</p>
 {% endblock %}

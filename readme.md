@@ -516,3 +516,50 @@ The project is structurally stable and ready for domain-driven implementation.
 
 **Next step**
 ➡️ Implement the `Listing` model and connect ORM-based filtering to the established `/s` landing routes.
+---
+
+### Version 8 — Template System Rebuild + Local Bootstrap RTL (Completed)
+
+**Scope:** Rebuild the entire template layer from scratch and standardize UI using local Bootstrap RTL.
+
+**Problem**
+- Existing templates had become inconsistent due to partial refactors and path mismatches (base/layout confusion).
+- Some pages rendered only the `<head>` contents or appeared blank because templates were not extending the correct base layout.
+- CSS/JS strategy was not finalized (CDN vs local), and RTL support needed to be deterministic and Iran-safe.
+
+**What was implemented**
+- **Deleted all previous HTML templates** and rebuilt the template system from zero with a clean, scalable structure:
+  - `templates/base/` for global layout skeleton (`base.html`, `head.html`)
+  - `templates/partials/` for reusable UI components (`header`, `footer`, `breadcrumbs`, `seo_block`)
+  - `templates/pages/` for route-level pages (cities + all `/s/...` landing pages)
+  - `templates/errors/` for error templates (404)
+- Standardized all pages to consistently:
+  - `extend "base/base.html"`
+  - render content through a single `{% block content %}` pipeline
+- Integrated **Bootstrap 5 locally** (no CDN) with full RTL support:
+  - `static/css/bootstrap.rtl.min.css`
+  - `static/js/bootstrap.bundle.min.js`
+- Ensured a production-safe SSR setup:
+  - deterministic HTML output
+  - no external dependency for styling/scripts
+  - ready placeholders for DB-driven SEO and breadcrumbs injection (`seo_block.html`, `breadcrumbs.html`)
+
+**Architectural intent**
+- Keep SSR output predictable and maintainable by enforcing a single base layout and consistent includes.
+- Avoid template drift and “blank page” issues by enforcing a strict template directory contract.
+- Use local Bootstrap RTL to ensure:
+  - reliable rendering in Iran (no blocked CDNs)
+  - consistent UI/UX foundation for all future pages
+- Prepare the template layer for the upcoming SEO system:
+  - `seo_block.html` will later be populated from `SEOPage` records
+  - `breadcrumbs.html` will later be generated dynamically per route
+
+**Result**
+- All existing pages (`/cities/` and all `/s/...` landings) render correctly with a unified layout.
+- UI is standardized and RTL-ready using local Bootstrap assets.
+- Template system is clean, modular, and ready for the Listings engine integration.
+
+**Next step**
+➡️ Implement the `Listing` model and wire real ORM-based results + pagination into the `/s/...` landing pages (keeping `deal` and attributes as query params).
+
+---

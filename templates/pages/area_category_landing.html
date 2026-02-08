@@ -1,13 +1,14 @@
 {% extends "base/base.html" %}
-
-{% block title %}{{ category.fa_name }} در {{ area.fa_name }} {{ city.fa_name }} | VidaHome{% endblock %}
+{% block title %}
+{{ category.fa_name }} در {{ area.fa_name }} {{ city.fa_name }} | VidaHome
+{% endblock %}
 
 {% block content %}
-<section class="area-category-landing">
-  <h1>{{ category.fa_name }} در {{ area.fa_name }} ({{ city.fa_name }})</h1>
+<h1 class="h4">
+  {{ category.fa_name }} در {{ area.fa_name }} ({{ city.fa_name }})
+</h1>
 
-  <p class="placeholder">
-    مرحله بعد: نمایش آگهی‌های این دسته در این منطقه + فیلترها.
-  </p>
-</section>
+<p class="text-muted">
+  دقیق‌ترین سطح جستجو
+</p>
 {% endblock %}
