@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="mb-5">
+    <h1 class="mb-2">ویداهوم</h1>
+    <p class="text-muted mb-0">
+      مسیر سریع برای پیدا کردن ملک در شهرها و دسته‌بندی‌های مختلف.
+    </p>
+  </div>
+
+  <div class="row g-4">
+
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">شهرها</h2>
+            <a class="btn btn-sm btn-outline-primary" href="/cities/">همه شهرها</a>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% for city in top_cities %}
+              <a class="btn btn-sm btn-light" href="/s/{{ city.slug }}/">{{ city.fa_name }}</a>
+            {% empty %}
+              <span class="text-muted">شهری ثبت نشده است.</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">دسته‌بندی‌ها</h2>
+            <a class="btn btn-sm btn-outline-primary" href="/categories/">همه دسته‌بندی‌ها</a>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            {% for category in top_categories %}
+              <a class="btn btn-sm btn-light" href="/s/{{ category.slug }}/">{{ category.fa_name }}</a>
+            {% empty %}
+              <span class="text-muted">دسته‌بندی ثبت نشده است.</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
