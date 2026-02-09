@@ -776,3 +776,77 @@ Admin can control thousands of landing pages without code changes
 
 Architecture is stable, scalable, and AI-friendly
 
+Version 10 — Listings Domain Bootstrap + /l/ Detail Routes + Listing SEO (Completed)
+
+Status: Completed
+Scope: Introduce the Listings domain as a first-class entity and expose listing detail pages under /l/ with SEO parity to search landings.
+
+✅ What was implemented
+
+Implemented the Listing domain model (apps/listings/models.py) as a real entity:
+
+Core fields: title, slug, city, area (optional), category, deal, status, published_at
+
+Content fields: short_description, description (RichText)
+
+Optional pricing: price, price_unit
+
+SEO fields via BaseSEO inheritance (same system as City/Area/Category)
+
+Search-ready indexes for (status/deal), (city/area/category), published_at, slug
+
+Deterministic get_absolute_url() → /l/{id}-{slug}/
+
+Implemented Listing Admin with grouped fieldsets:
+
+Core listing data
+
+Content (short + rich description)
+
+SEO override section (title/meta/h1/canonical/robots)
+
+Established the Listing detail namespace under /l/:
+
+Canonical route: /l/{id}-{slug}/
+
+ID-only route (same content, no redirects): /l/{id}/
+
+Both routes resolve by ID as the source of truth (slug is SEO-only)
+
+Added SEO injection for Listing detail matching the project’s existing pattern:
+
+seo_title, seo_meta_description, seo_h1, seo_canonical, seo_robots
+
+Fallback logic:
+
+seo_* overrides if present
+
+otherwise derive from title / short_description
+
+Canonical is always the canonical ID+slug form (/l/{id}-{listing.slug}/) even when visiting /l/{id}/
+
+Split URLConfs inside the same app to avoid /s vs /l collisions:
+
+/s/... continues to be served by apps.listings.search_urls
+
+/l/... served by apps.listings.detail_urls
+
+config/urls.py updated to include both.
+
+🧠 Architectural intent
+
+Keep the non-negotiable rule: Listing detail is ID-based, independent of city/category paths.
+
+Allow UX flexibility (/l/{id}/) without redirects while keeping SEO deterministic via canonical.
+
+Maintain a single SEO contract across all pages using BaseSEO + seo_* context keys.
+
+✅ Result
+
+Listing detail pages render correctly with SSR and consistent layout.
+
+SEO output is correct and controllable from Admin:
+
+Title, meta description, robots, canonical, OG tags all populate properly.
+
+Routing remains deterministic and avoids /s namespace conflicts.

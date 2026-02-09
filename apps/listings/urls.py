@@ -1,5 +1,6 @@
 from django.urls import path
 from django.views.generic import RedirectView
+from . import views
 
 from .views import (
     s_root_redirect,      # /s
@@ -37,4 +38,6 @@ urlpatterns = [
     # Example: /s/lahijan/sheikh-zahed/zamin
     # ---------------------------------------------------------
     path("<slug:city_slug>/<slug:area_slug>/<slug:category_slug>/", area_category, name="area_category"),
+
+
 ]

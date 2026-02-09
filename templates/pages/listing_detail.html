@@ -1,0 +1,40 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+  <h1 class="mb-3">{{ listing.seo_h1|default:listing.title }}</h1>
+
+  <div class="mb-2">
+    <strong>City:</strong> {{ listing.city.fa_name|default:listing.city }}
+    {% if listing.area %}
+      — <strong>Area:</strong> {{ listing.area.fa_name|default:listing.area }}
+    {% endif %}
+  </div>
+
+  <div class="mb-2">
+    <strong>Category:</strong> {{ listing.category.fa_name|default:listing.category }}
+  </div>
+
+  <div class="mb-2">
+    <strong>Deal:</strong> {{ listing.deal }}
+  </div>
+
+  {% if listing.price %}
+    <div class="mb-2">
+      <strong>Price:</strong> {{ listing.price }} {{ listing.price_unit }}
+    </div>
+  {% endif %}
+
+  {% if listing.short_description %}
+    <p class="mt-3">{{ listing.short_description }}</p>
+  {% endif %}
+
+  {% if listing.description %}
+    <div class="mt-4">
+      {{ listing.description|safe }}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
