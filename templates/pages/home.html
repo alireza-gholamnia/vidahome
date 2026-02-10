@@ -1,56 +1,112 @@
-{% extends "base/base.html" %}
-
-{% block content %}
-<div class="container py-5">
-
-  <div class="mb-5">
-    <h1 class="mb-2">ویداهوم</h1>
-    <p class="text-muted mb-0">
-      مسیر سریع برای پیدا کردن ملک در شهرها و دسته‌بندی‌های مختلف.
-    </p>
-  </div>
-
-  <div class="row g-4">
-
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0">شهرها</h2>
-            <a class="btn btn-sm btn-outline-primary" href="/cities/">همه شهرها</a>
-          </div>
-
-          <div class="d-flex flex-wrap gap-2">
-            {% for city in top_cities %}
-              <a class="btn btn-sm btn-light" href="/s/{{ city.slug }}/">{{ city.fa_name }}</a>
-            {% empty %}
-              <span class="text-muted">شهری ثبت نشده است.</span>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0">دسته‌بندی‌ها</h2>
-            <a class="btn btn-sm btn-outline-primary" href="/categories/">همه دسته‌بندی‌ها</a>
-          </div>
-
-          <div class="d-flex flex-wrap gap-2">
-            {% for category in top_categories %}
-              <a class="btn btn-sm btn-light" href="/s/{{ category.slug }}/">{{ category.fa_name }}</a>
-            {% empty %}
-              <span class="text-muted">دسته‌بندی ثبت نشده است.</span>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa">
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<head>
+	<!-- Page loading styles-->
+    <style>
+      .page-loading {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-transition: all .4s .2s ease-in-out;
+        transition: all .4s .2s ease-in-out;
+        background-color: #1f1b2d;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 9999;
+      }
+      .page-loading.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .page-loading-inner {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+        -webkit-transition: opacity .2s ease-in-out;
+        transition: opacity .2s ease-in-out;
+        opacity: 0;
+      }
+      .page-loading.active > .page-loading-inner {
+        opacity: 1;
+      }
+      .page-loading-inner > span {
+        display: block;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #fff;;
+      }
+      .page-spinner {
+        display: inline-block;
+        width: 2.75rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: .75rem;
+        vertical-align: text-bottom;
+        border: .15em solid #9691a4;
+        border-right-color: transparent;
+        border-radius: 50%;
+        -webkit-animation: spinner .75s linear infinite;
+        animation: spinner .75s linear infinite;
+      }
+      @-webkit-keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+	<!-- Page loading scripts-->
+    <script>
+      (function () {
+        window.onload = function () {
+          var preloader = document.querySelector('.page-loading');
+          preloader.classList.remove('active');
+          setTimeout(function () {
+            preloader.remove();
+          }, 2000);
+        };
+      })();
+      
+    </script>
+    {% include "base/head.html" %}
+  </head>
+  <!-- Body-->
+  <body dir="rtl">
+       <main class="page-wrapper">
+    {% include "partials/loading_spinner.html" %}
+    {% include "partials/SignInModal.html" %}
+    {% include "partials/SignUpModal.html" %}
+    {% include "partials/header.html" %}
+        <!-- Page content-->
+    {% include "partials/Propertycostcalculatormodal.html" %}   
+    {% include "partials/hero.html" %}   
+    {% include "partials/Propertycategories.html" %}
+    {% include "partials/services.html" %}   
+    {% include "partials/Topofferscarousel.html" %} 
+    {% include "partials/Recentlyadded.html" %} 
+    {% include "partials/Propertycostcalculator.html" %} 
+    {% include "partials/Citiescarousel.html" %} 
+    {% include "partials/Partnerscarousel.html" %}
+    {% include "partials/Topagentslnkedcarousel.html" %} 
+    </main>
+    {% include "partials/footer.html" %}
+    {% include "partials/Backtotopbutton.html" %}
+    {% include "partials/scripts.html" %}
+  </body>
+</html>

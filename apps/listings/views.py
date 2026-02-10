@@ -232,9 +232,11 @@ def listing_detail(request, listing_id: int, slug: str):
     listing = (
         Listing.objects
         .select_related("city", "area", "category")
+        .prefetch_related("images")
         .filter(id=listing_id, status=Listing.Status.PUBLISHED)
         .first()
     )
+
     if not listing:
         raise Http404()
 

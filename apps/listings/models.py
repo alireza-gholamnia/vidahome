@@ -131,3 +131,30 @@ class Listing(BaseSEO, models.Model):
 
     def get_absolute_url(self):
         return f"/l/{self.id}-{self.slug}/"
+
+
+
+class ListingImage(models.Model):
+    listing = models.ForeignKey(
+        "listings.Listing",
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+
+    image = models.ImageField(upload_to="listings/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True)
+
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        indexes = [
+            models.Index(fields=["listing", "sort_order"]),
+            models.Index(fields=["listing", "is_cover"]),
+        ]
+
+    def __str__(self):
+        return f"Image {self.id} for Listing {self.listing_id}"

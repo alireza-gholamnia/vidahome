@@ -1,26 +1,19 @@
-{% extends "base/base.html" %}
-{% block title %}املاک {{ city.fa_name }} | VidaHome{% endblock %}
-
-{% block content %}
+{% extends "base/base.html" %} {% block title %}املاک {{ city.fa_name }} |
+VidaHome{% endblock %} {% block content %}
 <h1 class="mb-3">{{ seo_h1 }}</h1>
 
 {% if intro_content %}
-  <p class="lead">{{ intro_content }}</p>
-{% endif %}
-
-{# لیست محله‌ها #}
-{% if areas %}
-  <div class="mt-4">
-    {% for a in areas %}
-      <a href="/s/{{ city.slug }}/{{ a.slug }}/" class="btn btn-outline-secondary m-1">{{ a.fa_name }}</a>
-    {% endfor %}
-  </div>
-{% endif %}
-
-{% if main_content %}
-  <div class="content mt-5">
-    {{ main_content|safe }}
-  </div>
-{% endif %}
-
-{% endblock %}
+<p class="lead">{{ intro_content }}</p>
+{% endif %} {# لیست محله‌ها #} {% if areas %}
+<div class="mt-4">
+  {% for a in areas %}
+  <a
+    href="/s/{{ city.slug }}/{{ a.slug }}/"
+    class="btn btn-outline-secondary m-1"
+    >{{ a.fa_name }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %} {% if main_content %}
+<div class="content mt-5">{{ main_content|safe }}</div>
+{% endif %} {% endblock %}

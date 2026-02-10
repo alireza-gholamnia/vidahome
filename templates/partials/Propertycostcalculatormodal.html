@@ -1,0 +1,101 @@
+<!-- Property cost calculator modal-->
+<div class="modal fade" id="cost-calculator" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header d-block position-relative border-0 px-sm-5 px-4">
+        <h3 class="h4 modal-title mt-4 text-center">به دنبال خانه هستید؟</h3>
+        <button
+          class="btn-close position-absolute top-0 end-0 mt-3 me-3"
+          type="button"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body px-sm-5 px-4">
+        <form class="needs-validation" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-bold mb-2" for="property-city"
+              >انتخاب موقعیت</label
+            >
+            <select
+              class="form-control form-select"
+              id="property-city"
+              required
+            >
+              <option value="" selected disabled hidden>انتخاب شهر</option>
+              <option value="Chicago">شیکاگو</option>
+              <option value="Dallas">پاریس</option>
+              <option value="Los Angeles">فرانسه</option>
+              <option value="New York">نیویورک</option>
+              <option value="San Diego">سن فراسیسکو</option>
+            </select>
+            <div class="invalid-feedback">لطفا شهر را انتخاب کنید.</div>
+          </div>
+          <div class="mb-3">
+            <select
+              class="form-control form-select"
+              id="property-district"
+              required
+            >
+              <option value="" selected disabled hidden>انتخاب منطقه</option>
+              <option value="Brooklyn">سوییس</option>
+              <option value="Manhattan">پاریس</option>
+              <option value="Staten Island">آمستردام</option>
+              <option value="The Bronx">سوئد</option>
+              <option value="Queens">برزیل</option>
+            </select>
+            <div class="invalid-feedback">لطفا منطقه را انتخاب کنید.</div>
+          </div>
+          <div class="pt-2 mb-3">
+            <label class="form-label fw-bold mb-2" for="property-address"
+              >آدرس</label
+            >
+            <input
+              class="form-control"
+              type="text"
+              id="property-address"
+              placeholder="آدرس را وارد کنید"
+              required
+            />
+            <div class="invalid-feedback">آدرس ملک را انتخاب کنید0</div>
+          </div>
+          <div class="pt-2 mb-3">
+            <label class="form-label fw-bold mb-2">تعداد اتاق</label>
+            <div
+              class="btn-group"
+              role="group"
+              aria-label="Choose number of rooms"
+            >
+              <input class="btn-check" type="radio" id="rooms-1" name="rooms" />
+              <label class="btn btn-outline-secondary" for="rooms-1">1</label>
+              <input class="btn-check" type="radio" id="roome-2" name="rooms" />
+              <label class="btn btn-outline-secondary" for="roome-2">2</label>
+              <input class="btn-check" type="radio" id="roome-3" name="rooms" />
+              <label class="btn btn-outline-secondary" for="roome-3">3</label>
+              <input class="btn-check" type="radio" id="rooms-4" name="rooms" />
+              <label class="btn btn-outline-secondary" for="rooms-4">4</label>
+              <input class="btn-check" type="radio" id="rooms-5" name="rooms" />
+              <label class="btn btn-outline-secondary" for="rooms-5">5+</label>
+            </div>
+          </div>
+          <div class="pt-2 mb-4">
+            <label class="form-label fw-bold mb-2" for="property-area"
+              >متراژ (متر مربع)</label
+            >
+            <input
+              class="form-control"
+              type="text"
+              id="property-area"
+              placeholder="متراژ را وارد کنید"
+              required
+            />
+            <div class="invalid-feedback">متراژ را وارد کنید</div>
+          </div>
+          <button class="btn btn-primary d-block w-100 mb-4" type="submit">
+            <i class="fi-calculator me-2"></i>محاسبه
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
