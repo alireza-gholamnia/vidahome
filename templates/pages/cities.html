@@ -1,4 +1,5 @@
 {% extends "base/base.html" %}
+{% load static %}
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
@@ -26,23 +27,34 @@
     <!-- Page content-->
     {% block title %}شهرها | VidaHome{% endblock %}
     {% block content %}
-      <h1 class="h4 mb-3">شهرها</h1>
-      <div class="list-group">
-        {% for city in cities %}
-          <a href="/s/{{ city.slug }}/"
-             class="list-group-item list-group-item-action d-flex justify-content-between">
-            <span>{{ city.fa_name }}</span>
-            <small class="text-muted">{{ city.slug }}</small>
-          </a>
-        {% empty %}
-          <div class="text-muted">هیچ شهری ثبت نشده است.</div>
-        {% endfor %}
+      <br>
+    </br>
+    <br>
+  </br>
+  <br>
+</br>
+<h1 class="display-1">لیست شهرها</h1>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-4">
+  {% for city in cities %}
+    <div class="col">
+      <div class="card h-100">
+        <img src="{% static 'img/components/01.jpg' %}"
+             class="card-img-top"
+             alt="{{ city.fa_name }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ city.fa_name }}</h5>
+          <p class="card-text fs-sm">{{ city.intro_content|default:"توضیحی برای این شهر ثبت نشده است." }}</p>
+        </div>
+        <div class="card-footer fs-xs text-muted">استان: {{ city.province }} | اسلاگ: {{ city.slug }}</div>
       </div>
-    {% endblock %}
-  </main>
-  {% include "partials/footer.html" %}
-  {% include "partials/Backtotopbutton.html" %}
-  {% include "base/scripts.html" %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock content %}
+</main>
+{% include "partials/footer.html" %}
+{% include "partials/Backtotopbutton.html" %}
+{% include "base/scripts.html" %}
 {% endblock body %}
 {% block extra_js %}
 {% endblock extra_js %}
