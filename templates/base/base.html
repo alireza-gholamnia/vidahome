@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa">
+  <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+  <head>
+    {% block extra_css %}
+    {% endblock extra_css %}
+    {% block extra_head_js %}
+    {% endblock extra_head_js %}
+
+    {% include "base/head.html" %}
+  </head>
+  <body dir="rtl">
+    {% block body %}
+    {% endblock body %}
+    {% block extra_js %}
+    {% endblock extra_js %}
+  </body>
+</html>
