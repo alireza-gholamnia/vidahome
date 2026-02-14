@@ -70,3 +70,6 @@ class Category(BaseSEO, models.Model):
             self.slug = slugify(self.en_name)
         self.full_clean()
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return f"/s/{self.slug}/"

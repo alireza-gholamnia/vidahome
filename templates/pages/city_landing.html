@@ -3,51 +3,75 @@
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
-<!-- Page loading scripts-->
 <script>
   (function () {
     window.onload = function () {
       var preloader = document.querySelector('.page-loading');
-      preloader.classList.remove('active');
-      setTimeout(function () {
-        preloader.remove();
-      }, 2000);
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
     };
   })();
-
 </script>
 {% endblock extra_head_js %}
 {% block body %}
-<!-- Body-->
 <main class="page-wrapper">
   {% include "partials/loading_spinner.html" %}
   {% include "partials/SignInModal.html" %}
   {% include "partials/SignUpModal.html" %}
   {% include "partials/header.html" %}
-  <!-- Page content-->
-  {% block title %}شهرها | VidaHome{% endblock %}
-  {% block content %}
 
-  <br></br>
-  <div class="container">
+  <div class="container py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
 
     <h1 class="mb-3">{{ seo_h1 }}</h1>
-    {% if intro_content %}<p class="lead">{{ intro_content }}</p>{% endif %}
-    {# لیست محله‌ها #}
-    {% if areas %}
-    <div class="mt-4">
-      {% for a in areas %}
-      <a href="/s/{{ city.slug }}/{{ a.slug }}/" class="btn btn-outline-secondary m-1">{{ a.fa_name }}</a>
-      {% endfor %}
-    </div>
+    {% if intro_content %}
+    <p class="lead text-muted">{{ intro_content }}</p>
     {% endif %}
-    {% if main_content %}<div class="content mt-5">{{ main_content|safe }}</div>{% endif %}
+
+    {# محله‌ها #}
+    {% if areas %}
+    <section class="mb-5">
+      <h2 class="h5 mb-3">محله‌های {{ city.fa_name }}</h2>
+      <div class="d-flex flex-wrap gap-2">
+        {% for a in areas %}
+        <a href="/s/{{ city.slug }}/{{ a.slug }}/" class="btn btn-outline-secondary btn-sm">
+          {{ a.fa_name }}
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# آگهی‌های شهر #}
+    <section class="mb-5">
+      <h2 class="h5 mb-4">آگهی‌های {{ city.fa_name }}</h2>
+      {% if listings %}
+      <div class="row g-4">
+        {% for listing in listings %}
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+          {% include "partials/listing_card.html" %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted">فعلاً آگهی‌ای برای این شهر ثبت نشده است.</p>
+      {% endif %}
+    </section>
+
+    {# محتوای اصلی #}
+    {% if main_content %}
+    <section class="mt-5 pt-4 border-top">
+      <div class="content">{{ main_content|safe }}</div>
+    </section>
+    {% endif %}
   </div>
-  {% endblock content %}
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
 </main>
-{% include "partials/footer.html" %}
-{% include "partials/Backtotopbutton.html" %}
-{% include "base/scripts.html" %}
 {% endblock body %}
 {% block extra_js %}
 {% endblock extra_js %}

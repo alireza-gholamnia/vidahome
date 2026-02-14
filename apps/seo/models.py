@@ -60,6 +60,9 @@ class CityCategory(BaseSEO):
     def __str__(self):
         return f"{self.category.fa_name} در {self.city.fa_name}"
 
+    def get_absolute_url(self):
+        return f"/s/{self.city.slug}/{self.category.slug}/"
+
 
 # =====================================================
 # City + Area + Category
@@ -127,3 +130,6 @@ class CityAreaCategory(BaseSEO):
 
     def __str__(self):
         return f"{self.category.fa_name} در {self.area.fa_name} ({self.city.fa_name})"
+
+    def get_absolute_url(self):
+        return f"/s/{self.city.slug}/{self.area.slug}/{self.category.slug}/"

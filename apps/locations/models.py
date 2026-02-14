@@ -85,6 +85,9 @@ class Province(BaseLocation):
             self.slug = slugify(self.en_name)
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return "/cities/"
+
 
 # =====================================================
 # City
@@ -132,6 +135,9 @@ class City(BaseLocation, BaseSEO):
         if not self.slug:
             self.slug = slugify(self.en_name)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return f"/s/{self.slug}/"
 
 
 # =====================================================
@@ -200,3 +206,6 @@ class Area(BaseLocation, BaseSEO):
             raise ValidationError({
                 "slug": "This slug is reserved for categories. Choose a different slug for Area."
             })
+
+    def get_absolute_url(self):
+        return f"/s/{self.city.slug}/{self.slug}/"

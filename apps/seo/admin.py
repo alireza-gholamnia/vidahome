@@ -1,6 +1,17 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from apps.seo.models import CityCategory, CityAreaCategory
+
+
+def _view_link(obj):
+    if obj and hasattr(obj, "get_absolute_url"):
+        url = obj.get_absolute_url()
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">مشاهده</a>',
+            url,
+        )
+    return "-"
 
 
 @admin.register(CityCategory)
@@ -12,7 +23,13 @@ class CityCategoryAdmin(admin.ModelAdmin):
         "allow_index",
         "seo_noindex",
         "sort_order",
+        "_view_link",
     )
+
+    def _view_link(self, obj):
+        return _view_link(obj)
+
+    _view_link.short_description = "مشاهده"
     list_filter = ("is_active", "allow_index", "seo_noindex", "city", "category")
     search_fields = ("city__fa_name", "city__slug", "category__fa_name", "category__slug", "seo_title")
     ordering = ("city", "sort_order", "id")
@@ -29,7 +46,13 @@ class CityAreaCategoryAdmin(admin.ModelAdmin):
         "allow_index",
         "seo_noindex",
         "sort_order",
+        "_view_link",
     )
+
+    def _view_link(self, obj):
+        return _view_link(obj)
+
+    _view_link.short_description = "مشاهده"
     list_filter = ("is_active", "allow_index", "seo_noindex", "city", "area", "category")
     search_fields = (
         "city__fa_name", "city__slug",

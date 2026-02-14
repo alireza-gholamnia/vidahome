@@ -127,8 +127,29 @@ def s_one_segment(request, slug):
     city = City.objects.filter(slug=slug, is_active=True).first()
     if city:
         areas = Area.objects.filter(city=city, is_active=True).order_by("sort_order", "id")
+        listings = (
+            Listing.objects.filter(city=city, status=Listing.Status.PUBLISHED)
+            .select_related("category", "area")
+            .prefetch_related("images")
+            .order_by("-published_at", "-id")[:24]
+        )
         seo = _build_seo_for_city(request, city)
-        return render(request, "pages/city_landing.html", {"city": city, "areas": areas, **seo})
+        breadcrumbs = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "شهرها", "url": "/cities/"},
+            {"title": city.fa_name, "url": None},
+        ]
+        return render(
+            request,
+            "pages/city_landing.html",
+            {
+                "city": city,
+                "areas": areas,
+                "listings": listings,
+                "breadcrumbs": breadcrumbs,
+                **seo,
+            },
+        )
 
     category = Category.objects.filter(slug=slug, is_active=True).first()
     if category:

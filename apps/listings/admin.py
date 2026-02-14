@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Listing
-from .models import Listing, ListingImage
 from django.utils.html import format_html
+
+from .models import Listing, ListingImage
 
 
 class ListingImageInline(admin.TabularInline):
@@ -18,7 +18,28 @@ class ListingImageInline(admin.TabularInline):
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
     inlines = [ListingImageInline]
-    list_display = ("id", "title", "city", "area", "category", "deal", "status", "published_at")
+    list_display = (
+        "id",
+        "title",
+        "city",
+        "area",
+        "category",
+        "deal",
+        "status",
+        "published_at",
+        "_view_link",
+    )
+
+    def _view_link(self, obj):
+        if obj and hasattr(obj, "get_absolute_url"):
+            url = obj.get_absolute_url()
+            return format_html(
+                '<a href="{}" target="_blank" rel="noopener">مشاهده</a>',
+                url,
+            )
+        return "-"
+
+    _view_link.short_description = "مشاهده"
     list_filter = ("status", "deal", "city", "category")
     search_fields = ("id", "title", "slug")
     autocomplete_fields = ("city", "area", "category")
