@@ -1,3 +1,4 @@
+{% load static %}
 <!-- Sign In Modal-->
 <div class="modal fade" id="signin-modal" tabindex="-1" aria-hidden="true">
   <div
@@ -16,7 +17,7 @@
             <h2 class="h3 mb-4 mb-sm-5">سلام!<br />به سایت ما خوش آمدید.</h2>
             <img
               class="d-block mx-auto rotate-img"
-              src="img/signin-modal/signin.svg"
+              src="{% static 'img/signin-modal/signin.svg' %}"
               width="344"
               alt="Illustartion"
             />
