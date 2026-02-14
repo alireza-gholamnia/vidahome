@@ -58,7 +58,7 @@ python manage.py runserver
 ### Admin
 
 - URL: `/admin/`
-- Manage: Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings, SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
+- Manage: Users, Groups, Agencies, Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings, SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
 
 ---
 
@@ -82,7 +82,9 @@ vidahome/
 │       ├── dev.py
 │       └── prod.py
 ├── apps/
-│   ├── common/           # Home view, context processors
+│   ├── common/           # Home view, context processors, upload_utils
+│   ├── accounts/         # Custom User, login, signup, logout
+│   ├── agencies/         # Agency, AgencyImage
 │   ├── locations/        # Province, City, Area
 │   ├── categories/       # Category (tree-based)
 │   ├── attributes/       # (scaffolded)
@@ -93,6 +95,7 @@ vidahome/
 │   ├── base/             # base.html, head.html, scripts.html
 │   ├── partials/         # header, footer, hero, carousels, modals, etc.
 │   ├── pages/            # home, cities, categories, search landings, listing_detail
+│   ├── accounts/         # login.html, signup.html
 │   └── errors/           # 404.html
 ├── static/               # CSS, JS, img (Bootstrap RTL, theme, vendor)
 └── media/                # User uploads (listings, ckeditor)
@@ -128,6 +131,11 @@ vidahome/
 | `/` | Home |
 | `/cities/` | Cities directory |
 | `/categories/` | Categories directory |
+| `/accounts/` | Redirect to `/accounts/login/` |
+| `/accounts/login/` | ورود |
+| `/accounts/signup/` | ثبت‌نام |
+| `/accounts/logout/` | خروج (POST only) |
+| `/a/{slug}/` | Agency landing |
 | `/s/` | Redirect to `/` (no search root) |
 | `/s/{slug}/` | City landing OR Category landing (resolver) |
 | `/s/{city}/{context}/` | Area landing OR City+Category landing (resolver) |
@@ -190,7 +198,21 @@ vidahome/
 - **CityAreaCategory**: SEO override for `/s/{city}/{area}/{category}/`; intro_content, main_content (RichTextUploadingField)
 - **CityAreaCategoryImage**: گالری تصاویر لندینگ محله+دسته
 
-### 5.5 attributes (scaffolded)
+### 5.5 accounts
+
+- **User** (Custom User, `AUTH_USER_MODEL`): extends AbstractUser
+  - `phone`, `avatar`, `is_verified`, `agency` (FK to Agency)
+  - `get_role_display()` — نقش از Django Groups
+- **نقش‌ها:** از طریق Django Groups تعیین می‌شوند (سوپرکاربر گروه‌ها را در ادمین می‌سازد)
+- Login: `CustomLoginView`, Signup: `SignUpView`, Logout: `CustomLogoutView` (POST)
+
+### 5.6 agencies
+
+- **Agency**: name, slug, owner (OneToOne User), logo, cities (M2M), intro_content, main_content
+- **AgencyImage**: گالری تصاویر مشاوره
+- **employees**: reverse از `User.agency` — کاربران با agency پر شده
+
+### 5.7 attributes (scaffolded)
 
 - Dynamic, category-based (planned)
 
@@ -207,7 +229,7 @@ templates/
 │   ├── head.html        # Meta, CSS, SEO injection
 │   └── scripts.html     # JS vendors
 ├── partials/
-│   ├── header.html      # Navbar, cities dropdown, logo
+│   ├── header.html      # Navbar, cities dropdown, logo, ورود/خروج/منوی کاربر
 │   ├── footer.html
 │   ├── hero.html
 │   ├── services.html
@@ -233,7 +255,11 @@ templates/
 │   ├── category_landing.html
 │   ├── city_category_landing.html
 │   ├── area_category_landing.html
+│   ├── agency_landing.html
 │   └── listing_detail.html
+├── accounts/
+│   ├── login.html        # صفحه ورود (قالب signin-light)
+│   └── signup.html       # صفحه ثبت‌نام (قالب signup-light)
 └── errors/
     └── 404.html
 ```
@@ -460,6 +486,31 @@ This README is a **living document** and the only authoritative reference.
 
 - ساختار یکسان برای همه موجودیت‌های لندینگ
 - مسیر تمیز برای آپلودها (همه زیر `media/uploads/`)
+
+**Next step**
+
+- Wire listing ORM filtering + pagination to search landing pages.
+
+---
+
+### Version 13 — Custom User, Accounts, Agencies (Completed)
+
+**Scope:** مدل کاربر سفارشی، ورود/ثبت‌نام/خروج، مشاوره املاک.
+
+**What was implemented**
+
+- **Custom User** (`AUTH_USER_MODEL = "accounts.User"`): فیلدهای `phone`, `agency`, `avatar`, `is_verified` داخل مدل User؛ حذف UserProfile
+- **نقش‌ها:** از Django Groups — سوپرکاربر گروه‌ها را در ادمین می‌سازد
+- **Accounts:** `/accounts/login/`, `/accounts/signup/`, `/accounts/logout/` با قالب‌های signin-light و signup-light
+- **Header:** ورود وقتی لاگین نیست؛ منوی کاربر + دکمه خروج وقتی لاگین است (خروج با POST)
+- **SignUpView:** ریدایرکت به صفحه اصلی اگر کاربر لاگین باشد
+- **Agencies:** مدل Agency با owner، employees (از User.agency)، لندینگ `/a/{slug}/`
+- **.gitignore:** به‌روزرسانی جامع (Python, Django, venv, env, staticfiles, IDE, OS, …)
+
+**Architectural intent**
+
+- یک مدل User برای هویت و پروفایل؛ نقش‌ها با Groups قابل توسعه
+- صفحات ورود/ثبت‌نام مستقل با قالب‌های Finder
 
 **Next step**
 
