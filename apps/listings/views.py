@@ -124,7 +124,7 @@ def _build_seo_for_listing(request, listing: Listing):
 # =============================================================
 
 def s_one_segment(request, slug):
-    city = City.objects.filter(slug=slug, is_active=True).first()
+    city = City.objects.filter(slug=slug, is_active=True).prefetch_related("images").first()
     if city:
         areas = Area.objects.filter(city=city, is_active=True).order_by("sort_order", "id")
         listings = (
@@ -151,10 +151,26 @@ def s_one_segment(request, slug):
             },
         )
 
-    category = Category.objects.filter(slug=slug, is_active=True).first()
+    category = Category.objects.filter(slug=slug, is_active=True).prefetch_related("images").first()
     if category:
+        listings = (
+            Listing.objects.filter(category=category, status=Listing.Status.PUBLISHED)
+            .select_related("city", "area", "category")
+            .prefetch_related("images")
+            .order_by("-published_at", "-id")[:24]
+        )
+        children = Category.objects.filter(parent=category, is_active=True).order_by("sort_order", "id")
         seo = _build_seo_for_category(request, category)
-        return render(request, "pages/category_landing.html", {"category": category, **seo})
+        breadcrumbs = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "دسته‌بندی‌ها", "url": "/categories/"},
+            {"title": category.fa_name, "url": None},
+        ]
+        return render(
+            request,
+            "pages/category_landing.html",
+            {"category": category, "listings": listings, "children": children, "breadcrumbs": breadcrumbs, **seo},
+        )
 
     raise Http404()
 
@@ -166,15 +182,43 @@ def s_one_segment(request, slug):
 def city_context(request, city_slug, context_slug):
     city = get_object_or_404(City, slug=city_slug, is_active=True)
 
-    area = Area.objects.filter(city=city, slug=context_slug, is_active=True).first()
+    area = Area.objects.filter(city=city, slug=context_slug, is_active=True).prefetch_related("images").first()
     if area:
+        listings = (
+            Listing.objects.filter(city=city, area=area, status=Listing.Status.PUBLISHED)
+            .select_related("category", "area")
+            .prefetch_related("images")
+            .order_by("-published_at", "-id")[:24]
+        )
         seo = _build_seo_for_area(request, area)
-        return render(request, "pages/area_landing.html", {"city": city, "area": area, **seo})
+        breadcrumbs = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "شهرها", "url": "/cities/"},
+            {"title": city.fa_name, "url": f"/s/{city.slug}/"},
+            {"title": area.fa_name, "url": None},
+        ]
+        return render(
+            request,
+            "pages/area_landing.html",
+            {"city": city, "area": area, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+        )
 
-    category = Category.objects.filter(slug=context_slug, is_active=True).first()
+    category = Category.objects.filter(slug=context_slug, is_active=True).prefetch_related("images").first()
     if category:
-        landing = CityCategory.objects.filter(city=city, category=category, is_active=True).first()
+        landing = CityCategory.objects.filter(city=city, category=category, is_active=True).prefetch_related("images").first()
 
+        listings = (
+            Listing.objects.filter(city=city, category=category, status=Listing.Status.PUBLISHED)
+            .select_related("area", "category")
+            .prefetch_related("images")
+            .order_by("-published_at", "-id")[:24]
+        )
+        breadcrumbs = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "شهرها", "url": "/cities/"},
+            {"title": city.fa_name, "url": f"/s/{city.slug}/"},
+            {"title": category.fa_name, "url": None},
+        ]
         if landing:
             seo = _build_seo_for_landing(
                 request,
@@ -183,12 +227,14 @@ def city_context(request, city_slug, context_slug):
                 default_h1=f"{category.fa_name} در {city.fa_name}",
                 default_desc=f"آگهی‌های {category.fa_name} در {city.fa_name}. خرید، فروش، رهن و اجاره با VidaHome.",
             )
+            landing_cover = landing.get_landing_cover_image()
             return render(
                 request,
                 "pages/city_category_landing.html",
-                {"city": city, "category": category, "landing": landing, **seo},
+                {"city": city, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
             )
 
+        landing_cover = category.get_landing_cover_image()
         seo = {
             "seo_title": f"{category.fa_name} در {city.fa_name} | VidaHome",
             "seo_meta_description": f"آگهی‌های {category.fa_name} در {city.fa_name}. خرید، فروش، رهن و اجاره با VidaHome.",
@@ -198,7 +244,11 @@ def city_context(request, city_slug, context_slug):
             "intro_content": "",
             "main_content": "",
         }
-        return render(request, "pages/city_category_landing.html", {"city": city, "category": category, **seo})
+        return render(
+            request,
+            "pages/city_category_landing.html",
+            {"city": city, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+        )
 
     raise Http404()
 
@@ -210,15 +260,28 @@ def city_context(request, city_slug, context_slug):
 def area_category(request, city_slug, area_slug, category_slug):
     city = get_object_or_404(City, slug=city_slug, is_active=True)
     area = get_object_or_404(Area, city=city, slug=area_slug, is_active=True)
-    category = get_object_or_404(Category, slug=category_slug, is_active=True)
+    category = get_object_or_404(Category.objects.prefetch_related("images"), slug=category_slug, is_active=True)
 
     landing = CityAreaCategory.objects.filter(
         city=city,
         area=area,
         category=category,
         is_active=True
-    ).first()
+    ).prefetch_related("images").first()
 
+    listings = (
+        Listing.objects.filter(city=city, area=area, category=category, status=Listing.Status.PUBLISHED)
+        .select_related("category", "area")
+        .prefetch_related("images")
+        .order_by("-published_at", "-id")[:24]
+    )
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "شهرها", "url": "/cities/"},
+        {"title": city.fa_name, "url": f"/s/{city.slug}/"},
+        {"title": area.fa_name, "url": f"/s/{city.slug}/{area.slug}/"},
+        {"title": category.fa_name, "url": None},
+    ]
     if landing:
         seo = _build_seo_for_landing(
             request,
@@ -227,12 +290,14 @@ def area_category(request, city_slug, area_slug, category_slug):
             default_h1=f"{category.fa_name} در {area.fa_name}",
             default_desc=f"آگهی‌های {category.fa_name} در {area.fa_name} {city.fa_name}. خرید، فروش، رهن و اجاره با VidaHome.",
         )
+        landing_cover = landing.get_landing_cover_image()
         return render(
             request,
             "pages/area_category_landing.html",
-            {"city": city, "area": area, "category": category, "landing": landing, **seo},
+            {"city": city, "area": area, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
         )
 
+    landing_cover = category.get_landing_cover_image()
     seo = {
         "seo_title": f"{category.fa_name} در {area.fa_name} {city.fa_name} | VidaHome",
         "seo_meta_description": f"آگهی‌های {category.fa_name} در {area.fa_name} {city.fa_name}. خرید، فروش، رهن و اجاره با VidaHome.",
@@ -242,7 +307,11 @@ def area_category(request, city_slug, area_slug, category_slug):
         "intro_content": "",
         "main_content": "",
     }
-    return render(request, "pages/area_category_landing.html", {"city": city, "area": area, "category": category, **seo})
+    return render(
+        request,
+        "pages/area_category_landing.html",
+        {"city": city, "area": area, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+    )
 
 
 # =============================================================

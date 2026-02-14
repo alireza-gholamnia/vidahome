@@ -6,6 +6,7 @@ def cities_directory(request):
     cities = (
         City.objects
         .filter(is_active=True)
+        .prefetch_related("images")
         .order_by("sort_order", "id")
     )
     return render(request, "pages/cities.html", {"cities": cities})

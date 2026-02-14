@@ -100,7 +100,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = PROJECT_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-CKEDITOR_UPLOAD_PATH = "content/ckeditor/"
+MEDIA_ROOT = PROJECT_DIR / "media"
+# مسیر واحد آپلود: CKEditor و تصاویر محتوا در uploads/ ذخیره می‌شوند
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

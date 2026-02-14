@@ -1,15 +1,75 @@
-{% extends "base/base.html" %} {% block content %}
-<h1 class="mb-3">{{ seo_h1|default:area.fa_name }}</h1>
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
 
-<p class="text-muted mb-4">
-  منطقه {{ area.fa_name }} در شهر
-  <a href="/s/{{ city.slug }}/" class="link-secondary text-decoration-none">
-    {{ city.fa_name }}
-  </a>
-</p>
+  <div class="container py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
 
-{% if intro_content %}
-<p class="lead">{{ intro_content }}</p>
-{% endif %} {% if main_content %}
-<div class="content mt-5">{{ main_content|safe }}</div>
-{% endif %} {% endblock %}
+    {% with landing_cover=area.get_landing_cover_image %}
+    {% if landing_cover %}
+    <div class="mb-4 rounded overflow-hidden" style="max-height: 360px;">
+      <img src="{{ landing_cover.image.url }}" alt="{{ landing_cover.alt|default:area.fa_name }}" class="w-100" style="height: 360px; object-fit: cover;">
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <h1 class="mb-3">{{ seo_h1 }}</h1>
+    <p class="text-muted mb-4">
+      محله {{ area.fa_name }} در شهر
+      <a href="/s/{{ city.slug }}/" class="link-secondary text-decoration-none">{{ city.fa_name }}</a>
+    </p>
+    {% if intro_content %}
+    <p class="lead text-muted">{{ intro_content }}</p>
+    {% endif %}
+
+    {# آگهی‌های محله #}
+    <section class="mb-5">
+      <h2 class="h5 mb-4">آگهی‌های {{ area.fa_name }}</h2>
+      {% if listings %}
+      <div class="row g-4">
+        {% for listing in listings %}
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+          {% include "partials/listing_card.html" %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted">فعلاً آگهی‌ای برای این محله ثبت نشده است.</p>
+      {% endif %}
+    </section>
+
+    {# محتوای اصلی #}
+    {% if main_content %}
+    <section class="mt-5 pt-4 border-top">
+      <div class="content">{{ main_content|safe }}</div>
+    </section>
+    {% endif %}
+  </div>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}
+{% block extra_js %}
+{% endblock extra_js %}

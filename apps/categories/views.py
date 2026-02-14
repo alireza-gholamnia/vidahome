@@ -3,7 +3,7 @@ from .models import Category
 
 def categories_directory(request):
     categories = (
-        Category.objects
+        Category.objects.prefetch_related("images")
         .filter(parent__isnull=True, is_active=True)
         .prefetch_related("children")
         .order_by("sort_order", "fa_name")   # ✅ به جای name

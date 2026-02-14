@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.apps import apps
 
 from apps.seo.base import BaseSEO
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 
 
 class Category(BaseSEO, models.Model):
@@ -32,7 +32,10 @@ class Category(BaseSEO, models.Model):
 
     # --- Landing content ---
     intro_content = models.TextField(blank=True)
-    main_content = RichTextField(blank=True)
+    main_content = RichTextUploadingField(
+        blank=True,
+        help_text="محتوا با امکان درج و آپلود تصویر",
+    )
 
     class Meta:
         ordering = ("sort_order", "id")
@@ -73,3 +76,50 @@ class Category(BaseSEO, models.Model):
 
     def get_absolute_url(self):
         return f"/s/{self.slug}/"
+
+    def get_cover_image(self):
+        """تصویر شاخص برای کارت دسته‌بندی."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_cover:
+                return img
+        return images[0] if images else None
+
+    def get_landing_cover_image(self):
+        """تصویر کاور صفحه لندینگ دسته‌بندی."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_landing_cover:
+                return img
+        return images[0] if images else None
+
+
+# =====================================================
+# CategoryImage
+# =====================================================
+
+class CategoryImage(models.Model):
+    """
+    گالری تصاویر دسته‌بندی.
+    """
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="uploads/categories/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True)
+    caption = models.CharField(max_length=200, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False, help_text="تصویر کارت دسته‌بندی")
+    is_landing_cover = models.BooleanField(default=False, help_text="کاور صفحه لندینگ")
+    is_content_image = models.BooleanField(default=False, help_text="تصاویر محتوا")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        verbose_name = "تصویر دسته‌بندی"
+        verbose_name_plural = "تصاویر دسته‌بندی"
+
+    def __str__(self):
+        return f"Image {self.id} for {self.category.fa_name}"

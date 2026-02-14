@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 from apps.seo.base import BaseSEO
 from django.apps import apps
 
@@ -112,9 +112,9 @@ class City(BaseLocation, BaseSEO):
         help_text="Short intro shown at top of city landing page"
     )
 
-    main_content = RichTextField(
+    main_content = RichTextUploadingField(
         blank=True,
-        help_text="Main city landing content"
+        help_text="محتوا با امکان درج و آپلود تصویر — از دکمه تصویر در ویرایشگر استفاده کنید."
     )
 
     class Meta(BaseLocation.Meta):
@@ -139,6 +139,73 @@ class City(BaseLocation, BaseSEO):
     def get_absolute_url(self):
         return f"/s/{self.slug}/"
 
+    def get_cover_image(self):
+        """تصویر شاخص برای کارت شهر (صفحه لیست شهرها)."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_cover:
+                return img
+        return images[0] if images else None
+
+    def get_landing_cover_image(self):
+        """تصویر کاور صفحه لندینگ شهر."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_landing_cover:
+                return img
+        return images[0] if images else None
+
+
+# =====================================================
+# CityImage — گالری تصاویر شاخص شهر
+# =====================================================
+
+class CityImage(models.Model):
+    """
+    گالری تصاویر شهر:
+    - is_cover: تصویر کارت شهر (صفحه لیست شهرها)
+    - is_landing_cover: کاور صفحه لندینگ شهر
+    - is_content_image: تصاویر محتوا — برای استفاده در ریچ‌تکست (همان مسیر اپلود CKEditor)
+    """
+    city = models.ForeignKey(
+        City,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="uploads/cities/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True, help_text="متن جایگزین برای سئو و دسترسی‌پذیری")
+    caption = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="لیبل نمایشی — برای تصاویر محتوا مفید است",
+    )
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(
+        default=False,
+        help_text="تصویر شاخص برای کارت شهر در صفحه لیست شهرها",
+    )
+    is_landing_cover = models.BooleanField(
+        default=False,
+        help_text="عکس کاور صفحه لندینگ شهر — نمایش در بالای صفحه شهر",
+    )
+    is_content_image = models.BooleanField(
+        default=False,
+        help_text="تصاویر محتوا — برای درج در محتوای ریچ‌تکست شهر",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        verbose_name = "تصویر شهر"
+        verbose_name_plural = "تصاویر شهر"
+        indexes = [
+            models.Index(fields=["city", "sort_order"]),
+            models.Index(fields=["city", "is_cover"]),
+        ]
+
+    def __str__(self):
+        return f"Image {self.id} for {self.city.fa_name}"
+
 
 # =====================================================
 # Area
@@ -162,9 +229,9 @@ class Area(BaseLocation, BaseSEO):
         help_text="Short intro shown at top of area landing page"
     )
 
-    main_content = RichTextField(
+    main_content = RichTextUploadingField(
         blank=True,
-        help_text="Main area landing content"
+        help_text="محتوا با امکان درج و آپلود تصویر"
     )
 
     class Meta(BaseLocation.Meta):
@@ -188,19 +255,6 @@ class Area(BaseLocation, BaseSEO):
         /s/{city}/{context}
         where context can be Area or Category.
         """
-        if self.slug and Category.objects.filter(slug=self.slug).exists():
-            raise ValidationError({
-                "slug": "This slug is reserved for categories. Choose a different slug for Area."
-            })
-
-
-    def clean(self):
-        """
-        Prevent Area.slug collision with Category slugs.
-        This avoids ambiguity in:
-        /s/{city}/{context}
-        where context can be Area or Category.
-        """
         Category = apps.get_model("categories", "Category")
         if self.slug and Category.objects.filter(slug=self.slug).exists():
             raise ValidationError({
@@ -209,3 +263,48 @@ class Area(BaseLocation, BaseSEO):
 
     def get_absolute_url(self):
         return f"/s/{self.city.slug}/{self.slug}/"
+
+    def get_cover_image(self):
+        """تصویر شاخص برای کارت محله."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_cover:
+                return img
+        return images[0] if images else None
+
+    def get_landing_cover_image(self):
+        """تصویر کاور صفحه لندینگ محله."""
+        images = list(self.images.all())
+        for img in images:
+            if img.is_landing_cover:
+                return img
+        return images[0] if images else None
+
+
+# =====================================================
+# AreaImage
+# =====================================================
+
+class AreaImage(models.Model):
+    """گالری تصاویر محله."""
+    area = models.ForeignKey(
+        Area,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="uploads/areas/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True)
+    caption = models.CharField(max_length=200, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False, help_text="تصویر کارت محله")
+    is_landing_cover = models.BooleanField(default=False, help_text="کاور صفحه لندینگ محله")
+    is_content_image = models.BooleanField(default=False, help_text="تصاویر محتوا")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        verbose_name = "تصویر محله"
+        verbose_name_plural = "تصاویر محله"
+
+    def __str__(self):
+        return f"Image {self.id} for {self.area.fa_name}"

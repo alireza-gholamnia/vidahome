@@ -25,6 +25,14 @@
   <div class="container py-4 py-lg-5">
     {% include "partials/breadcrumbs.html" %}
 
+    {% with landing_cover=city.get_landing_cover_image %}
+    {% if landing_cover %}
+    <div class="mb-4 rounded overflow-hidden" style="max-height: 360px;">
+      <img src="{{ landing_cover.image.url }}" alt="{{ landing_cover.alt|default:city.fa_name }}" class="w-100" style="height: 360px; object-fit: cover;">
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <h1 class="mb-3">{{ seo_h1 }}</h1>
     {% if intro_content %}
     <p class="lead text-muted">{{ intro_content }}</p>

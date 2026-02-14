@@ -1,45 +1,82 @@
-{% include "base/head.html" %} {% block content %}
-<div class="container py-5">
-  <div class="mb-4">
-    <h1 class="mb-2">دسته‌بندی‌ها</h1>
-    <p class="text-muted mb-0">
-      دسته‌بندی‌های اصلی املاک را انتخاب کنید و وارد صفحات جستجو شوید.
-    </p>
-  </div>
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
 
-  <div class="row">
-    {% for category in categories %}
-    <div class="col-md-4 mb-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
+  <div class="container py-4 py-lg-5">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">صفحه اصلی</a></li>
+        <li class="breadcrumb-item active" aria-current="page">دسته‌بندی‌ها</li>
+      </ol>
+    </nav>
 
-          {% if category.children.all %}
-          <ul class="mb-3">
-            {% for child in category.children.all %}
-            <li class="mb-1">
-              <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="text-muted small mb-3">زیر‌دسته‌ای ثبت نشده است.</p>
+    <div class="mb-4">
+      <h1 class="mb-2">دسته‌بندی‌ها</h1>
+      <p class="text-muted mb-0">
+        دسته‌بندی‌های اصلی املاک را انتخاب کنید و وارد صفحات جستجو شوید.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      {% for category in categories %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          {% with cover=category.get_cover_image %}
+          {% if cover %}
+          <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" style="height: 180px; object-fit: cover;">
           {% endif %}
-
-          <a
-            class="btn btn-sm btn-outline-primary"
-            href="/s/{{ category.slug }}/"
-          >
-            مشاهده صفحه جستجو
-          </a>
+          {% endwith %}
+          <div class="card-body">
+            <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
+            {% if category.children.all %}
+            <ul class="mb-3 list-unstyled">
+              {% for child in category.children.all %}
+              <li class="mb-1">
+                <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
+              مشاهده صفحه جستجو
+            </a>
+          </div>
         </div>
       </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="alert alert-warning">هیچ دسته‌بندی فعالی وجود ندارد.</div>
+      </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <div class="col-12">
-      <div class="alert alert-warning">هیچ دسته‌بندی فعالی وجود ندارد.</div>
-    </div>
-    {% endfor %}
   </div>
-</div>
-{% endblock %}
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}
+{% block extra_js %}
+{% endblock extra_js %}

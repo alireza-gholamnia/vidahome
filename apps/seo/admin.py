@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from apps.seo.models import CityCategory, CityAreaCategory
+from apps.seo.models import CityCategory, CityCategoryImage, CityAreaCategory, CityAreaCategoryImage
 
 
 def _view_link(obj):
@@ -14,8 +14,16 @@ def _view_link(obj):
     return "-"
 
 
+class CityCategoryImageInline(admin.TabularInline):
+    model = CityCategoryImage
+    extra = 0
+    fields = ("image", "alt", "caption", "sort_order", "is_cover", "is_landing_cover", "is_content_image")
+    ordering = ("sort_order", "id")
+
+
 @admin.register(CityCategory)
 class CityCategoryAdmin(admin.ModelAdmin):
+    inlines = (CityCategoryImageInline,)
     list_display = (
         "city",
         "category",
@@ -36,8 +44,16 @@ class CityCategoryAdmin(admin.ModelAdmin):
     autocomplete_fields = ("city", "category")
 
 
+class CityAreaCategoryImageInline(admin.TabularInline):
+    model = CityAreaCategoryImage
+    extra = 0
+    fields = ("image", "alt", "caption", "sort_order", "is_cover", "is_landing_cover", "is_content_image")
+    ordering = ("sort_order", "id")
+
+
 @admin.register(CityAreaCategory)
 class CityAreaCategoryAdmin(admin.ModelAdmin):
+    inlines = (CityAreaCategoryImageInline,)
     list_display = (
         "city",
         "area",

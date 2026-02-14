@@ -58,7 +58,7 @@ python manage.py runserver
 ### Admin
 
 - URL: `/admin/`
-- Manage: Provinces, Cities, Areas, Categories, Listings, SEO overrides (CityCategory, CityAreaCategory)
+- Manage: Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings, SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
 
 ---
 
@@ -106,7 +106,7 @@ vidahome/
 | Database | SQLite (dev) / PostgreSQL (prod recommended) |
 | Templates | Django Templates (SSR) |
 | UI | Bootstrap 5 RTL, local assets |
-| Rich Text | django-ckeditor |
+| Rich Text | django-ckeditor, ckeditor-uploader (image upload) |
 | Language | Persian (fa), RTL |
 
 ### Architectural Rationale
@@ -163,14 +163,18 @@ vidahome/
 **Province → City → Area**
 
 - **Province**: DB-only (not in URL)
-- **City**: `slug` globally unique, exposed at `/s/{city}/`
-- **Area**: `slug` unique per city, exposed at `/s/{city}/{area}/`
+- **City**: `slug` globally unique, exposed at `/s/{city}/`; intro_content, main_content (RichTextUploadingField)
+- **CityImage**: گالری تصاویر شهر — is_cover (کارت شهر), is_landing_cover (کاور لندینگ), is_content_image, alt, caption
+- **Area**: `slug` unique per city, exposed at `/s/{city}/{area}/`; intro_content, main_content (RichTextUploadingField)
+- **AreaImage**: گالری تصاویر محله — همان ساختار CityImage
 
 ### 5.2 categories
 
 - Tree-based (parent/child)
 - `slug` globally unique
 - Deal-independent
+- intro_content, main_content (RichTextUploadingField)
+- **CategoryImage**: گالری تصاویر دسته — is_cover, is_landing_cover, is_content_image, alt, caption
 - Used in `/s/{category}/`, `/s/{city}/{category}/`, etc.
 
 ### 5.3 listings
@@ -181,8 +185,10 @@ vidahome/
 ### 5.4 seo
 
 - **BaseSEO**: seo_title, seo_meta_description, seo_h1, seo_canonical, seo_noindex, allow_index, seo_priority
-- **CityCategory**: SEO override for `/s/{city}/{category}/`
-- **CityAreaCategory**: SEO override for `/s/{city}/{area}/{category}/`
+- **CityCategory**: SEO override for `/s/{city}/{category}/`; intro_content, main_content (RichTextUploadingField)
+- **CityCategoryImage**: گالری تصاویر لندینگ شهر+دسته
+- **CityAreaCategory**: SEO override for `/s/{city}/{area}/{category}/`; intro_content, main_content (RichTextUploadingField)
+- **CityAreaCategoryImage**: گالری تصاویر لندینگ محله+دسته
 
 ### 5.5 attributes (scaffolded)
 
@@ -262,8 +268,12 @@ Registered in `config/settings/base.py` → `TEMPLATES['OPTIONS']['context_proce
 ### Media
 
 - `MEDIA_URL = "/media/"`
-- `MEDIA_ROOT = config/media` (BASE_DIR / media)
-- Used for: Listing images, CKEditor uploads
+- `MEDIA_ROOT = PROJECT_DIR / "media"`
+- `CKEDITOR_UPLOAD_PATH = "uploads/"` — مسیر واحد آپلود ریچ‌تکست و تصاویر محتوا
+- **مسیرهای ذخیره تصاویر:**
+  - لیستینگ: `listings/%Y/%m/`
+  - شهر، محله، دسته، لندینگ‌ها: `uploads/cities/`, `uploads/areas/`, `uploads/categories/`, `uploads/city_category/`, `uploads/area_category/`
+  - CKEditor (ریچ‌تکست): `uploads/%Y/%m/`
 
 ### Image Paths
 
@@ -426,6 +436,34 @@ This README is a **living document** and the only authoritative reference.
 - Add missing image files to `static/img/real-estate/recent/`, `static/img/real-estate/catalog/`, `static/img/real-estate/city/` if needed.
 - Wire listing ORM filtering + pagination to search landing pages.
 - Replace static "ملک های جدید" content in Recentlyadded with real listings from DB.
+
+---
+
+### Version 12 — Image Galleries + RichText Upload (Completed)
+
+**Scope:** گالری تصاویر و آپلود تصویر در ریچ‌تکست برای City, Area, Category و ترکیب‌ها.
+
+**What was implemented**
+
+- **CityImage, AreaImage, CategoryImage, CityCategoryImage, CityAreaCategoryImage** — مدل‌های گالری با فیلدهای:
+  - `is_cover`: تصویر کارت (صفحه لیست شهرها/دسته‌ها)
+  - `is_landing_cover`: کاور صفحه لندینگ
+  - `is_content_image`: تصاویر محتوا
+  - `alt`, `caption`
+- **RichTextUploadingField** برای `main_content` در City, Area, Category, CityCategory, CityAreaCategory — امکان آپلود تصویر در ویرایشگر
+- مسیر واحد آپلود: `uploads/` (CKEditor + تصاویر گالری)
+- Inline گالری تصاویر در ادمین City, Area, Category, CityCategory, CityAreaCategory
+- نمایش تصویر کاور در صفحات لندینگ شهر، محله، دسته، شهر+دسته، محله+دسته
+- نمایش تصویر کارت در صفحه لیست شهرها و دسته‌ها
+
+**Architectural intent**
+
+- ساختار یکسان برای همه موجودیت‌های لندینگ
+- مسیر تمیز برای آپلودها (همه زیر `media/uploads/`)
+
+**Next step**
+
+- Wire listing ORM filtering + pagination to search landing pages.
 
 ---
 

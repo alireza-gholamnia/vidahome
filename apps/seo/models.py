@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
-from ckeditor.fields import RichTextField
+from ckeditor_uploader.fields import RichTextUploadingField
 
 from apps.seo.base import BaseSEO
 from apps.locations.models import City, Area
@@ -36,9 +36,9 @@ class CityCategory(BaseSEO):
         help_text="Intro content shown above listings"
     )
 
-    main_content = RichTextField(
+    main_content = RichTextUploadingField(
         blank=True,
-        help_text="Main SEO content for city+category landing"
+        help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     is_active = models.BooleanField(
@@ -62,6 +62,45 @@ class CityCategory(BaseSEO):
 
     def get_absolute_url(self):
         return f"/s/{self.city.slug}/{self.category.slug}/"
+
+    def get_cover_image(self):
+        images = list(self.images.all())
+        for img in images:
+            if img.is_cover:
+                return img
+        return images[0] if images else None
+
+    def get_landing_cover_image(self):
+        images = list(self.images.all())
+        for img in images:
+            if img.is_landing_cover:
+                return img
+        return images[0] if images else None
+
+
+class CityCategoryImage(models.Model):
+    """گالری تصاویر لندینگ شهر + دسته."""
+    city_category = models.ForeignKey(
+        CityCategory,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="uploads/city_category/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True)
+    caption = models.CharField(max_length=200, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False)
+    is_landing_cover = models.BooleanField(default=False, help_text="کاور صفحه لندینگ")
+    is_content_image = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        verbose_name = "تصویر شهر+دسته"
+        verbose_name_plural = "تصاویر شهر+دسته"
+
+    def __str__(self):
+        return f"Image for {self.city_category}"
 
 
 # =====================================================
@@ -98,9 +137,9 @@ class CityAreaCategory(BaseSEO):
         help_text="Intro content shown above listings"
     )
 
-    main_content = RichTextField(
+    main_content = RichTextUploadingField(
         blank=True,
-        help_text="Main SEO content for area+category landing"
+        help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     is_active = models.BooleanField(
@@ -133,3 +172,42 @@ class CityAreaCategory(BaseSEO):
 
     def get_absolute_url(self):
         return f"/s/{self.city.slug}/{self.area.slug}/{self.category.slug}/"
+
+    def get_cover_image(self):
+        images = list(self.images.all())
+        for img in images:
+            if img.is_cover:
+                return img
+        return images[0] if images else None
+
+    def get_landing_cover_image(self):
+        images = list(self.images.all())
+        for img in images:
+            if img.is_landing_cover:
+                return img
+        return images[0] if images else None
+
+
+class CityAreaCategoryImage(models.Model):
+    """گالری تصاویر لندینگ محله + دسته."""
+    city_area_category = models.ForeignKey(
+        CityAreaCategory,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField(upload_to="uploads/area_category/%Y/%m/")
+    alt = models.CharField(max_length=180, blank=True)
+    caption = models.CharField(max_length=200, blank=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_cover = models.BooleanField(default=False)
+    is_landing_cover = models.BooleanField(default=False, help_text="کاور صفحه لندینگ")
+    is_content_image = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("sort_order", "id")
+        verbose_name = "تصویر محله+دسته"
+        verbose_name_plural = "تصاویر محله+دسته"
+
+    def __str__(self):
+        return f"Image for {self.city_area_category}"

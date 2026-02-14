@@ -39,7 +39,9 @@
     {% for city in cities %}
     <div class="col">
       <div class="card h-100">
-        <img src="{% static 'img/components/01.jpg' %}" class="card-img-top" alt="{{ city.fa_name }}">
+        {% with cover=city.get_cover_image %}
+        <img src="{% if cover %}{{ cover.image.url }}{% else %}{% static 'img/components/01.jpg' %}{% endif %}" class="card-img-top" alt="{{ cover.alt|default:city.fa_name }}" style="height: 180px; object-fit: cover;">
+        {% endwith %}
         <div class="card-body">
           <h5 class="card-title">{{ city.fa_name }}</h5>
           <p class="card-text fs-sm">{{ city.intro_content|default:"توضیحی برای این شهر ثبت نشده است." }}</p>

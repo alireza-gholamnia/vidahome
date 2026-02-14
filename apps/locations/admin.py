@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Province, City, Area
+from .models import Province, City, CityImage, Area, AreaImage
 
 
 def _view_link(url):
@@ -27,9 +27,17 @@ class ProvinceAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("en_name",)}
 
 
+class CityImageInline(admin.TabularInline):
+    model = CityImage
+    extra = 0
+    fields = ("image", "alt", "caption", "sort_order", "is_cover", "is_landing_cover", "is_content_image")
+    ordering = ("sort_order", "id")
+
+
 @admin.register(City)
 class CityAdmin(admin.ModelAdmin):
     list_display = ("fa_name", "en_name", "slug", "province", "is_active", "sort_order", "_view_link")
+    inlines = (CityImageInline,)
 
     def _view_link(self, obj):
         return _view_link(obj.get_absolute_url() if obj else None)
@@ -74,9 +82,17 @@ class CityAdmin(admin.ModelAdmin):
     )
 
 
+class AreaImageInline(admin.TabularInline):
+    model = AreaImage
+    extra = 0
+    fields = ("image", "alt", "caption", "sort_order", "is_cover", "is_landing_cover", "is_content_image")
+    ordering = ("sort_order", "id")
+
+
 @admin.register(Area)
 class AreaAdmin(admin.ModelAdmin):
     list_display = ("fa_name", "en_name", "slug", "city", "is_active", "sort_order", "_view_link")
+    inlines = (AreaImageInline,)
 
     def _view_link(self, obj):
         return _view_link(obj.get_absolute_url() if obj else None)
