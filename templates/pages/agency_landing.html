@@ -1,0 +1,122 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <div class="container py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
+
+    {% if landing_cover %}
+    <div class="mb-4 rounded overflow-hidden" style="max-height: 360px;">
+      <img src="{{ landing_cover.image.url }}" alt="{{ landing_cover.alt|default:agency.name }}" class="w-100" style="height: 360px; object-fit: cover;">
+    </div>
+    {% endif %}
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      {% if agency.logo %}
+      <img src="{{ agency.logo.url }}" alt="{{ agency.name }}" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
+      {% endif %}
+      <div>
+        <h1 class="mb-1">{{ seo_h1 }}</h1>
+        {% if agency.phone %}
+        <p class="text-muted mb-0">
+          <i class="fi-phone me-2"></i>
+          <a href="tel:{{ agency.phone }}">{{ agency.phone }}</a>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if agency.intro_content %}
+    <p class="lead text-muted mb-4">{{ agency.intro_content }}</p>
+    {% endif %}
+
+    {% if agency.cities.exists %}
+    <section class="mb-5">
+      <h2 class="h5 mb-3">شهرهای تحت فعالیت</h2>
+      <div class="d-flex flex-wrap gap-2">
+        {% for city in agency.cities.all %}
+        <a href="/s/{{ city.slug }}/" class="btn btn-outline-secondary btn-sm">{{ city.fa_name }}</a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if employees %}
+    <section class="mb-5">
+      <h2 class="h5 mb-3">تیم مشاوره</h2>
+      <div class="row g-3">
+        {% for employee in employees %}
+        <div class="col-sm-6 col-md-4">
+          <div class="card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+              {% if employee.avatar %}
+              <img src="{{ employee.avatar.url }}" alt="{{ employee.get_full_name|default:employee.username }}" class="rounded-circle" style="width: 48px; height: 48px; object-fit: cover;">
+              {% else %}
+              <div class="rounded-circle bg-faded-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="fi-user text-primary"></i>
+              </div>
+              {% endif %}
+              <div>
+                <h6 class="mb-0">{{ employee.get_full_name|default:employee.username }}</h6>
+                <small class="text-muted">{{ employee.get_role_display }}</small>
+                {% if employee.phone %}
+                <br><small><a href="tel:{{ employee.phone }}">{{ employee.phone }}</a></small>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="mb-5">
+      <h2 class="h5 mb-4">آگهی‌های {{ agency.name }}</h2>
+      {% if listings %}
+      <div class="row g-4">
+        {% for listing in listings %}
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+          {% include "partials/listing_card.html" %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted">فعلاً آگهی‌ای از این مشاوره ثبت نشده است.</p>
+      {% endif %}
+    </section>
+
+    {% if agency.main_content %}
+    <section class="mt-5 pt-4 border-top">
+      <div class="content">{{ agency.main_content|safe }}</div>
+    </section>
+    {% endif %}
+  </div>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}
+{% block extra_js %}
+{% endblock extra_js %}

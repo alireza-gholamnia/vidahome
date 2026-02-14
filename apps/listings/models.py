@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 
 from ckeditor.fields import RichTextField
 from apps.seo.base import BaseSEO
+from apps.common.upload_utils import listing_image_upload_to
 
 
 class Listing(BaseSEO, models.Model):
@@ -96,6 +98,24 @@ class Listing(BaseSEO, models.Model):
     )
 
     # =====================================================
+    # Creator & Agency
+    # =====================================================
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="listings",
+    )
+    agency = models.ForeignKey(
+        "agencies.Agency",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="listings",
+    )
+
+    # =====================================================
     # Timestamps
     # =====================================================
     created_at = models.DateTimeField(auto_now_add=True)
@@ -141,7 +161,7 @@ class ListingImage(models.Model):
         related_name="images",
     )
 
-    image = models.ImageField(upload_to="listings/%Y/%m/")
+    image = models.ImageField(upload_to=listing_image_upload_to)
     alt = models.CharField(max_length=180, blank=True)
 
     sort_order = models.PositiveIntegerField(default=0)

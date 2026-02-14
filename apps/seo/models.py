@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ckeditor_uploader.fields import RichTextUploadingField
 
 from apps.seo.base import BaseSEO
+from apps.common.upload_utils import city_category_image_upload_to, area_category_image_upload_to
 from apps.locations.models import City, Area
 from apps.categories.models import Category
 
@@ -85,7 +86,7 @@ class CityCategoryImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to="uploads/city_category/%Y/%m/")
+    image = models.ImageField(upload_to=city_category_image_upload_to)
     alt = models.CharField(max_length=180, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -195,7 +196,7 @@ class CityAreaCategoryImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to="uploads/area_category/%Y/%m/")
+    image = models.ImageField(upload_to=area_category_image_upload_to)
     alt = models.CharField(max_length=180, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)

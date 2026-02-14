@@ -5,6 +5,7 @@ from django.apps import apps
 
 from apps.seo.base import BaseSEO
 from ckeditor_uploader.fields import RichTextUploadingField
+from apps.common.upload_utils import category_image_upload_to
 
 
 class Category(BaseSEO, models.Model):
@@ -107,7 +108,7 @@ class CategoryImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to="uploads/categories/%Y/%m/")
+    image = models.ImageField(upload_to=category_image_upload_to)
     alt = models.CharField(max_length=180, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)

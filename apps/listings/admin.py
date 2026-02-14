@@ -22,8 +22,7 @@ class ListingAdmin(admin.ModelAdmin):
         "id",
         "title",
         "city",
-        "area",
-        "category",
+        "agency",
         "deal",
         "status",
         "published_at",
@@ -42,7 +41,7 @@ class ListingAdmin(admin.ModelAdmin):
     _view_link.short_description = "مشاهده"
     list_filter = ("status", "deal", "city", "category")
     search_fields = ("id", "title", "slug")
-    autocomplete_fields = ("city", "area", "category")
+    autocomplete_fields = ("city", "area", "category", "agency")
 
     fieldsets = (
         ("Listing Core", {
@@ -50,6 +49,7 @@ class ListingAdmin(admin.ModelAdmin):
                 "title", "slug",
                 ("city", "area", "category"),
                 ("deal", "status", "published_at"),
+                ("created_by", "agency"),
             )
         }),
         ("SEO (Optional Overrides)", {

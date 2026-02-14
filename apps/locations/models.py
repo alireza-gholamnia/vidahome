@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from apps.seo.base import BaseSEO
+from apps.common.upload_utils import city_image_upload_to, area_image_upload_to
 from django.apps import apps
 
 
@@ -172,7 +173,7 @@ class CityImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to="uploads/cities/%Y/%m/")
+    image = models.ImageField(upload_to=city_image_upload_to)
     alt = models.CharField(max_length=180, blank=True, help_text="متن جایگزین برای سئو و دسترسی‌پذیری")
     caption = models.CharField(
         max_length=200,
@@ -292,7 +293,7 @@ class AreaImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.ImageField(upload_to="uploads/areas/%Y/%m/")
+    image = models.ImageField(upload_to=area_image_upload_to)
     alt = models.CharField(max_length=180, blank=True)
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)

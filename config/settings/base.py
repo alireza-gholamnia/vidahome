@@ -30,10 +30,12 @@ INSTALLED_APPS = [
     "apps.common",
     "apps.locations",
     "apps.categories",
+    "apps.seo",
+    "apps.agencies",
+    "apps.accounts",
     "apps.attributes",
     "apps.listings",
     "apps.blog",
-    "apps.seo",
 ]
 
 MIDDLEWARE = [
@@ -101,7 +103,27 @@ STATIC_ROOT = PROJECT_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = PROJECT_DIR / "media"
+# همه تصاویر با Pillow به WebP تبدیل می‌شوند
+STORAGES = {
+    "default": {
+        "BACKEND": "apps.common.storage.WebPImageStorage",
+        "OPTIONS": {
+            "location": PROJECT_DIR / "media",
+            "base_url": "/media/",
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 # مسیر واحد آپلود: CKEditor و تصاویر محتوا در uploads/ ذخیره می‌شوند
 CKEDITOR_UPLOAD_PATH = "uploads/"
+# نام یکتای خودکار برای تصاویر ریچ‌تکست — وابسته به نام فایل ورودی نیست
+CKEDITOR_FILENAME_GENERATOR = "apps.common.upload_utils.unique_filename"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_REDIRECT_URL = "/admin/"
+LOGIN_URL = "/accounts/login/"

@@ -1,0 +1,71 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" media="screen" href="{% static 'css/loading.css' %}" />
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<div class="page-loading active">
+  <div class="page-loading-inner">
+    <div class="page-spinner"></div>
+    <span>لطفا منتظر باشید</span>
+  </div>
+</div>
+<main class="page-wrapper">
+  <div class="container-fluid d-flex h-100 align-items-center justify-content-center py-4 py-sm-5 bg-secondary">
+    <div class="card card-body" style="max-width: 940px">
+      <a class="position-absolute top-0 end-0 nav-link fs-sm py-1 px-2 mt-3 me-3" href="{% url 'home' %}">
+        <i class="fi-arrow-long-right fs-base me-2"></i>برگشت
+      </a>
+      <div class="row mx-0 align-items-center">
+        <div class="col-md-6 border-end-md p-4 p-sm-5">
+          <h2 class="h3 mb-4 mb-sm-5">سلام!<br>به سایت ما خوش آمدید.</h2>
+          <img class="d-block mx-auto rotate-img" src="{% static 'img/signin-modal/signin.svg' %}" width="344" alt="Illustration">
+          <div class="mt-4 mt-sm-5">هنوز ثبت نام نکرده اید؟ <a href="{% url 'accounts:signup' %}">ثبت نام</a></div>
+        </div>
+        <div class="col-md-6 px-4 pt-2 pb-4 px-sm-5 pb-sm-5 pt-md-5">
+          <form method="post" action="{% url 'accounts:login' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-4">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="mb-4">
+              <label class="form-label mb-2" for="id_username">نام کاربری</label>
+              <input class="form-control" type="text" name="username" id="id_username" placeholder="نام کاربری" required value="{{ form.username.value|default:'' }}">
+              {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label mb-0" for="id_password">رمز عبور</label>
+                <a class="fs-sm" href="#">رمز عبور را فراموش کرده اید؟</a>
+              </div>
+              <div class="password-toggle">
+                <input class="form-control" type="password" name="password" id="id_password" placeholder="پسوورد خود را وارد کنید" required>
+                <label class="password-toggle-btn" aria-label="Show/hide password">
+                  <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                </label>
+              </div>
+              {% if form.password.errors %}<div class="invalid-feedback d-block">{{ form.password.errors }}</div>{% endif %}
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="btn btn-primary btn-lg w-100" type="submit">ورود به حساب کاربری</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% include "base/scripts.html" %}
+{% endblock body %}

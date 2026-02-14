@@ -22,12 +22,31 @@
       aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span></button
-    ><a
-      class="btn btn-sm text-primary d-none d-lg-block order-lg-3"
-      href="#signin-modal"
-      data-bs-toggle="modal"
-      ><i class="fi-user me-2"></i>ورود به حساب کاربری</a
-    ><a
+    >{% if user.is_authenticated %}
+    <div class="dropdown d-none d-lg-block order-lg-3">
+      <a class="btn btn-sm text-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fi-user me-2"></i>{{ user.get_full_name|default:user.username }}
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end">
+        {% if user.is_staff %}
+        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fi-settings me-2"></i>پنل مدیریت</a></li>
+        {% endif %}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item text-danger border-0 bg-transparent w-100 text-start"><i class="fi-log-out me-2"></i>خروج</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+    <form method="post" action="{% url 'accounts:logout' %}" class="d-none d-lg-inline-block ms-2 order-lg-3">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="fi-log-out me-2"></i>خروج</button>
+    </form>
+    {% else %}
+    <a class="btn btn-sm text-primary d-none d-lg-block order-lg-3" href="{% url 'accounts:login' %}"><i class="fi-user me-2"></i>ورود</a>
+    {% endif %}<a
       class="btn btn-primary btn-sm ms-2 order-lg-3"
       href="#"
       ><i class="fi-plus me-2"></i>ثبت<span class="d-none d-sm-inline"> ملک</span></a
@@ -69,9 +88,14 @@
           <a class="nav-link" href="{% url 'categories:directory' %}">دسته‌بندی‌ها</a>
         </li>
         <li class="nav-item d-lg-none">
-          <a class="nav-link" href="#signin-modal" data-bs-toggle="modal"
-            ><i class="fi-user me-2"></i>ورود به حساب کاربری</a
-          >
+          {% if user.is_authenticated %}
+          <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start"><i class="fi-log-out me-2"></i>خروج</button>
+          </form>
+          {% else %}
+          <a class="nav-link" href="{% url 'accounts:login' %}"><i class="fi-user me-2"></i>ورود</a>
+          {% endif %}
         </li>
       </ul>
     </div>
