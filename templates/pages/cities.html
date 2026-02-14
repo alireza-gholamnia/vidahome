@@ -3,44 +3,43 @@
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
-  <!-- Page loading scripts-->
-  <script>
-      (function () {
-        window.onload = function () {
-          var preloader = document.querySelector('.page-loading');
-          preloader.classList.remove('active');
-          setTimeout(function () {
-            preloader.remove();
-          }, 2000);
-        };
-      })();
-      
-  </script>
+<!-- Page loading scripts-->
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      preloader.classList.remove('active');
+      setTimeout(function () {
+        preloader.remove();
+      }, 2000);
+    };
+  })();
+
+</script>
 {% endblock extra_head_js %}
 {% block body %}
-  <!-- Body-->
-  <main class="page-wrapper">
-    {% include "partials/loading_spinner.html" %}
-    {% include "partials/SignInModal.html" %}
-    {% include "partials/SignUpModal.html" %}
-    {% include "partials/header.html" %}
-    <!-- Page content-->
-    {% block title %}شهرها | VidaHome{% endblock %}
-    {% block content %}
-      <br>
-    </br>
-    <br>
+<!-- Body-->
+
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+  <!-- Page content-->
+  {% block title %}شهرها | VidaHome{% endblock %}
+  {% block content %}
+  <br>
   </br>
   <br>
-</br>
-<h1 class="display-1">لیست شهرها</h1>
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-4">
-  {% for city in cities %}
+  </br>
+  <br>
+  </br>
+  <h1 class="display-1">لیست شهرها</h1>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-4">
+    {% for city in cities %}
     <div class="col">
       <div class="card h-100">
-        <img src="{% static 'img/components/01.jpg' %}"
-             class="card-img-top"
-             alt="{{ city.fa_name }}">
+        <img src="{% static 'img/components/01.jpg' %}" class="card-img-top" alt="{{ city.fa_name }}">
         <div class="card-body">
           <h5 class="card-title">{{ city.fa_name }}</h5>
           <p class="card-text fs-sm">{{ city.intro_content|default:"توضیحی برای این شهر ثبت نشده است." }}</p>
@@ -48,9 +47,10 @@
         <div class="card-footer fs-xs text-muted">استان: {{ city.province }} | اسلاگ: {{ city.slug }}</div>
       </div>
     </div>
-  {% endfor %}
-</div>
-{% endblock content %}
+    {% endfor %}
+  </div>
+  <br></br>
+  {% endblock content %}
 </main>
 {% include "partials/footer.html" %}
 {% include "partials/Backtotopbutton.html" %}
