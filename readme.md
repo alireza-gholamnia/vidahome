@@ -633,6 +633,25 @@ This README is a **living document** and the only authoritative reference.
 
 ---
 
+### Version 18 — محدودیت ادمین آگهی برای صاحب/کارمند مشاوره (Completed)
+
+**Scope:** ایجادکننده و مشاوره املاک قابل تغییر فقط توسط سوپرادمین؛ فیلتر لیست آگهی‌ها بر اساس نقش.
+
+**What was implemented**
+
+- **created_by و agency:** برای غیر سوپرادمین readonly؛ هنگام افزودن آگهی خودکار (created_by = کاربر فعلی، agency = مشاوره کاربر)
+- **فیلتر لیست آگهی‌ها:**
+  - سوپرادمین: همهٔ آگهی‌ها
+  - صاحب مشاوره (owned_agency): تمام آگهی‌های مشاوره خودش
+  - کارمند مشاوره: فقط آگهی‌هایی که خودش ثبت کرده
+- **نکته دسترسی‌ها:** برای کار autocomplete شهر و دسته‌بندی، گروه‌ها باید View روی City، Category و Area داشته باشند
+
+**Next step**
+
+- پروفایل کاربر، لیست آگهی‌های کاربر
+
+---
+
 ## Project Identity
 
 **VidaHome is a Django-based, SEO-first real estate platform designed with a domain-driven architecture to handle complex property data, scalable search, and database-controlled SEO — without frontend frameworks.**

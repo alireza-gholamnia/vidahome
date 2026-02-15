@@ -67,6 +67,48 @@ class ListingAdmin(admin.ModelAdmin):
     change_form_template = "admin/listings/listing/change_form.html"
     inlines = [ListingAttributeInline, ListingImageInline]
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # صاحب مشاوره: تمام آگهی‌های مشاوره خودش
+        agency = getattr(request.user, "owned_agency", None)
+        if agency:
+            return qs.filter(agency=agency)
+        # کارمند مشاوره: فقط آگهی‌هایی که خودش ثبت کرده
+        return qs.filter(created_by=request.user)
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        if not request.user.is_superuser:
+            fields.extend(["created_by", "agency"])
+        return fields
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if not request.user.is_superuser and obj is None:
+            # مقادیر پیش‌فرض هنگام افزودن آگهی
+            if "created_by" in form.base_fields:
+                form.base_fields["created_by"].initial = request.user
+            if "agency" in form.base_fields:
+                agency = getattr(request.user, "agency", None) or getattr(
+                    request.user, "owned_agency", None
+                )
+                if agency:
+                    form.base_fields["agency"].initial = agency
+        return form
+
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser:
+            if not change:
+                obj.created_by = request.user
+                agency = getattr(request.user, "agency", None) or getattr(
+                    request.user, "owned_agency", None
+                )
+                if agency:
+                    obj.agency = agency
+        super().save_model(request, obj, form, change)
+
     def _listing_attrs_context(self, obj):
         """مقدار context برای ویژگی‌ها و گزینه‌ها."""
         if not obj or not obj.category_id:
