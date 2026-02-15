@@ -51,6 +51,9 @@ python manage.py migrate
 # Create superuser (optional)
 python manage.py createsuperuser
 
+# Seed sample data (optional)
+python manage.py seed_data --clear
+
 # Run development server
 python manage.py runserver
 ```
@@ -187,7 +190,7 @@ vidahome/
 
 ### 5.3 listings
 
-- **Listing**: title, slug, city, area (optional), category, deal, status, published_at, short_description, description (RichText), price, price_unit, BaseSEO
+- **Listing**: title, slug (پر شده خودکار از عنوان با ترانسلیتریشن فارسی), city, area (optional), category, deal, status, published_at, short_description, description (RichText), price, price_unit, BaseSEO
 - **ListingImage**: listing FK, image, alt, sort_order, is_cover
 
 ### 5.4 seo
@@ -511,6 +514,29 @@ This README is a **living document** and the only authoritative reference.
 
 - یک مدل User برای هویت و پروفایل؛ نقش‌ها با Groups قابل توسعه
 - صفحات ورود/ثبت‌نام مستقل با قالب‌های Finder
+
+**Next step**
+
+- Wire listing ORM filtering + pagination to search landing pages.
+
+---
+
+### Version 14 — Seed Data, Listing Slug, URL Fixes (Completed)
+
+**Scope:** اسکریپت seed، اسلاگ از عنوان، رفع مشکل لینک آگهی‌ها.
+
+**What was implemented**
+
+- **seed_data:** دستور `python manage.py seed_data [--clear]` — پر کردن دیتابیس با استان‌ها، شهرها، محلات، دسته‌ها، کاربران، مشاوره‌ها، آگهی‌ها
+- **slugify_from_title:** تابع در `apps.common.text_utils` — تبدیل عنوان فارسی به اسلاگ لاتین با ترانسلیتریشن
+- **Listing.slug:** پر شدن خودکار از عنوان هنگام ذخیره؛ پشتیبانی از متن فارسی
+- **لینک آگهی:** رفع ۴۰۴ برای `/l/{id}-/` (اسلاگ خالی) — ریدایرکت به `/l/{id}/`؛ `get_absolute_url` برای اسلاگ خالی فرمت id-only برمی‌گرداند
+- **.gitignore:** اضافه شدن پوشه `test/`
+
+**Architectural intent**
+
+- داده‌های نمونه واقعی برای توسعه و تست
+- اسلاگ خوانا و SEO-friendly از عنوان فارسی
 
 **Next step**
 

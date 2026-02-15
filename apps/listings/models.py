@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.db import models
-from django.utils.text import slugify
 from django.utils import timezone
 
 from ckeditor.fields import RichTextField
+
+from apps.common.text_utils import slugify_from_title
 from apps.seo.base import BaseSEO
 from apps.common.upload_utils import listing_image_upload_to
 
@@ -141,7 +142,7 @@ class Listing(BaseSEO, models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)[:255]
+            self.slug = slugify_from_title(self.title)
 
         # Auto publish timestamp
         if self.status == self.Status.PUBLISHED and not self.published_at:
@@ -150,7 +151,9 @@ class Listing(BaseSEO, models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return f"/l/{self.id}-{self.slug}/"
+        if self.slug:
+            return f"/l/{self.id}-{self.slug}/"
+        return f"/l/{self.id}/"
 
 
 
