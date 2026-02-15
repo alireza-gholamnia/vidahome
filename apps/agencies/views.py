@@ -1,14 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from .models import Agency
 from apps.listings.models import Listing
 
 
-def agency_landing(request, slug):
-    agency = get_object_or_404(
-        Agency.objects.prefetch_related("images", "cities", "employees"),
-        slug=slug,
-        is_active=True,
-    )
+def _render_agency_landing(request, agency, seo_canonical=None):
     listings = (
         Listing.objects.filter(agency=agency, status=Listing.Status.PUBLISHED)
         .select_related("city", "area", "category")
@@ -22,20 +17,59 @@ def agency_landing(request, slug):
     seo_meta = agency.seo_meta_description or (agency.intro_content[:160] if agency.intro_content else "")
     breadcrumbs = [
         {"title": "صفحه اصلی", "url": "/"},
-        {"title": "مشاوره‌های املاک", "url": None},
+        {"title": "مشاوره‌های املاک", "url": "/agencies/"},
         {"title": agency.name, "url": None},
+    ]
+    ctx = {
+        "agency": agency,
+        "listings": listings,
+        "employees": employees,
+        "landing_cover": landing_cover,
+        "seo_title": seo_title,
+        "seo_h1": seo_h1,
+        "seo_meta_description": seo_meta,
+        "breadcrumbs": breadcrumbs,
+    }
+    if seo_canonical:
+        ctx["seo_canonical"] = seo_canonical
+    return render(request, "pages/agency_landing.html", ctx)
+
+
+def agency_list(request):
+    agencies = Agency.objects.filter(is_active=True).prefetch_related("cities").order_by("name")
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "مشاوره‌های املاک", "url": None},
     ]
     return render(
         request,
-        "pages/agency_landing.html",
-        {
-            "agency": agency,
-            "listings": listings,
-            "employees": employees,
-            "landing_cover": landing_cover,
-            "seo_title": seo_title,
-            "seo_h1": seo_h1,
-            "seo_meta_description": seo_meta,
-            "breadcrumbs": breadcrumbs,
-        },
+        "pages/agency_list.html",
+        {"agencies": agencies, "breadcrumbs": breadcrumbs},
     )
+
+
+def agency_landing(request, agency_id, slug):
+    agency = get_object_or_404(
+        Agency.objects.prefetch_related("images", "cities", "employees"),
+        id=agency_id,
+        is_active=True,
+    )
+    return _render_agency_landing(request, agency)
+
+
+def agency_landing_by_id(request, agency_id):
+    agency = get_object_or_404(
+        Agency.objects.prefetch_related("images", "cities", "employees"),
+        id=agency_id,
+        is_active=True,
+    )
+    canonical = request.build_absolute_uri(agency.get_absolute_url())
+    return _render_agency_landing(request, agency, seo_canonical=canonical)
+
+
+def agency_landing_by_slug(request, slug):
+    agency = get_object_or_404(
+        Agency.objects.filter(is_active=True),
+        slug=slug,
+    )
+    return redirect(agency.get_absolute_url(), permanent=True)

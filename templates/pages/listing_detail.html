@@ -22,15 +22,8 @@
   {% include "partials/SignUpModal.html" %}
   {% include "partials/header.html" %}
 
-  <div class="container py-4 py-lg-5">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">صفحه اصلی</a></li>
-        <li class="breadcrumb-item"><a href="/cities/">شهرها</a></li>
-        <li class="breadcrumb-item"><a href="/s/{{ listing.city.slug }}/">{{ listing.city.fa_name }}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{ listing.title }}</li>
-      </ol>
-    </nav>
+  <div class="container mt-5 pt-md-3 py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
 
     {% if listing.images.all %}
     <div class="mb-4">

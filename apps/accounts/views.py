@@ -12,6 +12,14 @@ class CustomLoginView(LoginView):
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["breadcrumbs"] = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "ورود", "url": None},
+        ]
+        return context
+
 
 class CustomLogoutView(LogoutView):
     next_page = "/"
@@ -22,6 +30,14 @@ class SignUpView(CreateView):
     form_class = SignUpForm
     template_name = "accounts/signup.html"
     success_url = reverse_lazy("home")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["breadcrumbs"] = [
+            {"title": "صفحه اصلی", "url": "/"},
+            {"title": "ثبت نام", "url": None},
+        ]
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:

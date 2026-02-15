@@ -422,11 +422,11 @@ class Command(BaseCommand):
         employees = users_data["employees"]
         cities = list(City.objects.all())
 
+        from apps.common.text_utils import slugify_from_title
+
         agencies = []
         for i, (owner, name) in enumerate(zip(owners[: len(AGENCY_NAMES)], AGENCY_NAMES)):
-            slug = name.replace(" ", "-").replace("‌", "-").lower()[:50]
-            slug = "".join(c if c.isalnum() or c == "-" else "" for c in slug)
-            slug = slug or f"agency-{i+1}"
+            slug = slugify_from_title(name, max_length=200) or f"agency-{i+1}"
             agency_intro = (
                 f"مشاوره املاک {name} با بیش از پانزده سال سابقه در زمینه خرید، فروش و اجاره املاک مسکونی و تجاری فعالیت می‌کند. "
                 f"تیم ما متشکل از مشاوران با تجربه و آشنا به قوانین ملکی است و آماده ارائه مشاوره تخصصی در زمینه معاملات املاک، "

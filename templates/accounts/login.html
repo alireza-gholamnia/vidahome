@@ -24,7 +24,10 @@
   </div>
 </div>
 <main class="page-wrapper">
-  <div class="container-fluid d-flex h-100 align-items-center justify-content-center py-4 py-sm-5 bg-secondary">
+  <div class="container pt-4 pt-sm-5">
+    {% include "partials/breadcrumbs.html" %}
+  </div>
+  <div class="container-fluid d-flex align-items-center justify-content-center py-4 py-sm-5 bg-secondary">
     <div class="card card-body" style="max-width: 940px">
       <a class="position-absolute top-0 end-0 nav-link fs-sm py-1 px-2 mt-3 me-3" href="{% url 'home' %}">
         <i class="fi-arrow-long-right fs-base me-2"></i>برگشت

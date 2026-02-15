@@ -17,13 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from apps.common import views as common_views
+from apps.agencies import views as agency_views
+from apps.listings import views as listing_views
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
+    path("agencies/", agency_views.agency_list, name="agency_list"),
+    path("listings/", listing_views.listing_catalog, name="listing_catalog"),
     path("a/", include("apps.agencies.urls")),
     path("cities/", include("apps.locations.urls")),
     path("s/", include("apps.listings.search_urls")),

@@ -1,18 +1,18 @@
 from django.db import models
-from django.utils.text import slugify
 from django.conf import settings
 
 from ckeditor_uploader.fields import RichTextUploadingField
 from apps.seo.base import BaseSEO
 from apps.common.upload_utils import agency_logo_upload_to, agency_image_upload_to
+from apps.common.text_utils import slugify_from_title
 
 
 class Agency(BaseSEO, models.Model):
     """
-    مشاوره املاک — دارای لندینگ اختصاصی /a/{slug}/
+    مشاوره املاک — دارای لندینگ اختصاصی /a/{id}-{slug}/
     """
     name = models.CharField(max_length=180)
-    slug = models.SlugField(max_length=200, db_index=True, unique=True)
+    slug = models.SlugField(max_length=200, db_index=True, unique=True, blank=True)
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -40,11 +40,11 @@ class Agency(BaseSEO, models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = slugify_from_title(self.name, max_length=200)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return f"/a/{self.slug}/"
+        return f"/a/{self.id}-{self.slug}/"
 
     def get_landing_cover_image(self):
         images = list(self.images.all())

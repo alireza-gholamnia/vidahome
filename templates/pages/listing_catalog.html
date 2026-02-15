@@ -1,0 +1,187 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper fixed-bottom-btn">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <div class="container-fluid mt-5 pt-5 p-0">
+    <div class="row g-0 mt-n3">
+      <!-- Filters sidebar -->
+      <aside class="col-lg-4 col-xl-3 border-top-lg border-end-lg shadow-sm px-3 px-xl-4 px-xxl-5 pt-lg-2">
+        <div class="offcanvas-lg offcanvas-end" id="filters-sidebar">
+          <div class="offcanvas-header d-flex d-lg-none align-items-center">
+            <h2 class="h5 mb-0">فیلتر آگهی‌ها</h2>
+            <button class="btn-close" type="button" data-bs-dismiss="offcanvas" data-bs-target="#filters-sidebar"></button>
+          </div>
+          <form method="get" action="" id="catalog-filters" class="offcanvas-body py-lg-4">
+            <div class="offcanvas-header d-block border-bottom pt-0 pt-lg-4 px-lg-0">
+              <div class="form-group mb-lg-2 rounded-pill">
+                <div class="input-group">
+                  <span class="input-group-text text-muted"><i class="fi-search"></i></span>
+                  <input class="form-control" type="text" name="q" value="{{ filter_q }}" placeholder="جستجو در آگهی‌ها...">
+                </div>
+              </div>
+            </div>
+            <div class="border-bottom py-3">
+              <h3 class="h6">شهر</h3>
+              <select class="form-select" name="city" id="filter-city">
+                <option value="">همه شهرها</option>
+                {% for c in cities %}
+                <option value="{{ c.slug }}" {% if filter_city == c.slug %}selected{% endif %}>{{ c.fa_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% if areas %}
+            <div class="border-bottom py-3">
+              <h3 class="h6">محله</h3>
+              <select class="form-select" name="area">
+                <option value="">همه محله‌ها</option>
+                {% for a in areas %}
+                <option value="{{ a.slug }}" {% if filter_area == a.slug %}selected{% endif %}>{{ a.fa_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+            <div class="border-bottom py-3">
+              <h3 class="h6">دسته‌بندی</h3>
+              <select class="form-select" name="category">
+                <option value="">همه دسته‌ها</option>
+                {% for cat in categories %}
+                <option value="{{ cat.slug }}" {% if filter_category == cat.slug %}selected{% endif %}>{{ cat.fa_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="border-bottom py-3">
+              <h3 class="h6">نوع معامله</h3>
+              <select class="form-select" name="deal">
+                <option value="">همه</option>
+                <option value="buy" {% if filter_deal == 'buy' %}selected{% endif %}>فروش</option>
+                <option value="rent" {% if filter_deal == 'rent' %}selected{% endif %}>اجاره</option>
+              </select>
+            </div>
+            <div class="border-top py-4">
+              <button class="btn btn-primary rounded-pill w-100" type="submit"><i class="fi-search me-2"></i>اعمال فیلتر</button>
+              <a class="btn btn-outline-secondary rounded-pill w-100 mt-2" href="{% url 'listing_catalog' %}"><i class="fi-rotate-right me-2"></i>حذف فیلتر</a>
+            </div>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="col-lg-8 col-xl-9 position-relative overflow-hidden pb-5 pt-4 px-3 px-xl-4 px-xxl-5">
+        <nav class="mb-3 pt-md-2" aria-label="Breadcrumb">
+          {% include "partials/breadcrumbs.html" %}
+        </nav>
+        <div class="d-sm-flex align-items-center justify-content-between pb-3 pb-sm-4">
+          <h1 class="h2 mb-sm-0">{{ seo_h1 }}</h1>
+        </div>
+        <div class="d-flex flex-sm-row flex-column align-items-sm-center align-items-stretch my-2">
+          <div class="d-flex align-items-center flex-shrink-0">
+            <label class="fs-sm me-2 pe-1 text-nowrap" for="sortby"><i class="fi-arrows-sort text-muted mt-n1 me-2"></i>مرتب‌سازی</label>
+            <select class="form-select form-select-sm" id="sortby" onchange="window.location.href=this.value">
+              <option value="?{{ request.GET.urlencode }}">جدیدترین</option>
+            </select>
+          </div>
+          <hr class="d-none d-sm-block w-100 mx-4">
+          <div class="d-none d-sm-flex align-items-center flex-shrink-0 text-muted">
+            <i class="fi-check-circle me-2"></i>
+            <span class="fs-sm mt-n1">{{ listings.paginator.count }} نتیجه</span>
+          </div>
+        </div>
+
+        <div class="row row-cols-xl-3 row-cols-sm-2 row-cols-1 gy-4 gx-3 gx-xxl-4 py-4">
+          {% for listing in listings %}
+          <div class="col pb-sm-2">
+            <article class="position-relative">
+              <div class="position-relative mb-3">
+                <a class="d-block rounded-3 overflow-hidden" href="{{ listing.get_absolute_url }}">
+                  {% for img in listing.images.all %}
+                    {% if forloop.first %}
+                  <img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                  {% empty %}
+                  <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fi-home fs-1 text-muted opacity-50"></i>
+                  </div>
+                  {% endfor %}
+                </a>
+                <div class="position-absolute start-0 top-0 pt-2 ps-2">
+                  <span class="badge {% if listing.deal == 'rent' %}bg-info{% else %}bg-primary{% endif %}">
+                    {% if listing.deal == 'rent' %}اجاره{% else %}فروش{% endif %}
+                  </span>
+                </div>
+              </div>
+              <h3 class="mb-2 fs-lg"><a class="nav-link stretched-link" href="{{ listing.get_absolute_url }}">{{ listing.title }}</a></h3>
+              <ul class="list-inline mb-0 fs-sm">
+                <li class="list-inline-item pe-1"><i class="fi-cash mt-n1 me-1 fs-base text-muted align-middle"></i>{% if listing.price %}{{ listing.price|floatformat:0 }} {{ listing.price_unit|default:"تومان" }}{% else %}تماس{% endif %}</li>
+                <li class="list-inline-item pe-1"><i class="fi-map-pin mt-n1 me-1 fs-base text-muted align-middle"></i>{% if listing.area %}{{ listing.area.fa_name }}{% else %}{{ listing.city.fa_name }}{% endif %}</li>
+              </ul>
+            </article>
+          </div>
+          {% empty %}
+          <div class="col-12 py-5 text-center text-muted">
+            <i class="fi-home fs-1 d-block mb-3 opacity-50"></i>
+            <p class="mb-0">آگهی‌ای یافت نشد.</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        {% if listings.has_other_pages %}
+        <nav class="border-top pb-md-4 pt-4" aria-label="Pagination">
+          <ul class="pagination mb-1">
+            <li class="page-item d-sm-none"><span class="page-link page-link-static">{{ listings.number }} / {{ listings.paginator.num_pages }}</span></li>
+            {% if listings.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ listings.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="قبلی"><i class="fi-chevron-right"></i></a></li>
+            {% endif %}
+            {% for p in listings.paginator.page_range %}
+              {% if p == listings.number %}
+            <li class="page-item active d-none d-sm-block" aria-current="page"><span class="page-link">{{ p }}</span></li>
+              {% else %}
+            <li class="page-item d-none d-sm-block"><a class="page-link" href="?page={{ p }}{% if pagination_query %}&{{ pagination_query }}{% endif %}">{{ p }}</a></li>
+              {% endif %}
+            {% endfor %}
+            {% if listings.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ listings.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" aria-label="بعدی"><i class="fi-chevron-left"></i></a></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-sm w-100 rounded-0 fixed-bottom d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filters-sidebar"><i class="fi-filter me-2"></i>فیلتر</button>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+
+  <script>
+    document.getElementById('filter-city')?.addEventListener('change', function() {
+      var areaSelect = document.querySelector('#catalog-filters [name=area]');
+      if (areaSelect) areaSelect.value = '';
+      document.getElementById('catalog-filters').submit();
+    });
+  </script>
+</main>
+{% endblock body %}
+{% block extra_js %}
+{% endblock extra_js %}

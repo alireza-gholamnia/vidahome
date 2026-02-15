@@ -1,18 +1,110 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.views.generic import RedirectView
+from django.db.models import Q
 
 from apps.locations.models import City, Area
 from apps.categories.models import Category
 from apps.seo.models import CityCategory, CityAreaCategory
 
+from apps.blog.models import BlogPost
 from .models import Listing
 
 
+def _category_listing_filter(category):
+    """فیلتر آگهی‌ها: دسته خودش + دسته‌های فرزند."""
+    return Q(category=category) | Q(category__parent=category)
+
+
 # =============================================================
-# /s  -> redirect
+# /s  -> لیست آگهی‌ها با فیلتر (کاتالوگ)
 # =============================================================
-s_root_redirect = RedirectView.as_view(url="/", permanent=False)
+
+def listing_catalog(request):
+    from django.core.paginator import Paginator
+
+    qs = (
+        Listing.objects.filter(status=Listing.Status.PUBLISHED)
+        .select_related("city", "area", "category")
+        .prefetch_related("images")
+        .order_by("-published_at", "-id")
+    )
+
+    city_slug = request.GET.get("city", "").strip()
+    category_slug = request.GET.get("category", "").strip()
+    area_slug = request.GET.get("area", "").strip()
+    deal = request.GET.get("deal", "").strip()
+    q = request.GET.get("q", "").strip()
+
+    if city_slug:
+        qs = qs.filter(city__slug=city_slug)
+    if category_slug:
+        qs = qs.filter(Q(category__slug=category_slug) | Q(category__parent__slug=category_slug))
+    if area_slug and city_slug:
+        qs = qs.filter(area__slug=area_slug, city__slug=city_slug)
+    if deal in ("buy", "rent"):
+        qs = qs.filter(deal=deal)
+    if q:
+        qs = qs.filter(
+            Q(title__icontains=q)
+            | Q(short_description__icontains=q)
+            | Q(description__icontains=q)
+        )
+
+    paginator = Paginator(qs, 24)
+    page = request.GET.get("page", 1)
+    try:
+        page_num = int(page)
+        if page_num < 1:
+            page_num = 1
+    except ValueError:
+        page_num = 1
+    listings = paginator.get_page(page_num)
+
+    cities = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
+    categories = Category.objects.filter(parent__isnull=True, is_active=True).order_by("sort_order", "fa_name")
+    areas = []
+    if city_slug:
+        city = City.objects.filter(slug=city_slug, is_active=True).first()
+        if city:
+            areas = Area.objects.filter(city=city, is_active=True).order_by("sort_order", "fa_name")
+
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "آگهی‌های املاک", "url": None},
+    ]
+    title = "آگهی‌های املاک"
+    if city_slug and (c := City.objects.filter(slug=city_slug).first()):
+        title = f"آگهی‌های {c.fa_name}"
+
+    # Query string for pagination (exclude page)
+    from urllib.parse import urlencode
+    params = dict(request.GET)
+    params.pop("page", None)
+    pagination_query = urlencode(params, doseq=True)
+
+    return render(
+        request,
+        "pages/listing_catalog.html",
+        {
+            "listings": listings,
+            "cities": cities,
+            "categories": categories,
+            "areas": areas,
+            "breadcrumbs": breadcrumbs,
+            "seo_h1": title,
+            "seo_title": f"{title} | VidaHome",
+            "seo_meta_description": "جستجو و مشاهده آگهی‌های خرید، فروش و اجاره املاک در VidaHome",
+            "filter_city": city_slug,
+            "filter_category": category_slug,
+            "filter_area": area_slug,
+            "filter_deal": deal,
+            "filter_q": q,
+            "pagination_query": pagination_query,
+        },
+    )
+
+
 
 
 # =============================================================
@@ -139,6 +231,11 @@ def s_one_segment(request, slug):
             {"title": "شهرها", "url": "/cities/"},
             {"title": city.fa_name, "url": None},
         ]
+        city_posts = (
+            BlogPost.objects.filter(city=city, status=BlogPost.Status.PUBLISHED)
+            .select_related("blog_category", "author")
+            .order_by("-published_at", "-id")[:6]
+        )
         return render(
             request,
             "pages/city_landing.html",
@@ -146,6 +243,7 @@ def s_one_segment(request, slug):
                 "city": city,
                 "areas": areas,
                 "listings": listings,
+                "city_posts": city_posts,
                 "breadcrumbs": breadcrumbs,
                 **seo,
             },
@@ -154,7 +252,7 @@ def s_one_segment(request, slug):
     category = Category.objects.filter(slug=slug, is_active=True).prefetch_related("images").first()
     if category:
         listings = (
-            Listing.objects.filter(category=category, status=Listing.Status.PUBLISHED)
+            Listing.objects.filter(_category_listing_filter(category), status=Listing.Status.PUBLISHED)
             .select_related("city", "area", "category")
             .prefetch_related("images")
             .order_by("-published_at", "-id")[:24]
@@ -166,10 +264,25 @@ def s_one_segment(request, slug):
             {"title": "دسته‌بندی‌ها", "url": "/categories/"},
             {"title": category.fa_name, "url": None},
         ]
+        category_posts = (
+            BlogPost.objects.filter(
+                Q(listing_category=category) | Q(listing_category__parent=category),
+                status=BlogPost.Status.PUBLISHED,
+            )
+            .select_related("blog_category", "author")
+            .order_by("-published_at", "-id")[:6]
+        )
         return render(
             request,
             "pages/category_landing.html",
-            {"category": category, "listings": listings, "children": children, "breadcrumbs": breadcrumbs, **seo},
+            {
+                "category": category,
+                "listings": listings,
+                "children": children,
+                "category_posts": category_posts,
+                "breadcrumbs": breadcrumbs,
+                **seo,
+            },
         )
 
     raise Http404()
@@ -208,7 +321,8 @@ def city_context(request, city_slug, context_slug):
         landing = CityCategory.objects.filter(city=city, category=category, is_active=True).prefetch_related("images").first()
 
         listings = (
-            Listing.objects.filter(city=city, category=category, status=Listing.Status.PUBLISHED)
+            Listing.objects.filter(city=city, status=Listing.Status.PUBLISHED)
+            .filter(_category_listing_filter(category))
             .select_related("area", "category")
             .prefetch_related("images")
             .order_by("-published_at", "-id")[:24]
@@ -270,7 +384,8 @@ def area_category(request, city_slug, area_slug, category_slug):
     ).prefetch_related("images").first()
 
     listings = (
-        Listing.objects.filter(city=city, area=area, category=category, status=Listing.Status.PUBLISHED)
+        Listing.objects.filter(city=city, area=area, status=Listing.Status.PUBLISHED)
+        .filter(_category_listing_filter(category))
         .select_related("category", "area")
         .prefetch_related("images")
         .order_by("-published_at", "-id")[:24]
@@ -318,6 +433,18 @@ def area_category(request, city_slug, area_slug, category_slug):
 # /l/{id}-{slug}  -> Listing Detail
 # =============================================================
 
+def _listing_breadcrumbs(listing: Listing):
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "شهرها", "url": "/cities/"},
+        {"title": listing.city.fa_name, "url": listing.city.get_absolute_url()},
+    ]
+    if listing.area:
+        breadcrumbs.append({"title": listing.area.fa_name, "url": listing.area.get_absolute_url()})
+    breadcrumbs.append({"title": listing.title, "url": None})
+    return breadcrumbs
+
+
 def listing_detail(request, listing_id: int, slug: str):
     listing = (
         Listing.objects
@@ -331,7 +458,8 @@ def listing_detail(request, listing_id: int, slug: str):
         raise Http404()
 
     seo = _build_seo_for_listing(request, listing)
-    return render(request, "pages/listing_detail.html", {"listing": listing, **seo})
+    breadcrumbs = _listing_breadcrumbs(listing)
+    return render(request, "pages/listing_detail.html", {"listing": listing, "breadcrumbs": breadcrumbs, **seo})
 
 def listing_detail_by_id(request, listing_id: int):
     listing = (
@@ -344,7 +472,6 @@ def listing_detail_by_id(request, listing_id: int):
         raise Http404()
 
     seo = _build_seo_for_listing(request, listing)
-    # نکته: canonical اینجا هم باید canonical استاندارد باشه
     seo["seo_canonical"] = request.build_absolute_uri(listing.get_absolute_url())
-
-    return render(request, "pages/listing_detail.html", {"listing": listing, **seo})
+    breadcrumbs = _listing_breadcrumbs(listing)
+    return render(request, "pages/listing_detail.html", {"listing": listing, "breadcrumbs": breadcrumbs, **seo})

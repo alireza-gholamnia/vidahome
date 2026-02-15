@@ -3,60 +3,75 @@
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
-<!-- Page loading scripts-->
 <script>
   (function () {
     window.onload = function () {
       var preloader = document.querySelector('.page-loading');
-      preloader.classList.remove('active');
-      setTimeout(function () {
-        preloader.remove();
-      }, 2000);
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
     };
   })();
-
 </script>
 {% endblock extra_head_js %}
 {% block body %}
-<!-- Body-->
-
 <main class="page-wrapper">
   {% include "partials/loading_spinner.html" %}
   {% include "partials/SignInModal.html" %}
   {% include "partials/SignUpModal.html" %}
   {% include "partials/header.html" %}
-  <!-- Page content-->
-  {% block title %}شهرها | VidaHome{% endblock %}
-  {% block content %}
-  <br>
-  </br>
-  <br>
-  </br>
-  <br>
-  </br>
-  <h1 class="display-1">لیست شهرها</h1>
-  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-4">
-    {% for city in cities %}
-    <div class="col">
-      <div class="card h-100">
-        {% with cover=city.get_cover_image %}
-        <img src="{% if cover %}{{ cover.image.url }}{% else %}{% static 'img/components/01.jpg' %}{% endif %}" class="card-img-top" alt="{{ cover.alt|default:city.fa_name }}" style="height: 180px; object-fit: cover;">
-        {% endwith %}
-        <div class="card-body">
-          <h5 class="card-title">{{ city.fa_name }}</h5>
-          <p class="card-text fs-sm">{{ city.intro_content|default:"توضیحی برای این شهر ثبت نشده است." }}</p>
-        </div>
-        <div class="card-footer fs-xs text-muted">استان: {{ city.province }} | اسلاگ: {{ city.slug }}</div>
-      </div>
+
+  <div class="container mt-5 pt-md-3 py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="h4 mb-0 font-vazir">شهرها</h1>
+      <p class="text-muted fs-sm mb-0">آگهی‌های املاک در شهرهای مختلف</p>
     </div>
-    {% endfor %}
+
+    {% if cities %}
+    <div class="row g-4">
+      {% for city in cities %}
+      <div class="col-sm-6 col-lg-4 col-xl-3">
+        <a class="card shadow-sm card-hover border-0 h-100 text-decoration-none" href="{{ city.get_absolute_url }}">
+          <div class="card-img-top card-img-hover position-relative overflow-hidden rounded-top">
+            <span class="img-overlay opacity-65"></span>
+            {% with cover=city.get_cover_image %}
+            {% if cover %}
+            <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:city.fa_name }}" class="w-100" style="height: 200px; object-fit: cover;" loading="lazy">
+            {% else %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+              <i class="fi-map-pin fs-1 text-muted opacity-50"></i>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% if city.listing_count %}
+            <div class="position-absolute start-0 top-0 pt-3 ps-3">
+              <span class="badge bg-primary">{{ city.listing_count }} آگهی</span>
+            </div>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <h3 class="h6 mb-2 text-nav">{{ city.fa_name }}</h3>
+            <p class="fs-sm text-muted mb-0">{{ city.intro_content|default:"آگهی‌های املاک در این شهر"|truncatewords:15 }}</p>
+          </div>
+          <div class="card-footer border-0 bg-transparent pt-0">
+            <span class="fs-xs text-muted"><i class="fi-map-pin me-1 opacity-70"></i>{{ city.province.fa_name }}</span>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">فعلاً شهری ثبت نشده است.</div>
+    {% endif %}
   </div>
-  <br></br>
-  {% endblock content %}
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
 </main>
-{% include "partials/footer.html" %}
-{% include "partials/Backtotopbutton.html" %}
-{% include "base/scripts.html" %}
 {% endblock body %}
 {% block extra_js %}
 {% endblock extra_js %}

@@ -1,6 +1,6 @@
 {% if breadcrumbs %}
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+<nav aria-label="breadcrumb" class="mb-3 pt-md-3">
+  <ol class="breadcrumb mb-0">
     {% for item in breadcrumbs %} {% if item.url %}
     <li class="breadcrumb-item">
       <a href="{{ item.url }}">{{ item.title }}</a>
