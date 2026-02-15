@@ -13,38 +13,45 @@ class BaseSEO(models.Model):
     seo_title = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Optional SEO title override"
+        verbose_name="عنوان سئو",
+        help_text="عنوان جایگزین برای سئو",
     )
 
     seo_meta_description = models.TextField(
         blank=True,
-        help_text="Optional meta description override"
+        verbose_name="توضیحات متا",
+        help_text="توضیحات جایگزین meta description",
     )
 
     seo_h1 = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Optional H1 override"
+        verbose_name="عنوان H1",
+        help_text="عنوان H1 جایگزین",
     )
 
     seo_canonical = models.URLField(
         blank=True,
-        help_text="Optional canonical URL"
+        verbose_name="آدرس کانونیکال",
+        help_text="URL کانونیکال",
     )
 
     seo_noindex = models.BooleanField(
         default=False,
-        help_text="Force noindex for this page"
+        verbose_name="بدون ایندکس",
+        help_text="عدم ایندکس شدن صفحه",
     )
 
     allow_index = models.BooleanField(
         default=True,
-        help_text="If false, page will be noindex regardless of other rules"
+        verbose_name="مجوز ایندکس",
+        help_text="در صورت غیرفعال، صفحه ایندکس نمی‌شود",
     )
 
     seo_priority = models.PositiveSmallIntegerField(
         default=5,
-        help_text="SEO priority for sitemap / crawl budget (1-10)"
+        verbose_name="اولویت سئو",
+        help_text="اولویت برای sitemap (۱ تا ۱۰)",
     )
 
     class Meta:

@@ -1,0 +1,111 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content %}
+{{ block.super }}
+
+{% if attribute_value_types_json is not None %}
+<style>
+  td.field-_attr_id, th.column-_attr_id { display: none !important; }
+</style>
+<div id="listing-attr-datalists">
+  {% if attribute_options_json %}
+  <script type="application/json" id="attr-options-data">{{ attribute_options_json|safe }}</script>
+  {% endif %}
+</div>
+<script>
+(function() {
+  const valueTypes = {{ attribute_value_types_json|default:"{}"|safe }};
+  const optionsData = (function() {
+    const el = document.getElementById('attr-options-data');
+    return el ? JSON.parse(el.textContent) : {};
+  })();
+
+  function setInputsForRow(row) {
+    const attrInput = row.querySelector('input[name*="_attr_id"]');
+    if (!attrInput) return;
+    const attrId = attrInput.value;
+    if (!attrId) return;
+
+    const vt = valueTypes[attrId];
+    if (!vt) return;
+
+    const valueInt = row.querySelector('input[name*="value_int"]');
+    const valueBool = row.querySelector('input[name*="value_bool"], select[name*="value_bool"]');
+    const valueStr = row.querySelector('input[name*="value_str"]');
+    const valueOption = row.querySelector('select[name*="value_option"]');
+
+    function setDisabled(el, disabled) {
+      if (!el) return;
+      el.disabled = disabled;
+    }
+
+    setDisabled(valueInt, vt !== 'integer');
+    setDisabled(valueBool, vt !== 'boolean');
+    setDisabled(valueStr, vt !== 'string');
+    setDisabled(valueOption, vt !== 'choice');
+
+    // برای integer با گزینه‌های از پیش تعریف‌شده، datalist اضافه کن
+    if (vt === 'integer' && valueInt && optionsData[attrId] && optionsData[attrId].length) {
+      let dl = document.getElementById('datalist-int-' + attrId);
+      if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'datalist-int-' + attrId;
+        optionsData[attrId].forEach(function(v) {
+          const opt = document.createElement('option');
+          opt.value = v;
+          dl.appendChild(opt);
+        });
+        document.body.appendChild(dl);
+      }
+      valueInt.setAttribute('list', 'datalist-int-' + attrId);
+    }
+  }
+
+  function setupAll() {
+    document.querySelectorAll('input[name*="_attr_id"]').forEach(function(input) {
+      const row = input.closest('tr') || input.closest('.form-row') || input.closest('div');
+      if (row) setInputsForRow(row);
+    });
+  }
+
+  setupAll();
+
+  // دکمه بارگذاری ویژگی‌ها
+  const mainForm = document.getElementById('listing-form') || document.getElementById('listing_form') || document.querySelector('#content-main form');
+  if (mainForm) {
+    // دکمه «بارگذاری ویژگی‌های دسته‌بندی» بالای بخش ویژگی‌ها
+    const attrSection = Array.from(document.querySelectorAll('h2')).find(function(h) {
+      return h.textContent.indexOf('ویژگی') !== -1 && h.textContent.indexOf('آگهی') !== -1;
+    });
+    if (attrSection) {
+      const btnWrap = document.createElement('div');
+      btnWrap.className = 'listing-attr-load-btn';
+      btnWrap.id = 'listing-attrs-section';
+      btnWrap.style.cssText = 'margin-bottom: 1em; padding: 0.5em 0;';
+      btnWrap.innerHTML = '<button type="button" class="button" id="load-category-attrs-btn">بارگذاری ویژگی‌های دسته‌بندی</button>';
+      attrSection.parentNode.insertBefore(btnWrap, attrSection.nextSibling);
+      document.getElementById('load-category-attrs-btn').addEventListener('click', function() {
+        try { sessionStorage.setItem('scrollToListingAttrs', '1'); } catch (e) {}
+        const btn = mainForm.querySelector('input[name="_continue"]');
+        if (btn) btn.click();
+        else mainForm.submit();
+      });
+    }
+  }
+  // اسکرول به بخش ویژگی‌ها بعد از بارگذاری
+  try {
+    if (sessionStorage.getItem('scrollToListingAttrs')) {
+      sessionStorage.removeItem('scrollToListingAttrs');
+      var target = document.getElementById('listing-attrs-section') || Array.from(document.querySelectorAll('h2')).find(function(h) {
+        return h.textContent.indexOf('ویژگی') !== -1 && h.textContent.indexOf('آگهی') !== -1;
+      });
+      if (target) {
+        setTimeout(function() { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+      }
+    }
+  } catch (e) {}
+})();
+</script>
+{% endif %}
+{% endblock %}

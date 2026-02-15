@@ -15,7 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+
+from config import admin as admin_config  # noqa: F401 — تنظیم عناوین ادمین
 from django.urls import path, include
+
 from apps.common import views as common_views
 from apps.agencies import views as agency_views
 from apps.listings import views as listing_views

@@ -13,10 +13,10 @@ from apps.common.upload_utils import blog_cover_upload_to
 class BlogCategory(models.Model):
     """دسته‌بندی داخلی بلاگ — مستقل از دسته‌بندی ملک."""
 
-    fa_name = models.CharField(max_length=120)
-    slug = models.SlugField(max_length=140, unique=True, db_index=True)
-    sort_order = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
+    fa_name = models.CharField(max_length=120, verbose_name="نام فارسی")
+    slug = models.SlugField(max_length=140, unique=True, db_index=True, verbose_name="اسلاگ")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
 
     class Meta:
         ordering = ("sort_order", "id")
@@ -42,21 +42,23 @@ class BlogPost(BaseSEO, models.Model):
         DRAFT = "draft", "پیش‌نویس"
         PUBLISHED = "published", "منتشر شده"
 
-    title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, unique=True, db_index=True)
-    excerpt = models.TextField(blank=True, help_text="خلاصه کوتاه برای کارت و meta")
-    content = RichTextUploadingField(blank=True)
+    title = models.CharField(max_length=255, verbose_name="عنوان")
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="اسلاگ")
+    excerpt = models.TextField(blank=True, verbose_name="خلاصه", help_text="خلاصه کوتاه برای کارت و meta")
+    content = RichTextUploadingField(blank=True, verbose_name="محتوای اصلی")
     cover_image = models.ImageField(
         upload_to=blog_cover_upload_to,
         blank=True,
         null=True,
+        verbose_name="تصویر شاخص",
     )
-    published_at = models.DateTimeField(null=True, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ انتشار")
     status = models.CharField(
         max_length=12,
         choices=Status.choices,
         default=Status.DRAFT,
         db_index=True,
+        verbose_name="وضعیت",
     )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -64,6 +66,7 @@ class BlogPost(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="blog_posts",
+        verbose_name="نویسنده",
     )
     blog_category = models.ForeignKey(
         BlogCategory,
@@ -71,6 +74,7 @@ class BlogPost(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="posts",
+        verbose_name="دسته بلاگ",
     )
 
     # ارتباط با لندینگ‌های پروژه
@@ -80,6 +84,7 @@ class BlogPost(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="blog_posts",
+        verbose_name="شهر",
     )
     area = models.ForeignKey(
         "locations.Area",
@@ -87,6 +92,7 @@ class BlogPost(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="blog_posts",
+        verbose_name="محله",
     )
     listing_category = models.ForeignKey(
         "categories.Category",

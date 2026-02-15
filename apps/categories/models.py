@@ -20,25 +20,29 @@ class Category(BaseSEO, models.Model):
         blank=True,
         on_delete=models.PROTECT,
         related_name="children",
-        help_text="Optional parent category (tree structure)."
+        verbose_name="دسته والد",
+        help_text="دسته والد (ساختار درختی)",
     )
 
-    fa_name = models.CharField(max_length=120)
-    en_name = models.CharField(max_length=120)
+    fa_name = models.CharField(max_length=120, verbose_name="نام فارسی")
+    en_name = models.CharField(max_length=120, verbose_name="نام انگلیسی")
 
-    slug = models.SlugField(max_length=140, db_index=True)
+    slug = models.SlugField(max_length=140, db_index=True, verbose_name="اسلاگ")
 
-    is_active = models.BooleanField(default=True)
-    sort_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
 
     # --- Landing content ---
-    intro_content = models.TextField(blank=True)
+    intro_content = models.TextField(blank=True, verbose_name="متن معرفی")
     main_content = RichTextUploadingField(
         blank=True,
+        verbose_name="محتوای اصلی",
         help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     class Meta:
+        verbose_name = "دسته‌بندی"
+        verbose_name_plural = "دسته‌بندی‌ها"
         ordering = ("sort_order", "id")
         constraints = [
             models.UniqueConstraint(fields=["slug"], name="uniq_category_slug"),

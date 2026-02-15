@@ -25,28 +25,33 @@ class BaseLocation(models.Model):
 
     fa_name = models.CharField(
         max_length=120,
-        help_text="Persian display name"
+        verbose_name="نام فارسی",
+        help_text="نام نمایشی فارسی",
     )
 
     en_name = models.CharField(
         max_length=120,
-        help_text="English name used for slug generation"
+        verbose_name="نام انگلیسی",
+        help_text="نام انگلیسی برای ساخت اسلاگ",
     )
 
     slug = models.SlugField(
         max_length=140,
         db_index=True,
-        help_text="SEO-friendly URL slug"
+        verbose_name="اسلاگ",
+        help_text="شناسه URL",
     )
 
     is_active = models.BooleanField(
         default=True,
-        help_text="Controls visibility in public pages"
+        verbose_name="فعال",
+        help_text="نمایش در صفحات عمومی",
     )
 
     sort_order = models.PositiveIntegerField(
         default=0,
-        help_text="Ordering priority"
+        verbose_name="ترتیب",
+        help_text="اولویت نمایش",
     )
 
     class Meta:
@@ -68,8 +73,8 @@ class Province(BaseLocation):
     """
 
     class Meta(BaseLocation.Meta):
-        verbose_name = "Province"
-        verbose_name_plural = "Provinces"
+        verbose_name = "استان"
+        verbose_name_plural = "استان‌ها"
         constraints = [
             models.UniqueConstraint(
                 fields=["slug"],
@@ -104,23 +109,26 @@ class City(BaseLocation, BaseSEO):
         Province,
         on_delete=models.PROTECT,
         related_name="cities",
-        help_text="DB-only grouping; not used in URL"
+        verbose_name="استان",
+        help_text="گروه‌بندی در پایگاه داده",
     )
 
     # --- Landing content ---
     intro_content = models.TextField(
         blank=True,
-        help_text="Short intro shown at top of city landing page"
+        verbose_name="متن معرفی",
+        help_text="متن کوتاه بالای صفحه شهر",
     )
 
     main_content = RichTextUploadingField(
         blank=True,
-        help_text="محتوا با امکان درج و آپلود تصویر — از دکمه تصویر در ویرایشگر استفاده کنید."
+        verbose_name="محتوای اصلی",
+        help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     class Meta(BaseLocation.Meta):
-        verbose_name = "City"
-        verbose_name_plural = "Cities"
+        verbose_name = "شهر"
+        verbose_name_plural = "شهرها"
         constraints = [
             models.UniqueConstraint(
                 fields=["slug"],
@@ -172,26 +180,31 @@ class CityImage(models.Model):
         City,
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="شهر",
     )
-    image = models.ImageField(upload_to=city_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True, help_text="متن جایگزین برای سئو و دسترسی‌پذیری")
+    image = models.ImageField(upload_to=city_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین", help_text="برای سئو و دسترسی‌پذیری")
     caption = models.CharField(
         max_length=200,
         blank=True,
-        help_text="لیبل نمایشی — برای تصاویر محتوا مفید است",
+        verbose_name="عنوان",
+        help_text="لیبل نمایشی",
     )
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
     is_cover = models.BooleanField(
         default=False,
-        help_text="تصویر شاخص برای کارت شهر در صفحه لیست شهرها",
+        verbose_name="تصویر شاخص کارت",
+        help_text="تصویر کارت شهر در لیست",
     )
     is_landing_cover = models.BooleanField(
         default=False,
-        help_text="عکس کاور صفحه لندینگ شهر — نمایش در بالای صفحه شهر",
+        verbose_name="کاور لندینگ",
+        help_text="تصویر بالای صفحه شهر",
     )
     is_content_image = models.BooleanField(
         default=False,
-        help_text="تصاویر محتوا — برای درج در محتوای ریچ‌تکست شهر",
+        verbose_name="تصویر محتوا",
+        help_text="برای درج در محتوای ریچ‌تکست",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -221,23 +234,26 @@ class Area(BaseLocation, BaseSEO):
     city = models.ForeignKey(
         City,
         on_delete=models.PROTECT,
-        related_name="areas"
+        related_name="areas",
+        verbose_name="شهر",
     )
 
     # --- Landing content ---
     intro_content = models.TextField(
         blank=True,
-        help_text="Short intro shown at top of area landing page"
+        verbose_name="متن معرفی",
+        help_text="متن کوتاه بالای صفحه محله",
     )
 
     main_content = RichTextUploadingField(
         blank=True,
-        help_text="محتوا با امکان درج و آپلود تصویر"
+        verbose_name="محتوای اصلی",
+        help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     class Meta(BaseLocation.Meta):
-        verbose_name = "Area"
-        verbose_name_plural = "Areas"
+        verbose_name = "محله"
+        verbose_name_plural = "محله‌ها"
         constraints = [
             models.UniqueConstraint(
                 fields=["city", "slug"],
@@ -292,9 +308,10 @@ class AreaImage(models.Model):
         Area,
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="محله",
     )
-    image = models.ImageField(upload_to=area_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True)
+    image = models.ImageField(upload_to=area_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین")
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
     is_cover = models.BooleanField(default=False, help_text="تصویر کارت محله")

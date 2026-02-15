@@ -61,7 +61,7 @@ python manage.py runserver
 ### Admin
 
 - URL: `/admin/`
-- Manage: Users, Groups, Agencies, Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings, SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
+- Manage: Users, Groups, Agencies, Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings (با ویژگی‌های EAV), **Attributes** (ویژگی، گزینه ویژگی، ویژگی آگهی), SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
 
 ---
 
@@ -90,7 +90,7 @@ vidahome/
 │   ├── agencies/         # Agency, AgencyImage
 │   ├── locations/        # Province, City, Area
 │   ├── categories/       # Category (tree-based)
-│   ├── attributes/       # (scaffolded)
+│   ├── attributes/       # EAV: Attribute, AttributeOption, ListingAttribute
 │   ├── listings/         # Listing, ListingImage, search & detail views
 │   ├── blog/             # (scaffolded)
 │   └── seo/              # BaseSEO, CityCategory, CityAreaCategory
@@ -228,9 +228,15 @@ vidahome/
 - **BlogCategory**: slug, fa_name, sort_order, is_active — دسته‌بندی داخلی بلاگ
 - **BlogPost**: title, slug, excerpt, content, cover_image, published_at, status, author, blog_category, city, area, listing_category — ارتباط با لندینگ‌ها (city, area, listing_category)
 
-### 5.8 attributes (scaffolded)
+### 5.8 attributes (EAV)
 
-- Dynamic, category-based (planned)
+- **Attribute**: name, slug, value_type (integer | boolean | choice | string), unit, categories (M2M), sort_order, is_active
+- **AttributeOption**: مقادیر از پیش تعریف‌شده (مثل ۱، ۲، ۳ برای تعداد اتاق)
+- **ListingAttribute**: مقدار هر ویژگی برای هر آگهی — value_int, value_bool, value_str, value_option (FK)
+- همگام‌سازی خودکار با دسته‌بندی: سینگال رکوردهای ListingAttribute را بر اساس دستهٔ آگهی ایجاد/حذف می‌کند
+- همگام‌سازی به AttributeOption: مقادیر جدید واردشده در آگهی به گزینه‌های ویژگی اضافه می‌شوند
+- ادمین آگهی: دکمه «بارگذاری ویژگی‌های دسته‌بندی» برای ذخیره و لود ویژگی‌ها؛ اسکرول خودکار به بخش ویژگی‌ها
+- Unique: (listing, attribute)
 
 ---
 
@@ -599,6 +605,31 @@ This README is a **living document** and the only authoritative reference.
 **Next step**
 
 - پروفایل کاربر، لیست آگهی‌های کاربر، و غیره.
+
+---
+
+### Version 17 — EAV ویژگی‌های آگهی (Completed)
+
+**Scope:** الگوی Entity-Attribute-Value برای ویژگی‌های پویا بر اساس دسته‌بندی.
+
+**What was implemented**
+
+- **Attribute**: تعریف ویژگی با نام، اسلاگ، نوع مقدار (عددی، بله/خیر، انتخابی، متن)، واحد، دسته‌بندی‌ها (M2M)
+- **AttributeOption**: گزینه‌های از پیش تعریف‌شده (مثل ۱، ۲، ۳ برای تعداد اتاق)
+- **ListingAttribute**: ذخیره مقدار هر ویژگی برای هر آگهی (value_int, value_bool, value_str, value_option)
+- **سینگال همگام‌سازی دسته‌بندی:** با ذخیره آگهی، رکوردهای ListingAttribute بر اساس دستهٔ آن ایجاد/حذف می‌شوند
+- **سینگال همگام‌سازی گزینه‌ها:** مقادیر جدید واردشده در آگهی به AttributeOption اضافه می‌شوند
+- **ادمین:** نمایش دسته‌بندی هر ویژگی؛ فیلتر ویژگی‌ها بر اساس دستهٔ آگهی؛ فقط فیلد مقدار متناسب با نوع ویژگی نمایش داده می‌شود
+- **صفحه ویرایش آگهی:** دکمه «بارگذاری ویژگی‌های دسته‌بندی»، datalist برای مقادیر عددی، اسکرول خودکار به بخش ویژگی‌ها پس از بارگذاری
+
+**Architectural intent**
+
+- ویژگی‌های متغیر بدون تغییر اسکیمای دیتابیس
+- هر دسته‌بندی می‌تواند ویژگی‌های مخصوص خود را داشته باشد
+
+**Next step**
+
+- استفاده از ویژگی‌ها در فیلتر و نمایش صفحات جستجو و جزئیات آگهی
 
 ---
 

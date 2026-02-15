@@ -23,33 +23,40 @@ class CityCategory(BaseSEO):
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
-        related_name="seo_city_categories"
+        related_name="seo_city_categories",
+        verbose_name="شهر",
     )
 
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        related_name="seo_city_categories"
+        related_name="seo_city_categories",
+        verbose_name="دسته‌بندی",
     )
 
     intro_content = models.TextField(
         blank=True,
-        help_text="Intro content shown above listings"
+        verbose_name="متن معرفی",
+        help_text="متن بالای لیست آگهی‌ها",
     )
 
     main_content = RichTextUploadingField(
         blank=True,
+        verbose_name="محتوای اصلی",
         help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     is_active = models.BooleanField(
         default=True,
-        help_text="If false, this override will be ignored"
+        verbose_name="فعال",
+        help_text="در صورت غیرفعال، این تنظیمات اعمال نمی‌شود",
     )
 
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
 
     class Meta:
+        verbose_name = "لندینگ شهر+دسته"
+        verbose_name_plural = "لندینگ‌های شهر+دسته"
         ordering = ("sort_order", "id")
         constraints = [
             models.UniqueConstraint(
@@ -85,9 +92,10 @@ class CityCategoryImage(models.Model):
         CityCategory,
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="لندینگ شهر+دسته",
     )
-    image = models.ImageField(upload_to=city_category_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True)
+    image = models.ImageField(upload_to=city_category_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین")
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
     is_cover = models.BooleanField(default=False)
@@ -118,39 +126,47 @@ class CityAreaCategory(BaseSEO):
     city = models.ForeignKey(
         City,
         on_delete=models.CASCADE,
-        related_name="seo_area_categories"
+        related_name="seo_area_categories",
+        verbose_name="شهر",
     )
 
     area = models.ForeignKey(
         Area,
         on_delete=models.CASCADE,
-        related_name="seo_area_categories"
+        related_name="seo_area_categories",
+        verbose_name="محله",
     )
 
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        related_name="seo_area_categories"
+        related_name="seo_area_categories",
+        verbose_name="دسته‌بندی",
     )
 
     intro_content = models.TextField(
         blank=True,
-        help_text="Intro content shown above listings"
+        verbose_name="متن معرفی",
+        help_text="متن بالای لیست آگهی‌ها",
     )
 
     main_content = RichTextUploadingField(
         blank=True,
+        verbose_name="محتوای اصلی",
         help_text="محتوا با امکان درج و آپلود تصویر",
     )
 
     is_active = models.BooleanField(
         default=True,
-        help_text="If false, this override will be ignored"
+        verbose_name="فعال",
+        help_text="در صورت غیرفعال، این تنظیمات اعمال نمی‌شود",
     )
 
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
 
     class Meta:
+        verbose_name = "لندینگ محله+دسته"
+        verbose_name_plural = "لندینگ‌های محله+دسته"
         ordering = ("sort_order", "id")
         constraints = [
             models.UniqueConstraint(
@@ -195,9 +211,10 @@ class CityAreaCategoryImage(models.Model):
         CityAreaCategory,
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="لندینگ محله+دسته",
     )
-    image = models.ImageField(upload_to=area_category_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True)
+    image = models.ImageField(upload_to=area_category_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین")
     caption = models.CharField(max_length=200, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
     is_cover = models.BooleanField(default=False)

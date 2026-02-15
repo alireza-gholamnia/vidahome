@@ -14,19 +14,19 @@ class Listing(BaseSEO, models.Model):
     # Enums
     # =====================================================
     class Deal(models.TextChoices):
-        BUY = "buy", "Buy"
-        RENT = "rent", "Rent"
+        BUY = "buy", "فروش"
+        RENT = "rent", "اجاره"
 
     class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        PUBLISHED = "published", "Published"
-        ARCHIVED = "archived", "Archived"
+        DRAFT = "draft", "پیش‌نویس"
+        PUBLISHED = "published", "منتشر شده"
+        ARCHIVED = "archived", "بایگانی شده"
 
     # =====================================================
     # Core Identity
     # =====================================================
-    title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255, blank=True, db_index=True)
+    title = models.CharField(max_length=255, verbose_name="عنوان")
+    slug = models.SlugField(max_length=255, blank=True, db_index=True, verbose_name="اسلاگ")
 
     # =====================================================
     # Location & Category (Search backbone)
@@ -35,6 +35,7 @@ class Listing(BaseSEO, models.Model):
         "locations.City",
         on_delete=models.PROTECT,
         related_name="listings",
+        verbose_name="شهر",
     )
 
     area = models.ForeignKey(
@@ -43,12 +44,14 @@ class Listing(BaseSEO, models.Model):
         related_name="listings",
         null=True,
         blank=True,
+        verbose_name="محله",
     )
 
     category = models.ForeignKey(
         "categories.Category",
         on_delete=models.PROTECT,
         related_name="listings",
+        verbose_name="دسته‌بندی",
     )
 
     # =====================================================
@@ -59,6 +62,7 @@ class Listing(BaseSEO, models.Model):
         choices=Deal.choices,
         default=Deal.BUY,
         db_index=True,
+        verbose_name="نوع معامله",
     )
 
     status = models.CharField(
@@ -66,21 +70,24 @@ class Listing(BaseSEO, models.Model):
         choices=Status.choices,
         default=Status.DRAFT,
         db_index=True,
+        verbose_name="وضعیت",
     )
 
-    published_at = models.DateTimeField(null=True, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ انتشار")
 
     # =====================================================
     # Content (Human-readable)
     # =====================================================
     short_description = models.TextField(
         blank=True,
-        help_text="Short summary for meta description / cards"
+        verbose_name="خلاصه کوتاه",
+        help_text="خلاصه برای meta و کارت آگهی",
     )
 
     description = RichTextField(
         blank=True,
-        help_text="Main listing description"
+        verbose_name="توضیحات",
+        help_text="محتوای اصلی آگهی",
     )
 
     # =====================================================
@@ -89,13 +96,15 @@ class Listing(BaseSEO, models.Model):
     price = models.BigIntegerField(
         null=True,
         blank=True,
-        help_text="Main price (buy or rent)"
+        verbose_name="قیمت",
+        help_text="قیمت اصلی (خرید یا اجاره)",
     )
 
     price_unit = models.CharField(
         max_length=32,
         blank=True,
-        help_text="e.g. تومان / دلار / متر"
+        verbose_name="واحد قیمت",
+        help_text="مثال: تومان، دلار، متر",
     )
 
     # =====================================================
@@ -107,6 +116,7 @@ class Listing(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="listings",
+        verbose_name="ایجادکننده",
     )
     agency = models.ForeignKey(
         "agencies.Agency",
@@ -114,6 +124,7 @@ class Listing(BaseSEO, models.Model):
         null=True,
         blank=True,
         related_name="listings",
+        verbose_name="مشاوره املاک",
     )
 
     # =====================================================
@@ -126,6 +137,8 @@ class Listing(BaseSEO, models.Model):
     # Meta
     # =====================================================
     class Meta:
+        verbose_name = "آگهی"
+        verbose_name_plural = "آگهی‌ها"
         ordering = ("-published_at", "-id")
         indexes = [
             models.Index(fields=["status", "deal"]),
@@ -162,17 +175,20 @@ class ListingImage(models.Model):
         "listings.Listing",
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="آگهی",
     )
 
-    image = models.ImageField(upload_to=listing_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True)
+    image = models.ImageField(upload_to=listing_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین")
 
-    sort_order = models.PositiveIntegerField(default=0)
-    is_cover = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    is_cover = models.BooleanField(default=False, verbose_name="تصویر شاخص")
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = "تصویر آگهی"
+        verbose_name_plural = "تصاویر آگهی"
         ordering = ("sort_order", "id")
         indexes = [
             models.Index(fields=["listing", "sort_order"]),
@@ -180,4 +196,4 @@ class ListingImage(models.Model):
         ]
 
     def __str__(self):
-        return f"Image {self.id} for Listing {self.listing_id}"
+        return f"تصویر {self.id} برای آگهی {self.listing_id}"

@@ -11,24 +11,26 @@ class Agency(BaseSEO, models.Model):
     """
     مشاوره املاک — دارای لندینگ اختصاصی /a/{id}-{slug}/
     """
-    name = models.CharField(max_length=180)
-    slug = models.SlugField(max_length=200, db_index=True, unique=True, blank=True)
+    name = models.CharField(max_length=180, verbose_name="نام")
+    slug = models.SlugField(max_length=200, db_index=True, unique=True, blank=True, verbose_name="اسلاگ")
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="owned_agency",
+        verbose_name="مالک",
     )
-    phone = models.CharField(max_length=20, blank=True)
-    address = models.TextField(blank=True)
-    intro_content = models.TextField(blank=True)
-    main_content = RichTextUploadingField(blank=True)
-    logo = models.ImageField(upload_to=agency_logo_upload_to, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, verbose_name="تلفن")
+    address = models.TextField(blank=True, verbose_name="آدرس")
+    intro_content = models.TextField(blank=True, verbose_name="متن معرفی")
+    main_content = RichTextUploadingField(blank=True, verbose_name="محتوای اصلی")
+    logo = models.ImageField(upload_to=agency_logo_upload_to, blank=True, null=True, verbose_name="لوگو")
     cities = models.ManyToManyField(
         "locations.City",
         related_name="agencies",
         blank=True,
+        verbose_name="شهرها",
     )
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
 
     class Meta:
         verbose_name = "مشاوره املاک"
@@ -60,13 +62,14 @@ class AgencyImage(models.Model):
         Agency,
         on_delete=models.CASCADE,
         related_name="images",
+        verbose_name="مشاوره املاک",
     )
-    image = models.ImageField(upload_to=agency_image_upload_to)
-    alt = models.CharField(max_length=180, blank=True)
-    caption = models.CharField(max_length=200, blank=True)
-    sort_order = models.PositiveIntegerField(default=0)
-    is_cover = models.BooleanField(default=False)
-    is_landing_cover = models.BooleanField(default=False)
+    image = models.ImageField(upload_to=agency_image_upload_to, verbose_name="تصویر")
+    alt = models.CharField(max_length=180, blank=True, verbose_name="متن جایگزین")
+    caption = models.CharField(max_length=200, blank=True, verbose_name="عنوان")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب")
+    is_cover = models.BooleanField(default=False, verbose_name="تصویر شاخص")
+    is_landing_cover = models.BooleanField(default=False, verbose_name="کاور لندینگ")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

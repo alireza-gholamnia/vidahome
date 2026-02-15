@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:"مدیریت سایت" }}{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:"مدیریت" }}</a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  html { direction: rtl; }
+  body, .main, #content { direction: rtl; text-align: right; }
+</style>
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools">
+    {% block welcome-msg %}
+        خوش آمدید،
+        <strong>{% firstof user.get_short_name user.get_username %}</strong>
+    {% endblock %}
+    {% block userlinks %}
+        {% if site_url %}
+            <a href="{{ site_url }}">مشاهده سایت</a> /
+        {% endif %}
+        {% if user.is_active and user.is_staff %}
+            {% url 'django-admindocs-docroot' as docsroot %}
+            {% if docsroot %}
+                <a href="{{ docsroot }}">مستندات</a> /
+            {% endif %}
+        {% endif %}
+        {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}">تغییر رمز عبور</a> /
+        {% endif %}
+        <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+            {% csrf_token %}
+            <button type="submit">خروج</button>
+        </form>
+        {% include "admin/color_theme_toggle.html" %}
+    {% endblock %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumbs">
+  <li><a href="{% url 'admin:index' %}">خانه</a></li>
+  {% if title %}<li aria-current="page">{{ title }}</li>{% endif %}
+</ol>
+{% endblock %}
