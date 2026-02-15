@@ -75,3 +75,7 @@ def area_category_image_upload_to(instance, filename):
 
 def listing_image_upload_to(instance, filename):
     return f"listings/{timezone.now().strftime('%Y/%m')}/{uuid.uuid4().hex}.{OUTPUT_EXT}"
+
+
+def blog_cover_upload_to(instance, filename):
+    return f"blog/{timezone.now().strftime('%Y/%m')}/{uuid.uuid4().hex}.{OUTPUT_EXT}"

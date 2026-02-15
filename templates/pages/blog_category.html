@@ -1,0 +1,152 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) { preloader.classList.remove('active'); setTimeout(function () { preloader.remove(); }, 500); }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/header.html" %}
+
+  <div class="container mt-5 mb-md-4 py-5">
+    {% include "partials/breadcrumbs.html" %}
+
+    <h1 class="mb-4 font-vazir h4">{{ seo_h1 }}</h1>
+
+    {% if categories %}
+    <ul class="nav nav-pills mb-4 pb-2 border-bottom" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'blog:index' %}">همه</a>
+      </li>
+      {% for cat in categories %}
+      <li class="nav-item">
+        <a class="nav-link {% if cat.slug == category.slug %}active{% endif %}" href="{{ cat.get_absolute_url }}">{{ cat.fa_name }} <span class="text-muted fs-sm">({{ cat.post_count }})</span></a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if page_obj.object_list %}
+    <div class="row gy-4 mb-md-5 mb-4 pb-md-5 pb-4 border-bottom">
+      {% for post in page_obj.object_list|slice:":2" %}
+      <article class="col-md-6 pb-2 pb-md-0">
+        <div class="card border-0 h-100">
+          <a class="d-block position-relative mb-3" href="{{ post.get_absolute_url }}">
+            {% if post.cover_image %}
+            <img class="rounded-3 w-100" src="{{ post.cover_image.url }}" alt="{{ post.title }}" style="height: 220px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center" style="height: 220px;"><i class="fi-file-text fs-1 text-muted opacity-50"></i></div>
+            {% endif %}
+          </a>
+          <div class="card-body p-0">
+            {% if post.blog_category %}
+            <a class="fs-sm text-uppercase text-decoration-none" href="{{ post.blog_category.get_absolute_url }}">{{ post.blog_category.fa_name }}</a>
+            {% endif %}
+            <h2 class="h5 pt-1 mb-2 font-vazir"><a class="nav-link" href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+            <p class="mb-md-4 text-muted">{{ post.excerpt|truncatewords:25 }}</p>
+          </div>
+          <div class="card-footer p-0 border-top-0">
+            <div class="d-flex align-items-center text-decoration-none position-relative zindex-5">
+              {% if post.author.avatar %}
+              <img class="rounded-circle" src="{{ post.author.avatar.url }}" width="48" alt="{{ post.author.get_full_name|default:post.author.username }}">
+              {% else %}
+              <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="fi-user text-muted"></i></div>
+              {% endif %}
+              <div class="ps-2">
+                <h6 class="fs-sm text-nav lh-base mb-1">{{ post.author.get_full_name|default:post.author.username|default:"نویسنده" }}</h6>
+                <div class="d-flex text-body fs-xs"><span class="me-2 pe-1"><i class="fi-calendar-alt opacity-70 mt-n1 me-1 align-middle"></i>{{ post.published_at|date:"j F" }}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div class="row">
+      <aside class="col-lg-3">
+        <div class="offcanvas-lg offcanvas-end" id="blog-sidebar">
+          <div class="offcanvas-header shadow-sm mb-2">
+            <h2 class="h5 offcanvas-title">سایدبار</h2>
+            <button class="btn-close" type="button" data-bs-dismiss="offcanvas"></button>
+          </div>
+          <div class="offcanvas-body">
+            <div class="card card-flush pb-2 pb-lg-0 mb-4">
+              <div class="card-body">
+                <h3 class="h5 font-vazir">دسته‌بندی‌ها</h3>
+                <a class="nav-link fw-normal d-flex justify-content-between py-1 px-0" href="{% url 'blog:index' %}">همه<span class="text-muted ms-2">({{ total_posts }})</span></a>
+                {% for cat in categories %}
+                <a class="nav-link fw-normal d-flex justify-content-between py-1 px-0 {% if cat.slug == category.slug %}fw-bold text-primary{% endif %}" href="{{ cat.get_absolute_url }}">{{ cat.fa_name }}<span class="text-muted ms-2">({{ cat.post_count }})</span></a>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div class="col-lg-9 blog-list">
+        <div class="ps-lg-3">
+          {% for post in page_obj.object_list %}
+          {% if forloop.counter > 2 %}
+          <article class="card card-horizontal border-0 mb-4">
+            <a class="card-img-top position-relative rounded-3 me-sm-4 mb-sm-0 mb-3 d-block" href="{{ post.get_absolute_url }}" style="width: 220px; min-height: 160px;">
+              {% if post.cover_image %}
+              <img class="rounded-3 w-100 h-100" src="{{ post.cover_image.url }}" alt="{{ post.title }}" style="object-fit: cover;">
+              {% else %}
+              <div class="rounded-3 bg-secondary w-100 h-100 d-flex align-items-center justify-content-center"><i class="fi-file-text fs-1 text-muted opacity-50"></i></div>
+              {% endif %}
+            </a>
+            <div class="card-body px-0 pt-0 pb-lg-5 pb-sm-4 pb-2">
+              {% if post.blog_category %}
+              <a class="fs-sm text-uppercase text-decoration-none" href="{{ post.blog_category.get_absolute_url }}">{{ post.blog_category.fa_name }}</a>
+              {% endif %}
+              <h3 class="h5 pt-1 mb-2"><a class="nav-link" href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+              <p class="fs-sm text-muted">{{ post.excerpt|truncatewords:20 }}</p>
+              <div class="d-flex align-items-center text-decoration-none">
+                {% if post.author.avatar %}
+                <img class="rounded-circle" src="{{ post.author.avatar.url }}" width="48" alt="">
+                {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;"><i class="fi-user text-muted"></i></div>
+                {% endif %}
+                <div class="ps-2">
+                  <h6 class="fs-sm text-nav lh-base mb-1">{{ post.author.get_full_name|default:post.author.username|default:"نویسنده" }}</h6>
+                  <div class="d-flex text-body fs-xs"><span class="me-2 pe-1"><i class="fi-calendar-alt opacity-70 mt-n1 me-1 align-middle"></i>{{ post.published_at|date:"j F" }}</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="d-flex justify-content-end pt-4 border-top" aria-label="صفحه‌بندی">
+          <ul class="pagination mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="fi-chevron-right"></i></a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="بعدی"><i class="fi-chevron-left"></i></a></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <p class="text-muted">فعلاً پستی در این دسته منتشر نشده است.</p>
+    {% endif %}
+  </div>
+
+  {% include "partials/footer.html" %}
+  <button class="btn btn-primary btn-sm w-100 rounded-0 fixed-bottom d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#blog-sidebar"><i class="fi-sidebar-left me-2"></i>سایدبار</button>
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}

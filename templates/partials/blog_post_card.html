@@ -1,0 +1,31 @@
+{% load static %}
+{# Expects: post (BlogPost with blog_category, title, excerpt, cover_image, published_at) #}
+<div class="card shadow-sm card-hover border-0 h-100">
+  <div class="card-img-top card-img-hover overflow-hidden" style="height: 200px;">
+    <a class="img-overlay stretched-link" href="{{ post.get_absolute_url }}"></a>
+    {% if post.cover_image %}
+    <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-100 h-100" style="object-fit: cover;" loading="lazy" />
+    {% else %}
+    <div class="bg-secondary d-flex align-items-center justify-content-center w-100 h-100">
+      <i class="fi-file-text fs-1 text-muted opacity-50"></i>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if post.blog_category %}
+    <span class="badge bg-primary mb-2">{{ post.blog_category.fa_name }}</span>
+    {% endif %}
+    <h3 class="h6 mb-2">
+      <a class="nav-link stretched-link" href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+    </h3>
+    {% if post.excerpt %}
+    <p class="text-muted fs-sm mb-0">{{ post.excerpt|truncatewords:20 }}</p>
+    {% endif %}
+  </div>
+  <div class="card-footer bg-transparent border-0 pt-0">
+    <small class="text-muted">
+      {% if post.published_at %}{{ post.published_at|date:"Y/m/d" }}{% endif %}
+      {% if post.author %} · {{ post.author.get_full_name|default:post.author.username }}{% endif %}
+    </small>
+  </div>
+</div>

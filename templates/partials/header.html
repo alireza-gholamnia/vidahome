@@ -87,6 +87,9 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'categories:directory' %}">دسته‌بندی‌ها</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'blog:index' %}">بلاگ</a>
+        </li>
         <li class="nav-item d-lg-none">
           {% if user.is_authenticated %}
           <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">

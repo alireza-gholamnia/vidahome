@@ -145,6 +145,9 @@ vidahome/
 | `/s/{city}/{area}/{category}/` | Area + Category landing |
 | `/l/{id}-{slug}/` | Listing detail (canonical) |
 | `/l/{id}/` | Listing detail (ID-only) |
+| `/blog/` | بلاگ (لیست پست‌ها) |
+| `/blog/category/<slug>/` | پست‌های دسته‌بندی بلاگ |
+| `/blog/<slug>/` | صفحه تک پست |
 | `/admin/` | Django Admin |
 
 ### Rules
@@ -215,7 +218,12 @@ vidahome/
 - **AgencyImage**: گالری تصاویر مشاوره
 - **employees**: reverse از `User.agency` — کاربران با agency پر شده
 
-### 5.7 attributes (scaffolded)
+### 5.7 blog
+
+- **BlogCategory**: slug, fa_name, sort_order, is_active — دسته‌بندی داخلی بلاگ
+- **BlogPost**: title, slug, excerpt, content, cover_image, published_at, status, author, blog_category, city, area, listing_category — ارتباط با لندینگ‌ها (city, area, listing_category)
+
+### 5.8 attributes (scaffolded)
 
 - Dynamic, category-based (planned)
 
@@ -247,6 +255,7 @@ templates/
 │   ├── SignInModal.html
 │   ├── SignUpModal.html
 │   ├── breadcrumbs.html
+│   ├── blog_post_card.html
 │   ├── loading_spinner.html
 │   └── Backtotopbutton.html
 ├── pages/
@@ -259,7 +268,10 @@ templates/
 │   ├── city_category_landing.html
 │   ├── area_category_landing.html
 │   ├── agency_landing.html
-│   └── listing_detail.html
+│   ├── listing_detail.html
+│   ├── blog_index.html
+│   ├── blog_category.html
+│   └── blog_post_detail.html
 ├── accounts/
 │   ├── login.html        # صفحه ورود (قالب signin-light)
 │   └── signup.html       # صفحه ثبت‌نام (قالب signup-light)
@@ -541,6 +553,22 @@ This README is a **living document** and the only authoritative reference.
 **Next step**
 
 - Wire listing ORM filtering + pagination to search landing pages.
+
+---
+
+### Version 15 — Blog (Completed)
+
+**Scope:** بلاگ با دسته‌بندی و ارتباط با لندینگ‌ها.
+
+**What was implemented**
+
+- **BlogCategory, BlogPost** — مدل‌های بلاگ با BaseSEO
+- **ارتباط با لندینگ:** city, area, listing_category در BlogPost
+- **URLها:** `/blog/`, `/blog/category/<slug>/`, `/blog/<slug>/`
+- **تمپلیت‌ها:** blog_index, blog_category, blog_post_detail, blog_post_card
+- **ادمین:** مدیریت دسته‌بندی و پست با autocomplete برای city, area, listing_category
+- **Header:** لینک بلاگ در منو
+- **seed_data:** دسته‌بندی‌ها و پست‌های نمونه بلاگ
 
 ---
 

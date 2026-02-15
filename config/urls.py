@@ -29,6 +29,7 @@ urlpatterns = [
     path("s/", include("apps.listings.search_urls")),
     path("l/", include("apps.listings.detail_urls")),
     path("categories/", include("apps.categories.urls")),
+    path("blog/", include("apps.blog.urls")),
     path("", common_views.home, name="home"),
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
