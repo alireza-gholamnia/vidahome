@@ -138,8 +138,12 @@ vidahome/
 | `/accounts/login/` | ورود |
 | `/accounts/signup/` | ثبت‌نام |
 | `/accounts/logout/` | خروج (POST only) |
-| `/a/{slug}/` | Agency landing |
-| `/s/` | Redirect to `/` (no search root) |
+| `/agencies/` | لیست مشاوره‌های املاک (فیلتر شهر: `?city=`) |
+| `/a/` | Redirect to `/agencies/` |
+| `/a/{id}-{slug}/` | Agency landing (canonical) |
+| `/a/{id}/` | Agency landing (ID-only) |
+| `/listings/` | کاتالوگ آگهی‌ها با فیلتر (شهر، دسته، محله، نوع معامله، جستجو) |
+| `/s/` | Redirect to `/listings/` |
 | `/s/{slug}/` | City landing OR Category landing (resolver) |
 | `/s/{city}/{context}/` | Area landing OR City+Category landing (resolver) |
 | `/s/{city}/{area}/{category}/` | Area + Category landing |
@@ -156,7 +160,7 @@ vidahome/
 - `deal` → query param only (`?deal=rent`)
 - `attributes` → query params only
 - Default deal = `buy`
-- ❌ No redirects allowed in backend (except `/s/` → `/`)
+- Redirects: `/s/` → `/listings/`، `/a/` → `/agencies/`
 
 ### Listing Detail
 
@@ -214,9 +218,10 @@ vidahome/
 
 ### 5.6 agencies
 
-- **Agency**: name, slug, owner (OneToOne User), logo, cities (M2M), intro_content, main_content
+- **Agency**: name, slug (انگلیسی خودکار از نام با slugify_from_title), owner (OneToOne User), logo, cities (M2M), intro_content, main_content
 - **AgencyImage**: گالری تصاویر مشاوره
 - **employees**: reverse از `User.agency` — کاربران با agency پر شده
+- **URL:** `/a/{id}-{slug}/` (مثل آگهی‌ها)
 
 ### 5.7 blog
 
@@ -268,6 +273,8 @@ templates/
 │   ├── city_category_landing.html
 │   ├── area_category_landing.html
 │   ├── agency_landing.html
+│   ├── agency_list.html
+│   ├── listing_catalog.html
 │   ├── listing_detail.html
 │   ├── blog_index.html
 │   ├── blog_category.html
@@ -569,6 +576,29 @@ This README is a **living document** and the only authoritative reference.
 - **ادمین:** مدیریت دسته‌بندی و پست با autocomplete برای city, area, listing_category
 - **Header:** لینک بلاگ در منو
 - **seed_data:** دسته‌بندی‌ها و پست‌های نمونه بلاگ
+
+---
+
+### Version 16 — لیست آگهی‌ها، مشاوره‌ها، URLها و ظاهر (Completed)
+
+**Scope:** صفحه لیست آگهی‌ها و مشاوره‌ها، ریدایرکت‌ها، اسلاگ انگلیسی، بردکرامپ.
+
+**What was implemented**
+
+- **/listings/:** کاتالوگ آگهی‌ها با سایدبار فیلتر (شهر، محله، دسته، نوع معامله، جستجو) — ظاهر مشابه city-guide-catalog
+- **/s/:** ریدایرکت به `/listings/`
+- **/agencies/:** لیست مشاوره‌های املاک با سایدبار فیلتر شهر — ظاهر مشابه لیستینگ فید
+- **/a/:** ریدایرکت به `/agencies/`
+- **صفحه مشاوره:** URL با ID مثل آگهی‌ها — `/a/{id}-{slug}/`، `/a/{id}/`، ریدایرکت اسلاگ قدیم به فرم جدید
+- **اسلاگ مشاوره:** پر شدن خودکار به انگلیسی با slugify_from_title (مثل آگهی‌ها)
+- **بردکرامپ:** در صفحات شهر، محله، دسته، آگهی، مشاوره، بلاگ، اکانت
+- **فیلتر دسته‌بندی:** نمایش آگهی‌های دسته والد + فرزند در صفحات لندینگ
+- **بلاگ مرتبط:** نمایش پست‌های بلاگ در انتهای صفحات شهر و دسته‌بندی
+- **Header:** لینک «آگهی‌های املاک» و «مشاوران املاک» در منو
+
+**Next step**
+
+- پروفایل کاربر، لیست آگهی‌های کاربر، و غیره.
 
 ---
 

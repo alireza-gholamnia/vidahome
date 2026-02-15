@@ -36,7 +36,13 @@ def _render_agency_landing(request, agency, seo_canonical=None):
 
 
 def agency_list(request):
-    agencies = Agency.objects.filter(is_active=True).prefetch_related("cities").order_by("name")
+    from apps.locations.models import City
+
+    agencies = Agency.objects.filter(is_active=True).prefetch_related("cities", "images").order_by("name")
+    city_slug = request.GET.get("city", "").strip()
+    if city_slug:
+        agencies = agencies.filter(cities__slug=city_slug).distinct()
+    cities = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
     breadcrumbs = [
         {"title": "صفحه اصلی", "url": "/"},
         {"title": "مشاوره‌های املاک", "url": None},
@@ -44,7 +50,12 @@ def agency_list(request):
     return render(
         request,
         "pages/agency_list.html",
-        {"agencies": agencies, "breadcrumbs": breadcrumbs},
+        {
+            "agencies": agencies,
+            "breadcrumbs": breadcrumbs,
+            "cities": cities,
+            "filter_city": city_slug,
+        },
     )
 
 
