@@ -113,6 +113,7 @@ vidahome/
 | Templates | Django Templates (SSR) |
 | UI | Bootstrap 5 RTL, local assets |
 | Rich Text | django-ckeditor, ckeditor-uploader (image upload) |
+| Number formatting | django.contrib.humanize (intcomma برای جداکننده هزارگان) |
 | Language | Persian (fa), RTL |
 
 ### Architectural Rationale
@@ -157,7 +158,7 @@ vidahome/
 ### Rules
 
 - `city / area / category` → URL path only
-- `deal` → query param only (`?deal=rent`)
+- `deal` → query param only (`?deal=buy` | `?deal=rent` | `?deal=daily_rent` | `?deal=mortgage_rent`)
 - `attributes` → query params only
 - Default deal = `buy`
 - Redirects: `/s/` → `/listings/`، `/a/` → `/agencies/`
@@ -197,7 +198,12 @@ vidahome/
 
 ### 5.3 listings
 
-- **Listing**: title, slug (پر شده خودکار از عنوان با ترانسلیتریشن فارسی), city, area (optional), category, deal, status, published_at, short_description, description (RichText), price, price_unit, BaseSEO
+- **Listing**: title, slug (پر شده خودکار از عنوان با ترانسلیتریشن فارسی), city, area (optional), category, deal, status, published_at, short_description, description (RichText), price, price_mortgage, price_unit, BaseSEO
+- **Deal types:** `buy` (فروش), `rent` (اجاره), `daily_rent` (اجاره روزانه), `mortgage_rent` (رهن و اجاره)
+- **Pricing (deal-dependent):**
+  - فروش/اجاره/اجاره روزانه: `price` + `price_unit`
+  - رهن و اجاره: `price_mortgage` (مبلغ رهن) + `price` (اجاره ماهانه) + `price_unit`
+- **Helpers:** `get_deal_display_fa()`, `has_price_display()`
 - **ListingImage**: listing FK, image, alt, sort_order, is_cover
 
 ### 5.4 seo
@@ -230,7 +236,7 @@ vidahome/
 
 ### 5.8 attributes (EAV)
 
-- **Attribute**: name, slug, value_type (integer | boolean | choice | string), unit, categories (M2M), sort_order, is_active
+- **Attribute**: name, slug, value_type (integer | boolean | choice | string), unit, categories (M2M), sort_order, is_active, is_filterable (نمایش در فیلتر کاتالوگ)
 - **AttributeOption**: مقادیر از پیش تعریف‌شده (مثل ۱، ۲، ۳ برای تعداد اتاق)
 - **ListingAttribute**: مقدار هر ویژگی برای هر آگهی — value_int, value_bool, value_str, value_option (FK)
 - همگام‌سازی خودکار با دسته‌بندی: سینگال رکوردهای ListingAttribute را بر اساس دستهٔ آگهی ایجاد/حذف می‌کند
@@ -649,6 +655,31 @@ This README is a **living document** and the only authoritative reference.
 **Next step**
 
 - پروفایل کاربر، لیست آگهی‌های کاربر
+
+---
+
+### Version 19 — نوع معامله + قیمت متناسب (Completed)
+
+**Scope:** گسترش نوع معامله به چهار نوع؛ فیلد مبلغ رهن؛ نمایش شرطی قیمت؛ جداکننده هزارگان.
+
+**What was implemented**
+
+- **Deal types:** فروش، اجاره، اجاره روزانه، رهن و اجاره (`buy`, `rent`, `daily_rent`, `mortgage_rent`)
+- **price_mortgage:** فیلد جدید برای مبلغ رهن (فقط در رهن و اجاره)
+- **نمایش شرطی در ادمین:** فیلد مبلغ رهن فقط هنگام انتخاب «رهن و اجاره» نمایش داده می‌شود
+- **فیلتر کاتالوگ:** گزینه‌های اجاره روزانه و رهن و اجاره در سایدبار فیلتر
+- **نمایش قیمت در تمپلیت‌ها:** متناسب با نوع معامله — رهن و اجاره: هر دو مبلغ با برچسب؛ بقیه: یک قیمت
+- **جداکننده هزارگان:** استفاده از `django.contrib.humanize` و فیلتر `intcomma` برای نمایش قیمت‌ها (مثلاً ۱۵٬۰۰۰٬۰۰۰)
+- **Attribute.is_filterable:** ویژگی‌های قابل فیلتر در کاتالوگ
+
+**Architectural intent**
+
+- پوشش سناریوهای رایج بازار املاک ایران
+- UX روشن برای نوع معامله و قیمت‌گذاری
+
+**Next step**
+
+- فیلتر بازه قیمت در کاتالوگ؛ فرم تماس/استعلام آگهی
 
 ---
 

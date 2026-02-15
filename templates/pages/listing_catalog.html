@@ -1,5 +1,5 @@
 {% extends "base/base.html" %}
-{% load static %}
+{% load static humanize %}
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
@@ -75,8 +75,20 @@
                 <option value="">همه</option>
                 <option value="buy" {% if filter_deal == 'buy' %}selected{% endif %}>فروش</option>
                 <option value="rent" {% if filter_deal == 'rent' %}selected{% endif %}>اجاره</option>
+                <option value="daily_rent" {% if filter_deal == 'daily_rent' %}selected{% endif %}>اجاره روزانه</option>
+                <option value="mortgage_rent" {% if filter_deal == 'mortgage_rent' %}selected{% endif %}>رهن و اجاره</option>
               </select>
             </div>
+            {% for af in attr_filters %}
+            <div class="border-bottom py-3">
+              <h3 class="h6">{{ af.attr.name }}{% if af.attr.unit %} ({{ af.attr.unit }}){% endif %}</h3>
+              <select class="form-select" name="attr_{{ af.attr.slug }}">
+                {% for val, label in af.options %}
+                <option value="{{ val }}" {% if af.current == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endfor %}
             <div class="border-top py-4">
               <button class="btn btn-primary rounded-pill w-100" type="submit"><i class="fi-search me-2"></i>اعمال فیلتر</button>
               <a class="btn btn-outline-secondary rounded-pill w-100 mt-2" href="{% url 'listing_catalog' %}"><i class="fi-rotate-right me-2"></i>حذف فیلتر</a>
@@ -124,14 +136,14 @@
                   {% endfor %}
                 </a>
                 <div class="position-absolute start-0 top-0 pt-2 ps-2">
-                  <span class="badge {% if listing.deal == 'rent' %}bg-info{% else %}bg-primary{% endif %}">
-                    {% if listing.deal == 'rent' %}اجاره{% else %}فروش{% endif %}
+                  <span class="badge {% if listing.deal == 'rent' or listing.deal == 'daily_rent' %}bg-info{% elif listing.deal == 'mortgage_rent' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                    {{ listing.get_deal_display_fa }}
                   </span>
                 </div>
               </div>
               <h3 class="mb-2 fs-lg"><a class="nav-link stretched-link" href="{{ listing.get_absolute_url }}">{{ listing.title }}</a></h3>
               <ul class="list-inline mb-0 fs-sm">
-                <li class="list-inline-item pe-1"><i class="fi-cash mt-n1 me-1 fs-base text-muted align-middle"></i>{% if listing.price %}{{ listing.price|floatformat:0 }} {{ listing.price_unit|default:"تومان" }}{% else %}تماس{% endif %}</li>
+                <li class="list-inline-item pe-1"><i class="fi-cash mt-n1 me-1 fs-base text-muted align-middle"></i>{% if listing.has_price_display %}{% if listing.deal == 'mortgage_rent' %}{% if listing.price_mortgage %}رهن {{ listing.price_mortgage|floatformat:0|intcomma }}{% endif %}{% if listing.price_mortgage and listing.price %} | {% endif %}{% if listing.price %}اجاره {{ listing.price|floatformat:0|intcomma }}{% endif %} {{ listing.price_unit|default:"تومان" }}{% else %}{{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}{% endif %}{% else %}تماس{% endif %}</li>
                 <li class="list-inline-item pe-1"><i class="fi-map-pin mt-n1 me-1 fs-base text-muted align-middle"></i>{% if listing.area %}{{ listing.area.fa_name }}{% else %}{{ listing.city.fa_name }}{% endif %}</li>
               </ul>
             </article>

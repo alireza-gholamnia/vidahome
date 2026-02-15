@@ -179,6 +179,10 @@ class ListingAdmin(admin.ModelAdmin):
                 ("created_by", "agency"),
             )
         }),
+        ("قیمت (متناسب با نوع معامله)", {
+            "fields": ("price", "price_mortgage", "price_unit"),
+            "description": "فروش/اجاره/اجاره روزانه: فقط قیمت. رهن و اجاره: مبلغ رهن + اجاره ماهانه.",
+        }),
         ("SEO (Optional Overrides)", {
             "fields": (
                 "seo_title",

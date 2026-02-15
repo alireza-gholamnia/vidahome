@@ -16,6 +16,8 @@ class Listing(BaseSEO, models.Model):
     class Deal(models.TextChoices):
         BUY = "buy", "فروش"
         RENT = "rent", "اجاره"
+        DAILY_RENT = "daily_rent", "اجاره روزانه"
+        MORTGAGE_RENT = "mortgage_rent", "رهن و اجاره"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "پیش‌نویس"
@@ -58,7 +60,7 @@ class Listing(BaseSEO, models.Model):
     # Deal & Lifecycle
     # =====================================================
     deal = models.CharField(
-        max_length=10,
+        max_length=16,
         choices=Deal.choices,
         default=Deal.BUY,
         db_index=True,
@@ -91,20 +93,27 @@ class Listing(BaseSEO, models.Model):
     )
 
     # =====================================================
-    # Optional Pricing (generic – not opinionated)
+    # Optional Pricing (deal-dependent)
     # =====================================================
     price = models.BigIntegerField(
         null=True,
         blank=True,
         verbose_name="قیمت",
-        help_text="قیمت اصلی (خرید یا اجاره)",
+        help_text="قیمت اصلی (خرید / اجاره ماهانه / اجاره روزانه / اجاره ماهانه در رهن‌واجاره)",
+    )
+
+    price_mortgage = models.BigIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="مبلغ رهن",
+        help_text="فقط برای نوع «رهن و اجاره»",
     )
 
     price_unit = models.CharField(
         max_length=32,
         blank=True,
         verbose_name="واحد قیمت",
-        help_text="مثال: تومان، دلار، متر",
+        help_text="مثال: تومان، دلار، تومان/روز",
     )
 
     # =====================================================
@@ -167,6 +176,16 @@ class Listing(BaseSEO, models.Model):
         if self.slug:
             return f"/l/{self.id}-{self.slug}/"
         return f"/l/{self.id}/"
+
+    def get_deal_display_fa(self):
+        """برگرداندن برچسب فارسی نوع معامله."""
+        return dict(self.Deal.choices).get(self.deal, self.deal)
+
+    def has_price_display(self):
+        """آیا این آگهی حداقل یک قیمت برای نمایش دارد؟"""
+        if self.deal == self.Deal.MORTGAGE_RENT:
+            return bool(self.price is not None or self.price_mortgage is not None)
+        return self.price is not None
 
 
 

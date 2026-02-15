@@ -1,5 +1,5 @@
 {% extends "base/base.html" %}
-{% load static %}
+{% load static humanize %}
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
@@ -22,60 +22,168 @@
   {% include "partials/SignUpModal.html" %}
   {% include "partials/header.html" %}
 
-  <div class="container mt-5 pt-md-3 py-4 py-lg-5">
+  <!-- Page header -->
+  <section class="container pt-5 mt-5">
     {% include "partials/breadcrumbs.html" %}
-
-    {% if listing.images.all %}
-    <div class="mb-4">
-      <div class="row g-2">
-        {% for img in listing.images.all %}
-        <div class="col-6 col-md-3">
-          <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block">
-            <img
-              src="{{ img.image.url }}"
-              class="img-fluid rounded"
-              alt="{{ img.alt|default:listing.title }}"
-              loading="lazy"
-            />
-          </a>
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 pb-sm-2">
+      <h1 class="h2 me-3 mb-sm-0">{{ listing.seo_h1|default:listing.title }}</h1>
+      <div class="text-nowrap">
+        <div class="dropdown d-inline-block" data-bs-toggle="tooltip" title="اشتراک‌گذاری">
+          <button class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle" type="button" data-bs-toggle="dropdown"><i class="fi-share"></i></button>
+          <div class="dropdown-menu dropdown-menu-end my-1">
+            <button class="dropdown-item" type="button" onclick="navigator.share && navigator.share({title: '{{ listing.title|escapejs }}', url: window.location.href})"><i class="fi-facebook fs-base opacity-75 me-2"></i>اشتراک</button>
+          </div>
         </div>
-        {% endfor %}
       </div>
     </div>
-    {% endif %}
+  </section>
 
-    <h1 class="mb-3">{{ listing.seo_h1|default:listing.title }}</h1>
-
-    <div class="mb-2">
-      <strong>شهر:</strong> {{ listing.city.fa_name }}
-      {% if listing.area %}
-      — <strong>محله:</strong> {{ listing.area.fa_name }}
+  <!-- Gallery -->
+  {% if listing.images.all %}
+  <section class="container overflow-auto mb-5" data-simplebar>
+    <div class="row g-2 g-md-3 gallery" style="min-width: 30rem;">
+      <div class="col-8">
+        {% with first_img=listing.images.all|first %}
+        <a href="{{ first_img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 overflow-hidden">
+          <img src="{{ first_img.image.url }}" class="img-fluid w-100" alt="{{ first_img.alt|default:listing.title }}" loading="lazy" style="height: 320px; object-fit: cover;">
+        </a>
+        {% endwith %}
+      </div>
+      <div class="col-4">
+        {% for img in listing.images.all %}
+          {% if forloop.counter == 2 %}
+        <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 mb-2 mb-md-3 overflow-hidden">
+          <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 154px; object-fit: cover;">
+        </a>
+          {% elif forloop.counter == 3 %}
+        <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 overflow-hidden">
+          <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 154px; object-fit: cover;">
+        </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if listing.images.all|length > 3 %}
+      <div class="col-12">
+        <div class="row g-2 g-md-3">
+          {% for img in listing.images.all %}
+            {% if forloop.counter > 3 %}
+          <div class="col">
+            <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded-1 rounded-md-2 overflow-hidden">
+              <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 80px; object-fit: cover;">
+            </a>
+          </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
       {% endif %}
     </div>
+  </section>
+  {% endif %}
 
-    <div class="mb-2">
-      <strong>دسته‌بندی:</strong> {{ listing.category.fa_name }}
+  <!-- Main content -->
+  <section class="container pb-5 mb-md-4">
+    <div class="row">
+      <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="card py-2 px-sm-4 px-3 shadow-sm">
+          <div class="card-body mx-n2">
+            <!-- Place info -->
+            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+              <div class="ps-2 ms-1 flex-grow-1">
+                <h3 class="h5 mb-2">{{ listing.title }}</h3>
+                <ul class="list-unstyled d-flex flex-wrap fs-sm text-muted">
+                  <li class="me-2 mb-1 pe-1"><i class="fi-map-pin mt-n1 me-1 align-middle opacity-70"></i>{{ listing.city.fa_name }}{% if listing.area %}، {{ listing.area.fa_name }}{% endif %}</li>
+                  <li class="me-2 mb-1 pe-1"><i class="fi-folder mt-n1 me-1 align-middle opacity-70"></i>{{ listing.category.fa_name }}</li>
+                  <li class="me-2 mb-1 pe-1"><i class="fi-home mt-n1 me-1 align-middle opacity-70"></i>{{ listing.get_deal_display_fa }}</li>
+                </ul>
+              </div>
+              {% if listing.has_price_display %}
+              <div class="flex-shrink-0">
+                <span class="badge bg-primary fs-6">
+                  {% if listing.deal == 'mortgage_rent' %}
+                    {% if listing.price_mortgage %}رهن {{ listing.price_mortgage|floatformat:0|intcomma }}{% endif %}{% if listing.price_mortgage and listing.price %} | {% endif %}{% if listing.price %}اجاره {{ listing.price|floatformat:0|intcomma }}{% endif %} {{ listing.price_unit|default:"تومان" }}
+                  {% else %}
+                    {{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}
+                  {% endif %}
+                </span>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Attributes -->
+            {% with attrs_with_value=listing.attribute_values.all %}
+              {% if attrs_with_value %}
+            <div class="mb-3 pb-3 border-bottom">
+              <h4 class="h6 mb-2">ویژگی‌ها</h4>
+              <div class="row row-cols-sm-2 row-cols-1 g-2">
+                {% for av in attrs_with_value %}
+                  {% if av.value_int is not None or av.value_bool is not None or av.value_str or av.value_option_id %}
+                <div class="col">
+                  <div class="d-flex align-items-center py-1">
+                    <i class="fi-check-circle text-primary mt-n1 me-2"></i>
+                    <span><strong>{{ av.attribute.name }}:</strong> {{ av.display_value }}</span>
+                  </div>
+                </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+              {% endif %}
+            {% endwith %}
+
+            {% if listing.short_description %}
+            <div class="mb-3 pb-3 border-bottom">
+              <p class="mb-0">{{ listing.short_description }}</p>
+            </div>
+            {% endif %}
+
+            {% if listing.description %}
+            <div class="mb-0">
+              <h4 class="h6 mb-2">توضیحات</h4>
+              <div class="content">{{ listing.description|safe }}</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar - Agency / Contact -->
+      <div class="col-lg-4">
+        <div class="card py-2 px-sm-4 px-3 shadow-sm sticky-top">
+          <div class="card-body">
+            {% if listing.has_price_display %}
+            <div class="mb-3 pb-3 border-bottom">
+              <h4 class="h5 mb-2">قیمت</h4>
+              {% if listing.deal == 'mortgage_rent' %}
+              <p class="fs-5 mb-0">
+                {% if listing.price_mortgage %}<span class="d-block">رهن: {{ listing.price_mortgage|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</span>{% endif %}
+                {% if listing.price %}<span class="d-block">اجاره ماهانه: {{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</span>{% endif %}
+              </p>
+              {% else %}
+              <p class="fs-5 mb-0">{{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</p>
+              {% endif %}
+            </div>
+            {% endif %}
+            <div class="mb-3 pb-3 border-bottom">
+              <h4 class="h6 mb-2">موقعیت</h4>
+              <p class="mb-1"><i class="fi-map-pin mt-n1 me-2 align-middle opacity-70"></i>{{ listing.city.fa_name }}</p>
+              {% if listing.area %}
+              <p class="mb-0"><i class="fi-map-pin mt-n1 me-2 align-middle opacity-70"></i>{{ listing.area.fa_name }}</p>
+              {% endif %}
+            </div>
+            {% if listing.agency %}
+            <div>
+              <h4 class="h6 mb-2">مشاوره املاک</h4>
+              <a href="{{ listing.agency.get_absolute_url }}" class="btn btn-primary rounded-pill w-100">
+                {{ listing.agency.name }}<i class="fi-chevron-left fs-sm me-2"></i>
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div class="mb-2">
-      <strong>نوع معامله:</strong>
-      {% if listing.deal == 'rent' %}اجاره{% else %}فروش{% endif %}
-    </div>
-
-    {% if listing.price %}
-    <div class="mb-2">
-      <strong>قیمت:</strong> {{ listing.price|floatformat:0 }} {{ listing.price_unit|default:"تومان" }}
-    </div>
-    {% endif %}
-
-    {% if listing.short_description %}
-    <p class="mt-3">{{ listing.short_description }}</p>
-    {% endif %}
-
-    {% if listing.description %}
-    <div class="mt-4 content">{{ listing.description|safe }}</div>
-    {% endif %}
-  </div>
+  </section>
 
   {% include "partials/footer.html" %}
   {% include "partials/Backtotopbutton.html" %}
@@ -83,4 +191,5 @@
 </main>
 {% endblock body %}
 {% block extra_js %}
+<script>if (typeof bootstrap !== 'undefined') { var t = document.querySelectorAll('[data-bs-toggle="tooltip"]'); t.forEach(function(el){ new bootstrap.Tooltip(el); }); }</script>
 {% endblock extra_js %}

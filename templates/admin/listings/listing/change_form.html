@@ -106,6 +106,22 @@
     }
   } catch (e) {}
 })();
+
+  // نمایش شرطی فیلد مبلغ رهن بر اساس نوع معامله
+  (function() {
+    const dealSelect = document.querySelector('select[name="deal"]');
+    const priceMortgageInput = document.getElementById('id_price_mortgage');
+    const priceMortgageRow = priceMortgageInput ? (priceMortgageInput.closest('.form-row') || priceMortgageInput.closest('.field-box')) : null;
+    function togglePriceMortgage() {
+      if (!dealSelect || !priceMortgageRow) return;
+      const isMortgageRent = dealSelect.value === 'mortgage_rent';
+      priceMortgageRow.style.display = isMortgageRent ? '' : 'none';
+    }
+    if (dealSelect) {
+      dealSelect.addEventListener('change', togglePriceMortgage);
+      togglePriceMortgage();
+    }
+  })();
 </script>
 {% endif %}
 {% endblock %}

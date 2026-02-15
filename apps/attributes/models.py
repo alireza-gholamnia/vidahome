@@ -36,6 +36,11 @@ class Attribute(models.Model):
     )
     sort_order = models.PositiveIntegerField(default=0, verbose_name="ترتیب نمایش")
     is_active = models.BooleanField(default=True, verbose_name="فعال")
+    is_filterable = models.BooleanField(
+        default=False,
+        verbose_name="نمایش در فیلترها",
+        help_text="اگر فعال باشد، این ویژگی در سایدبار فیلتر صفحه آگهی‌ها نمایش داده می‌شود",
+    )
 
     class Meta:
         ordering = ("sort_order", "id")

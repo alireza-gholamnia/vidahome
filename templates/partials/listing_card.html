@@ -1,11 +1,11 @@
-{% load static %}
+{% load static humanize %}
 {# Expects: listing (with images, category, title, deal, price, etc.) #}
 <div class="card shadow-sm card-hover border-0 h-100">
   <div class="card-img-top card-img-hover">
     <a class="img-overlay" href="{{ listing.get_absolute_url }}"></a>
     <div class="position-absolute start-0 top-0 pt-3 ps-3">
-      <span class="d-table badge mb-1 {% if listing.deal == 'rent' %}bg-info{% else %}bg-primary{% endif %}">
-        {% if listing.deal == 'rent' %}اجاره{% else %}فروش{% endif %}
+      <span class="d-table badge mb-1 {% if listing.deal == 'rent' or listing.deal == 'daily_rent' %}bg-info{% elif listing.deal == 'mortgage_rent' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+        {{ listing.get_deal_display_fa }}
       </span>
     </div>
     <div class="content-overlay end-0 top-0 pt-3 pe-3">
@@ -41,10 +41,17 @@
     {% if listing.short_description %}
     <p class="mb-2 fs-sm text-muted">{{ listing.short_description|truncatewords:15 }}</p>
     {% endif %}
-    {% if listing.price %}
+    {% if listing.has_price_display %}
     <div>
       <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i>
-      {{ listing.price|floatformat:0 }} {{ listing.price_unit|default:"تومان" }}
+      {% if listing.deal == 'mortgage_rent' %}
+        {% if listing.price_mortgage %}<span>رهن {{ listing.price_mortgage|floatformat:0|intcomma }}</span>{% endif %}
+        {% if listing.price_mortgage and listing.price %} <span class="text-muted">|</span> {% endif %}
+        {% if listing.price %}<span>اجاره {{ listing.price|floatformat:0|intcomma }}</span>{% endif %}
+        {{ listing.price_unit|default:"تومان" }}
+      {% else %}
+        {{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}
+      {% endif %}
     </div>
     {% endif %}
   </div>

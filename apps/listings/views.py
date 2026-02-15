@@ -8,6 +8,8 @@ from apps.categories.models import Category
 from apps.seo.models import CityCategory, CityAreaCategory
 
 from apps.blog.models import BlogPost
+from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
+
 from .models import Listing
 
 
@@ -42,7 +44,7 @@ def listing_catalog(request):
         qs = qs.filter(Q(category__slug=category_slug) | Q(category__parent__slug=category_slug))
     if area_slug and city_slug:
         qs = qs.filter(area__slug=area_slug, city__slug=city_slug)
-    if deal in ("buy", "rent"):
+    if deal in ("buy", "rent", "daily_rent", "mortgage_rent"):
         qs = qs.filter(deal=deal)
     if q:
         qs = qs.filter(
@@ -50,6 +52,68 @@ def listing_catalog(request):
             | Q(short_description__icontains=q)
             | Q(description__icontains=q)
         )
+
+    # فیلترهای ویژگی (EAV)
+    filterable_attrs = []
+    if category_slug:
+        cat = Category.objects.filter(slug=category_slug).first()
+        if cat:
+            cat_ids = list(
+                Category.objects.filter(Q(pk=cat.pk) | Q(parent=cat)).values_list("id", flat=True)
+            )
+            filterable_attrs = list(
+                Attribute.objects.filter(
+                    is_filterable=True,
+                    is_active=True,
+                    categories__in=cat_ids,
+                )
+                .distinct()
+                .order_by("sort_order", "id")
+            )
+    else:
+        filterable_attrs = list(
+            Attribute.objects.filter(is_filterable=True, is_active=True).order_by("sort_order", "id")
+        )
+
+    filter_attr_values = {}
+    for key, val in request.GET.items():
+        if key.startswith("attr_") and val:
+            slug = key[5:]
+            attr = next((a for a in filterable_attrs if a.slug == slug), None)
+            if attr:
+                filter_attr_values[attr.slug] = val
+
+    for attr in filterable_attrs:
+        val = filter_attr_values.get(attr.slug)
+        if not val:
+            continue
+        if attr.value_type == Attribute.ValueType.INTEGER:
+            try:
+                v = int(val)
+                qs = qs.filter(attribute_values__attribute=attr, attribute_values__value_int=v)
+            except ValueError:
+                pass
+        elif attr.value_type == Attribute.ValueType.BOOLEAN:
+            qs = qs.filter(
+                attribute_values__attribute=attr,
+                attribute_values__value_bool=(val == "1"),
+            )
+        elif attr.value_type == Attribute.ValueType.CHOICE:
+            try:
+                opt_id = int(val)
+                qs = qs.filter(
+                    attribute_values__attribute=attr,
+                    attribute_values__value_option_id=opt_id,
+                )
+            except ValueError:
+                pass
+        elif attr.value_type == Attribute.ValueType.STRING:
+            qs = qs.filter(
+                attribute_values__attribute=attr,
+                attribute_values__value_str=val,
+            )
+    if filter_attr_values:
+        qs = qs.distinct()
 
     paginator = Paginator(qs, 24)
     page = request.GET.get("page", 1)
@@ -77,6 +141,21 @@ def listing_catalog(request):
     if city_slug and (c := City.objects.filter(slug=city_slug).first()):
         title = f"آگهی‌های {c.fa_name}"
 
+    # گزینه‌های فیلتر ویژگی‌ها
+    attr_filters = []
+    for attr in filterable_attrs:
+        options = [("", "همه")]
+        if attr.value_type == Attribute.ValueType.INTEGER:
+            opts = AttributeOption.objects.filter(attribute=attr).order_by("sort_order", "id")
+            options.extend((str(opt.value), opt.value) for opt in opts)
+        elif attr.value_type == Attribute.ValueType.BOOLEAN:
+            options.extend([("1", "بله"), ("0", "خیر")])
+        elif attr.value_type == Attribute.ValueType.CHOICE:
+            opts = AttributeOption.objects.filter(attribute=attr).order_by("sort_order", "id")
+            options.extend((str(opt.id), opt.value) for opt in opts)
+        current = filter_attr_values.get(attr.slug, "")
+        attr_filters.append({"attr": attr, "options": options, "current": current})
+
     # Query string for pagination (exclude page)
     from urllib.parse import urlencode
     params = dict(request.GET)
@@ -91,6 +170,7 @@ def listing_catalog(request):
             "cities": cities,
             "categories": categories,
             "areas": areas,
+            "attr_filters": attr_filters,
             "breadcrumbs": breadcrumbs,
             "seo_h1": title,
             "seo_title": f"{title} | VidaHome",
@@ -448,8 +528,8 @@ def _listing_breadcrumbs(listing: Listing):
 def listing_detail(request, listing_id: int, slug: str):
     listing = (
         Listing.objects
-        .select_related("city", "area", "category")
-        .prefetch_related("images")
+        .select_related("city", "area", "category", "agency")
+        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option")
         .filter(id=listing_id, status=Listing.Status.PUBLISHED)
         .first()
     )
@@ -464,7 +544,8 @@ def listing_detail(request, listing_id: int, slug: str):
 def listing_detail_by_id(request, listing_id: int):
     listing = (
         Listing.objects
-        .select_related("city", "area", "category")
+        .select_related("city", "area", "category", "agency")
+        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option")
         .filter(id=listing_id, status=Listing.Status.PUBLISHED)
         .first()
     )

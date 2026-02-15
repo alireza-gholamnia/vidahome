@@ -62,8 +62,8 @@ class ListingAttributeInline(admin.TabularInline):
 
 @admin.register(Attribute)
 class AttributeAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "value_type", "unit", "sort_order", "is_active", "_categories_display", "_values_count")
-    list_filter = ("value_type", "is_active")
+    list_display = ("name", "slug", "value_type", "unit", "sort_order", "is_active", "is_filterable", "_categories_display", "_values_count")
+    list_filter = ("value_type", "is_active", "is_filterable")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ("categories",)
