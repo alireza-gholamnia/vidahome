@@ -28,9 +28,11 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
+    path("panel/", include("apps.panel.urls")),
     path("agencies/", agency_views.agency_list, name="agency_list"),
     path("listings/", listing_views.listing_catalog, name="listing_catalog"),
     path("a/", include("apps.agencies.urls")),
+    path("agent/", include("apps.agencies.agent_urls")),
     path("cities/", include("apps.locations.urls")),
     path("s/", include("apps.listings.search_urls")),
     path("l/", include("apps.listings.detail_urls")),

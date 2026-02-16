@@ -1,0 +1,105 @@
+{% extends "base/base.html" %}
+{% load static panel_tags %}
+{% block extra_css %}
+<link rel="stylesheet" media="screen" href="{% static 'css/loading.css' %}" />
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    function hidePreloader() {
+      document.querySelectorAll('.page-loading').forEach(function (el) {
+        el.classList.remove('active');
+        setTimeout(function () { el.remove(); }, 300);
+      });
+    }
+    if (document.readyState === 'complete') {
+      hidePreloader();
+    } else {
+      window.addEventListener('load', hidePreloader);
+    }
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+{% include "partials/loading_spinner.html" %}
+<main class="page-wrapper fixed-bottom-btn">
+  {% include "partials/header.html" %}
+
+  <div class="container mt-5 pt-5 pb-4 pb-lg-5">
+    <div class="row g-4">
+      <aside class="col-lg-3">
+        <nav class="card shadow-sm">
+          <div class="card-body p-3">
+            <h6 class="text-muted mb-3 px-2">پنل کاربری</h6>
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active fw-bold{% endif %}" href="{% url 'panel:dashboard' %}">
+                  <i class="fi-home me-2 opacity-70"></i>داشبورد
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'listing_list' or request.resolver_match.url_name == 'listing_edit' or request.resolver_match.url_name == 'listing_delete' %}active fw-bold{% endif %}" href="{% url 'panel:listing_list' %}">
+                  <i class="fi-map-pin me-2 opacity-70"></i>آگهی‌های من
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'listing_add' %}active fw-bold{% endif %}" href="{% url 'panel:listing_add' %}">
+                  <i class="fi-plus me-2 opacity-70"></i>ثبت ملک جدید
+                </a>
+              </li>
+              {% if user|has_agency or user|is_agency_owner %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'agency_list' or request.resolver_match.url_name == 'agency_edit' or request.resolver_match.url_name == 'agency_add' %}active fw-bold{% endif %}" href="{% url 'panel:agency_list' %}">
+                  <i class="fi-building me-2 opacity-70"></i>مشاوره‌های املاک
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'agency_employees' %}active fw-bold{% endif %}" href="{% url 'panel:agency_employees' %}">
+                  <i class="fi-users me-2 opacity-70"></i>کارمندان مشاوره
+                </a>
+              </li>
+              {% endif %}
+              {% if user|is_agency_employee and not user.agency and not user|has_agency %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'employee_request_join' %}active fw-bold{% endif %}" href="{% url 'panel:employee_request_join' %}">
+                  <i class="fi-user-plus me-2 opacity-70"></i>درخواست عضویت در مشاوره
+                </a>
+              </li>
+              {% endif %}
+              {% if user|is_site_admin %}
+              <li class="nav-item">
+                <a class="nav-link {% if 'approve' in request.resolver_match.url_name %}active fw-bold{% endif %}" href="{% url 'panel:approve_dashboard' %}">
+                  <i class="fi-check-circle me-2 opacity-70"></i>تأیید موارد
+                  {% if pending_approve_count %}<span class="badge bg-danger ms-1">{{ pending_approve_count }}</span>{% endif %}
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if 'attribute' in request.resolver_match.url_name %}active fw-bold{% endif %}" href="{% url 'panel:attribute_list' %}">
+                  <i class="fi-folder me-2 opacity-70"></i>ویژگی‌ها
+                </a>
+              </li>
+              {% endif %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'role_change_request' %}active fw-bold{% endif %}" href="{% url 'panel:role_change_request' %}">
+                  <i class="fi-user-check me-2 opacity-70"></i>درخواست تغییر نقش
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'profile_edit' %}active fw-bold{% endif %}" href="{% url 'panel:profile_edit' %}">
+                  <i class="fi-user me-2 opacity-70"></i>اطلاعات شخصی
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </aside>
+      <div class="col-lg-9">
+        {% block panel_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</main>
+{% include "partials/footer.html" %}
+{% include "partials/Backtotopbutton.html" %}
+{% include "base/scripts.html" %}
+{% endblock body %}

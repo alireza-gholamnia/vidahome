@@ -54,6 +54,9 @@ python manage.py createsuperuser
 # Seed sample data (optional)
 python manage.py seed_data --clear
 
+# Generate placeholder images (optional — برای شهرها، محلات، دسته‌ها، آگهی‌ها، مشاوره‌ها، بلاگ)
+python manage.py generate_placeholder_images
+
 # Run development server
 python manage.py runserver
 ```
@@ -339,6 +342,18 @@ Registered in `config/settings/base.py` → `TEMPLATES['OPTIONS']['context_proce
 
 All template image references use `{% static 'img/...' %}`.  
 Placeholder/demo images (e.g. `img/real-estate/recent/`, `img/real-estate/catalog/`) must exist in `static/img/` or will 404.
+
+### Placeholder Images (Pillow)
+
+دستور `generate_placeholder_images` تصاویر placeholder با Pillow می‌سازد و به مدل‌ها متصل می‌کند:
+
+```bash
+python manage.py generate_placeholder_images       # فقط برای موارد بدون تصویر
+python manage.py generate_placeholder_images --force  # جایگزینی همه
+```
+
+**موجودیت‌ها:** City, Area, Category, Listing, ListingImage, Agency, AgencyImage, CityCategory, CityAreaCategory, BlogPost  
+**متن روی تصاویر:** انگلیسی (en_name، slug، …)
 
 ---
 
@@ -680,6 +695,53 @@ This README is a **living document** and the only authoritative reference.
 **Next step**
 
 - فیلتر بازه قیمت در کاتالوگ؛ فرم تماس/استعلام آگهی
+
+---
+
+### Version 20 — OTP ورود، پنل کاربری، مشاوره چندگانه، منوی ریسپانسیو (Completed)
+
+**Scope:** ورود با شماره موبایل (OTP)، پنل کاربری، کارمند چند مشاوره، تأیید مشاوره، صفحه مشاور، منوی offcanvas ریسپانسیو.
+
+**What was implemented**
+
+- **OTP ورود:** سرویس `apps.accounts.services` (request_otp, verify_otp)، صفحه ورود با شماره موبایل (`phone_login.html`)، مدل OTPRequest، محدودیت cooldown و انقضا
+- **SMS:** سرویس ارسال پیامک در `apps.common.sms` (send_otp، قابل اتصال به درگاه SMS)
+- **پنل کاربری:** اپلیکیشن `apps.panel` — داشبورد، مدیریت آگهی‌ها، تنظیمات کاربر، ...
+- **کاربر چند مشاوره:** مدل AgencyEmployee و درخواست عضویت (AgencyJoinRequest)، تأیید/رد کارمند توسط مالک مشاوره
+- **Role change request:** درخواست تغییر نقش کاربر (سینگال و flow مربوطه)
+- **User slug:** اسلاگ کاربر برای URL پروفایل
+- **وضعیت آگهی:** pending، rejected و rejection_reason؛ گردش کار تأیید آگهی
+- **صفحه مشاور:** لندینگ `/agent/{slug}/` برای پروفایل مشاوران (agent_urls، agent_landing)
+- **منوی ریسپانسیو:** تبدیل navbar از collapse به offcanvas — در موبایل پنل کشویی از سمت راست؛ در دسکتاپ منوی افقی معمول (theme Finder)
+
+**Architectural intent**
+
+- ورود بدون رمز با OTP مناسب موبایل
+- پنل اختصاصی برای کاربران و مشاوران
+- پشتیبانی از عضویت کارمند در چند مشاوره با تأیید مالک
+
+**Next step**
+
+- ریسپانسیو سایر صفحات؛ فیلتر بازه قیمت
+
+---
+
+### Version 21 — تصاویر Placeholder با Pillow (Completed)
+
+**Scope:** ساخت تصاویر placeholder برای شهرها، محلات، دسته‌ها، آگهی‌ها، مشاوره‌ها و بلاگ.
+
+**What was implemented**
+
+- **placeholder_images.py:** ماژول Pillow — تصویر با متن وسط، گرادیان، فونت فارسی (Tahoma/DejaVu)
+- **generate_placeholder_images:** دستور مدیریت — ساخت تصویر برای City, Area, Category, Listing, Agency, CityCategory, CityAreaCategory, BlogPost
+- **متن روی تصاویر:** انگلیسی (en_name، slug)
+- **گزینه --force:** جایگزینی تصاویر قبلی
+- **منوی ریسپانسیو:** بازگشت از offcanvas به collapse مطابق دمو real-estate-home-v1
+- **mobile-app.css:** ساده‌سازی برای هماهنگی با تم پیش‌فرض دمو
+
+**Next step**
+
+- فیلتر بازه قیمت؛ ریسپانسیو سایر صفحات
 
 ---
 

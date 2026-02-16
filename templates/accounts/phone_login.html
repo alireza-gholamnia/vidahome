@@ -1,0 +1,84 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" media="screen" href="{% static 'css/loading.css' %}" />
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<div class="page-loading active">
+  <div class="page-loading-inner">
+    <div class="page-spinner"></div>
+    <span>لطفا منتظر باشید</span>
+  </div>
+</div>
+<main class="page-wrapper">
+  <div class="container pt-4 pt-sm-5">
+    {% include "partials/breadcrumbs.html" %}
+  </div>
+  <div class="container-fluid d-flex align-items-center justify-content-center py-4 py-sm-5 bg-secondary">
+    <div class="card card-body" style="max-width: 940px">
+      <a class="position-absolute top-0 end-0 nav-link fs-sm py-1 px-2 mt-3 me-3" href="{% url 'home' %}">
+        <i class="fi-arrow-long-right fs-base me-2"></i>برگشت
+      </a>
+      <div class="row mx-0 align-items-center">
+        <div class="col-md-6 border-end-md p-4 p-sm-5">
+          <h2 class="h3 mb-4 mb-sm-5">سلام!<br>به VidaHome خوش آمدید.</h2>
+          <img class="d-block mx-auto rotate-img" src="{% static 'img/signin-modal/signin.svg' %}" width="344" alt="ورود با موبایل">
+          <div class="mt-4 mt-sm-5">
+            {% if step == "phone" %}
+            با وارد کردن شماره موبایل، کد تأیید برایتان ارسال می‌شود.
+            {% else %}
+            کد ارسال‌شده را وارد کنید.
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-6 px-4 pt-2 pb-4 px-sm-5 pb-sm-5 pt-md-5">
+          {% if step == "phone" %}
+          <form method="post" action="{% url 'accounts:login' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+            {% if error %}
+            <div class="alert alert-danger mb-4">{{ error }}</div>
+            {% endif %}
+            <div class="mb-4">
+              <label class="form-label mb-2" for="id_phone">شماره موبایل</label>
+              <input class="form-control" type="tel" name="phone" id="id_phone" placeholder="۰۹۱۲۳۴۵۶۷۸۹" required value="{{ phone|default:'' }}" dir="ltr" maxlength="11">
+            </div>
+            <button class="btn btn-primary btn-lg w-100" type="submit">دریافت کد تأیید</button>
+          </form>
+          {% else %}
+          <form method="post" action="{% url 'accounts:otp_verify' %}" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {% if error %}
+            <div class="alert alert-danger mb-4">{{ error }}</div>
+            {% endif %}
+            <div class="mb-3">
+              <span class="text-muted fs-sm">شماره: {{ phone }}</span>
+              <a class="fs-sm me-2" href="{% url 'accounts:login' %}">تغییر</a>
+            </div>
+            <div class="mb-4">
+              <label class="form-label mb-2" for="id_code">کد تأیید</label>
+              <input class="form-control form-control-lg text-center" type="text" name="code" id="id_code" placeholder="۱۲۳۴۵" required maxlength="6" dir="ltr" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+            </div>
+            <button class="btn btn-primary btn-lg w-100" type="submit">ورود</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% include "base/scripts.html" %}
+{% endblock body %}

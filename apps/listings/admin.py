@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
+from apps.agencies.models import Agency
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
 
 from .models import Listing, ListingImage
@@ -72,9 +73,8 @@ class ListingAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         # صاحب مشاوره: تمام آگهی‌های مشاوره خودش
-        agency = getattr(request.user, "owned_agency", None)
-        if agency:
-            return qs.filter(agency=agency)
+        if Agency.objects.filter(owner=request.user).exists():
+            return qs.filter(agency__owner=request.user)
         # کارمند مشاوره: فقط آگهی‌هایی که خودش ثبت کرده
         return qs.filter(created_by=request.user)
 
@@ -91,9 +91,7 @@ class ListingAdmin(admin.ModelAdmin):
             if "created_by" in form.base_fields:
                 form.base_fields["created_by"].initial = request.user
             if "agency" in form.base_fields:
-                agency = getattr(request.user, "agency", None) or getattr(
-                    request.user, "owned_agency", None
-                )
+                agency = getattr(request.user, "agency", None) or Agency.objects.filter(owner=request.user).first()
                 if agency:
                     form.base_fields["agency"].initial = agency
         return form
@@ -102,9 +100,7 @@ class ListingAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             if not change:
                 obj.created_by = request.user
-                agency = getattr(request.user, "agency", None) or getattr(
-                    request.user, "owned_agency", None
-                )
+                agency = getattr(request.user, "agency", None) or Agency.objects.filter(owner=request.user).first()
                 if agency:
                     obj.agency = agency
         super().save_model(request, obj, form, change)

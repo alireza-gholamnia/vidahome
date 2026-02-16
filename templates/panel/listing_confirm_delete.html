@@ -1,0 +1,15 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">حذف آگهی</h2>
+    <p class="mb-4">آیا از حذف آگهی «{{ listing.title }}» اطمینان دارید؟ این عمل قابل بازگشت نیست.</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">حذف</button>
+      <a class="btn btn-outline-secondary me-2" href="{% url 'panel:listing_list' %}">انصراف</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

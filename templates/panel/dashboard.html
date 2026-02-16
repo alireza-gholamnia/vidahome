@@ -1,0 +1,65 @@
+{% extends "panel/base.html" %}
+{% load panel_tags %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+{% if is_site_admin and pending_listings_all|add:pending_agencies_all > 0 %}
+<div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+  <i class="fi-alert-circle fs-4 me-3"></i>
+  <div>
+    <strong>موارد در انتظار تأیید:</strong>
+    {% if pending_listings_all %}{{ pending_listings_all }} آگهی{% endif %}
+    {% if pending_listings_all and pending_agencies_all %} و {% endif %}
+    {% if pending_agencies_all %}{{ pending_agencies_all }} مشاوره املاک{% endif %}
+    — <a href="{% url 'panel:approve_dashboard' %}" class="alert-link">مشاهده و تأیید</a>
+  </div>
+</div>
+{% endif %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h4 mb-4">داشبورد</h2>
+    <p class="text-muted mb-4">به پنل کاربری VidaHome خوش آمدید. از اینجا می‌توانید آگهی‌های خود را مدیریت کنید.</p>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card bg-primary bg-opacity-10 border-0">
+          <div class="card-body">
+            <h3 class="h2 mb-1">{{ listings_count }}</h3>
+            <p class="mb-0 text-muted">کل آگهی‌ها</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-success bg-opacity-10 border-0">
+          <div class="card-body">
+            <h3 class="h2 mb-1">{{ published_count }}</h3>
+            <p class="mb-0 text-muted">منتشر شده</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-10 border-0">
+          <div class="card-body">
+            <h3 class="h2 mb-1">{{ rejected_count }}</h3>
+            <p class="mb-0 text-muted">رد شده</p>
+          </div>
+        </div>
+      </div>
+      {% if pending_listings %}
+      <div class="col-md-4">
+        <div class="card bg-info bg-opacity-10 border-0">
+          <div class="card-body">
+            <h3 class="h2 mb-1">{{ pending_listings }}</h3>
+            <p class="mb-0 text-muted">در انتظار تأیید</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="mt-4">
+      <a class="btn btn-primary" href="{% url 'panel:listing_add' %}">
+        <i class="fi-plus me-2"></i>ثبت ملک جدید
+      </a>
+      <a class="btn btn-outline-secondary me-2" href="{% url 'panel:listing_list' %}">مشاهده آگهی‌ها</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

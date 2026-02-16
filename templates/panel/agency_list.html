@@ -1,0 +1,48 @@
+{% extends "panel/base.html" %}
+{% load panel_tags %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h5 mb-0">مشاوره‌های املاک</h2>
+  <a class="btn btn-primary btn-sm" href="{% url 'panel:agency_add' %}">
+    <i class="fi-plus me-1"></i>افزودن مشاوره املاک
+  </a>
+</div>
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>نام</th>
+          <th>وضعیت تأیید</th>
+          <th>تلفن</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in agencies %}
+        <tr>
+          <td>{{ a.name }}</td>
+          <td>
+            {% if a.approval_status == 'approved' %}
+            <span class="badge bg-success">تأیید شده</span>
+            {% elif a.approval_status == 'pending' %}
+            <span class="badge bg-warning">در انتظار تأیید</span>
+            {% else %}
+            <span class="badge bg-danger">رد شده</span>
+            {% endif %}
+          </td>
+          <td>{{ a.phone|default:"-" }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:agency_edit' a.pk %}">ویرایش</a>
+            {% if a.approval_status == 'approved' %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ a.get_absolute_url }}" target="_blank">مشاهده</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

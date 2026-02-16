@@ -1,0 +1,45 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">افزودن مشاوره املاک</h2>
+    <p class="text-muted small mb-4">مشاوره املاک شما پس از ثبت، در انتظار تأیید مدیر سایت خواهد بود.</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="id_name">نام مشاوره املاک *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_phone">تلفن</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_address">آدرس</label>
+          {{ form.address }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_intro_content">متن معرفی</label>
+          {{ form.intro_content }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_logo">لوگو</label>
+          {{ form.logo }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_cities">شهرهای تحت فعالیت</label>
+          {{ form.cities }}
+          <small class="text-muted">Ctrl+کلیک برای انتخاب چند شهر</small>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">ثبت و ارسال برای تأیید</button>
+        <a class="btn btn-outline-secondary me-2" href="{% url 'panel:agency_list' %}">انصراف</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

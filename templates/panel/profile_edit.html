@@ -1,0 +1,47 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">
+  {% include "partials/breadcrumbs.html" %}
+</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">ویرایش اطلاعات شخصی</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="id_first_name">نام</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_last_name">نام خانوادگی</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_phone">شماره موبایل</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_email">ایمیل</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_avatar">تصویر پروفایل</label>
+          {% if user.avatar %}<p class="small text-muted mb-1">تصویر فعلی:</p><img src="{{ user.avatar.url }}" alt="" class="rounded mb-2" style="max-height:80px">{% endif %}
+          {{ form.avatar }}
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

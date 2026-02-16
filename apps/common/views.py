@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.apps import apps
 
+
 def home(request):
     City = apps.get_model("locations", "City")
     Category = apps.get_model("categories", "Category")

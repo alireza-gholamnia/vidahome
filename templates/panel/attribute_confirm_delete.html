@@ -1,0 +1,17 @@
+{% extends "panel/base.html" %}
+{% load panel_tags %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">حذف ویژگی</h2>
+    <p class="mb-3">آیا از حذف ویژگی «<strong>{{ object.name }}</strong>» اطمینان دارید؟</p>
+    <p class="text-muted small mb-4">تمام گزینه‌ها و مقادیر ذخیره‌شدهٔ این ویژگی در آگهی‌ها نیز حذف خواهند شد.</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">بله، حذف شود</button>
+      <a class="btn btn-outline-secondary me-2" href="{% url 'panel:attribute_list' %}">انصراف</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

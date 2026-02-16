@@ -1,0 +1,70 @@
+{% extends "panel/base.html" %}
+{% load panel_tags %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+{% if already_member %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-5">
+    <p class="text-success mb-2"><i class="fi-check-circle fs-4"></i></p>
+    <p class="mb-0">شما عضو مشاوره املاک <strong>{{ agency.name }}</strong> هستید.</p>
+    <p class="text-muted small mt-2 mb-0">برای تغییر مشاوره با ادمین سایت تماس بگیرید.</p>
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">درخواست عضویت در مشاوره املاک</h2>
+    <p class="text-muted mb-4">مشاوره املاکی را انتخاب کنید. درخواست شما پس از تأیید ادمین سایت، فعال می‌شود.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label" for="id_agency">مشاوره املاک</label>
+        {{ form.agency }}
+        {% if form.agency.errors %}<div class="text-danger small mt-1">{{ form.agency.errors }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">ارسال درخواست</button>
+    </form>
+  </div>
+</div>
+
+{% if requests %}
+<div class="card shadow-sm mt-4">
+  <div class="card-body p-4">
+    <h3 class="h6 mb-3">درخواست‌های من</h3>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>مشاوره املاک</th>
+            <th>وضعیت</th>
+            <th>تاریخ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in requests %}
+          <tr>
+            <td>{{ r.agency.name }}</td>
+            <td>
+              {% if r.status == 'pending' %}
+              <span class="badge bg-warning">در انتظار تأیید</span>
+              {% elif r.status == 'approved' %}
+              <span class="badge bg-success">تأیید شده</span>
+              {% else %}
+              <span class="badge bg-danger">رد شده</span>
+              {% endif %}
+            </td>
+            <td>{{ r.created_at|date:"Y/m/d" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

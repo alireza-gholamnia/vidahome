@@ -1,0 +1,393 @@
+{% extends "panel/base.html" %}
+{% load humanize %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<h2 class="h5 mb-4">تأیید موارد</h2>
+
+<ul class="nav nav-pills nav-fill mb-4" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'pending' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=pending">
+      <i class="fi-inbox me-1"></i>در انتظار تأیید
+      <span class="badge bg-primary ms-1">{{ pending_listings_count|add:pending_agencies_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'rejected' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=rejected">
+      <i class="fi-x-circle me-1"></i>رد شده
+      <span class="badge bg-danger ms-1">{{ rejected_listings_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'approved' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=approved">
+      <i class="fi-check-circle me-1"></i>تأیید شده
+      <span class="badge bg-success ms-1">{{ approved_listings_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'join_requests' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=join_requests">
+      <i class="fi-user-plus me-1"></i>درخواست عضویت کارمند
+      <span class="badge bg-warning ms-1">{{ join_requests_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'remove_requests' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=remove_requests">
+      <i class="fi-user-minus me-1"></i>درخواست حذف کارمند
+      <span class="badge bg-warning ms-1">{{ remove_requests_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'role_change' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=role_change">
+      <i class="fi-user-check me-1"></i>درخواست تغییر نقش
+      <span class="badge bg-warning ms-1">{{ role_change_count }}</span>
+    </a>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {% if tab == 'employees' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=employees">
+      <i class="fi-users me-1"></i>مدیریت کارمندان
+    </a>
+  </li>
+</ul>
+
+{% if tab == 'pending' %}
+  {% if pending_listings or pending_agencies %}
+  <div class="row g-4">
+    {% if pending_listings %}
+    <div class="col-12">
+      <h3 class="h6 mb-3">آگهی‌های در انتظار تأیید ({{ pending_listings_count }})</h3>
+      <div class="card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>عنوان</th>
+                <th>شهر</th>
+                <th>نوع</th>
+                <th>دلیل رد قبلی</th>
+                <th>ایجادکننده</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for l in pending_listings %}
+              <tr>
+                <td>{{ l.id }}</td>
+                <td>{{ l.title|truncatewords:5 }}</td>
+                <td>{{ l.city.fa_name }}</td>
+                <td>
+                  <span class="badge {% if l.rejection_reason %}bg-warning{% elif l.published_at %}bg-info{% else %}bg-primary{% endif %}">
+                    {{ l.get_pending_type_display }}
+                  </span>
+                </td>
+                <td>{% if l.rejection_reason %}<span class="text-muted small" title="{{ l.rejection_reason }}">{{ l.rejection_reason|truncatewords:6 }}</span>{% else %}—{% endif %}</td>
+                <td>{{ l.created_by.get_full_name|default:l.created_by.username|default:"-" }}</td>
+                <td>
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:approve_listing' l.pk %}">مشاهده و تأیید</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if pending_agencies %}
+    <div class="col-12">
+      <h3 class="h6 mb-3">مشاوره‌های املاک در انتظار تأیید ({{ pending_agencies_count }})</h3>
+      <div class="card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>نام</th>
+                <th>مالک</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in pending_agencies %}
+              <tr>
+                <td>{{ a.name }}</td>
+                <td>{{ a.owner.get_full_name|default:a.owner.username }}</td>
+                <td>
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:approve_agency' a.pk %}">مشاهده و تأیید</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">موردی در انتظار تأیید نیست.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'rejected' %}
+  {% if rejected_listings %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">آگهی‌های رد شده ({{ rejected_listings_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>عنوان</th>
+            <th>شهر</th>
+            <th>ایجادکننده</th>
+            <th>علت رد</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in rejected_listings %}
+          <tr>
+            <td>{{ l.id }}</td>
+            <td>{{ l.title|truncatewords:5 }}</td>
+            <td>{{ l.city.fa_name }}</td>
+            <td>{{ l.created_by.get_full_name|default:l.created_by.username|default:"-" }}</td>
+            <td><span class="text-muted small" title="{{ l.rejection_reason }}">{{ l.rejection_reason|truncatewords:8 }}</span></td>
+            <td>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'panel:approve_listing' l.pk %}">مشاهده / تأیید مجدد</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">آگهی رد شده‌ای وجود ندارد.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'approved' %}
+  {% if approved_listings %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">آگهی‌های تأیید شده (منتشر شده)</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>عنوان</th>
+            <th>شهر</th>
+            <th>ایجادکننده</th>
+            <th>تاریخ انتشار</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in approved_listings %}
+          <tr>
+            <td>{{ l.id }}</td>
+            <td>{{ l.title|truncatewords:5 }}</td>
+            <td>{{ l.city.fa_name }}</td>
+            <td>{{ l.created_by.get_full_name|default:l.created_by.username|default:"-" }}</td>
+            <td>{% if l.published_at %}{{ l.published_at|date:"Y/m/d H:i" }}{% else %}—{% endif %}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="{{ l.get_absolute_url }}" target="_blank">مشاهده آگهی</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">آگهی تأیید شده‌ای وجود ندارد.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'join_requests' %}
+  {% if join_requests %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">درخواست‌های عضویت کارمند ({{ join_requests_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>کاربر</th>
+            <th>مشاوره املاک</th>
+            <th>تاریخ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in join_requests %}
+          <tr>
+            <td>{{ r.user.get_full_name|default:r.user.username }}</td>
+            <td>{{ r.agency.name }}</td>
+            <td>{{ r.created_at|date:"Y/m/d H:i" }}</td>
+            <td>
+              <form method="post" action="{% url 'panel:approve_join_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="btn btn-sm btn-success me-1">تأیید</button>
+              </form>
+              <form method="post" action="{% url 'panel:approve_join_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" class="btn btn-sm btn-outline-danger">رد</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">درخواست عضویت در انتظار تأیید نیست.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'remove_requests' %}
+  {% if remove_requests %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">درخواست‌های حذف کارمند ({{ remove_requests_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>کارمند</th>
+            <th>مشاوره املاک</th>
+            <th>درخواست‌کننده</th>
+            <th>تاریخ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in remove_requests %}
+          <tr>
+            <td>{{ r.user.get_full_name|default:r.user.username }}</td>
+            <td>{{ r.agency.name }}</td>
+            <td>{{ r.requested_by.get_full_name|default:r.requested_by.username }}</td>
+            <td>{{ r.created_at|date:"Y/m/d H:i" }}</td>
+            <td>
+              <form method="post" action="{% url 'panel:approve_remove_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="btn btn-sm btn-success me-1">تأیید حذف</button>
+              </form>
+              <form method="post" action="{% url 'panel:approve_remove_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" class="btn btn-sm btn-outline-danger">رد</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">درخواست حذف کارمندی در انتظار تأیید نیست.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'role_change' %}
+  {% if role_change_requests %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">درخواست‌های تغییر نقش ({{ role_change_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>کاربر</th>
+            <th>نقش درخواستی</th>
+            <th>توضیحات</th>
+            <th>تاریخ</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in role_change_requests %}
+          <tr>
+            <td>{{ r.user.get_full_name|default:r.user.username }}</td>
+            <td>{{ r.get_requested_role_display }}</td>
+            <td><span class="text-muted small" title="{{ r.message }}">{% if r.message %}{{ r.message|truncatewords:12 }}{% else %}—{% endif %}</span></td>
+            <td>{{ r.created_at|date:"Y/m/d H:i" }}</td>
+            <td>
+              <form method="post" action="{% url 'panel:approve_role_change_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="approve">
+                <button type="submit" class="btn btn-sm btn-success me-1">تأیید</button>
+              </form>
+              <form method="post" action="{% url 'panel:approve_role_change_request' r.pk %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject">
+                <button type="submit" class="btn btn-sm btn-outline-danger">رد</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">درخواست تغییر نقشی در انتظار تأیید نیست.</p>
+    </div>
+  </div>
+  {% endif %}
+
+{% elif tab == 'employees' %}
+  {% if employees %}
+  <div class="card shadow-sm">
+    <h3 class="h6 mb-3 px-3 pt-3">کارمندان مشاوره‌های املاک ({{ employees_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>کاربر</th>
+            <th>مشاوره املاک</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in employees %}
+          <tr>
+            <td>{{ e.get_full_name|default:e.username }}</td>
+            <td>{{ e.agency.name }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:employee_manage_agency' e.pk %}">تغییر / حذف</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <p class="text-muted mb-0">کارمندی ثبت نشده است.</p>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -528,8 +528,8 @@ def _listing_breadcrumbs(listing: Listing):
 def listing_detail(request, listing_id: int, slug: str):
     listing = (
         Listing.objects
-        .select_related("city", "area", "category", "agency")
-        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option")
+        .select_related("city", "area", "category", "agency", "created_by", "created_by__agency")
+        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option", "created_by__owned_agencies")
         .filter(id=listing_id, status=Listing.Status.PUBLISHED)
         .first()
     )
@@ -544,8 +544,8 @@ def listing_detail(request, listing_id: int, slug: str):
 def listing_detail_by_id(request, listing_id: int):
     listing = (
         Listing.objects
-        .select_related("city", "area", "category", "agency")
-        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option")
+        .select_related("city", "area", "category", "agency", "created_by", "created_by__agency")
+        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option", "created_by__owned_agencies")
         .filter(id=listing_id, status=Listing.Status.PUBLISHED)
         .first()
     )

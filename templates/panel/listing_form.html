@@ -1,0 +1,225 @@
+{% extends "panel/base.html" %}
+{% load static panel_tags %}
+{% block extra_css %}
+{{ block.super }}
+<style>
+  #listing-form .field-description #id_description,
+  #listing-form .field-description textarea,
+  #listing-form .field-description .django-ckeditor-widget,
+  #listing-form .field-description .cke_inner,
+  #listing-form .field-description .cke_contents {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+</style>
+{% endblock extra_css %}
+{% block panel_content %}
+<div class="mb-3">
+  {% include "partials/breadcrumbs.html" %}
+</div>
+{% if object and object.rejection_reason %}
+<div class="alert alert-warning d-flex align-items-start mb-4" role="alert">
+  <i class="fi-alert-circle fs-4 me-2 mt-1"></i>
+  <div class="flex-grow-1">
+    <strong>این آگهی توسط ادمین رد شده است.</strong>
+    <p class="mb-0 mt-2">علت رد: {{ object.rejection_reason }}</p>
+    <p class="mb-0 mt-2 small text-muted">ایراد را برطرف کرده و با زدن دکمه ذخیره، آگهی مجدداً برای تأیید ارسال می‌شود.</p>
+  </div>
+</div>
+{% endif %}
+{% if object and object.status == 'published' and not user|is_site_admin %}
+<div class="alert alert-info d-flex align-items-start mb-4" role="alert">
+  <i class="fi-info-circle fs-4 me-2 mt-1"></i>
+  <div class="flex-grow-1">
+    <strong>توجه:</strong>
+    <p class="mb-0 mt-1">تغییر آگهی نیاز به تأیید مجدد ادمین سایت خواهد داشت. پس از ذخیره، آگهی در صف تأیید قرار می‌گیرد.</p>
+  </div>
+</div>
+{% endif %}
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">{% if object %}ویرایش آگهی{% else %}ثبت ملک جدید{% endif %}</h2>
+    <form method="post" enctype="multipart/form-data" id="listing-form" data-rejected="{% if object and object.rejection_reason %}true{% else %}false{% endif %}">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" for="id_title">عنوان آگهی *</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_city">شهر *</label>
+          {{ form.city }}
+          {% if form.city.errors %}<div class="text-danger small mt-1">{{ form.city.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_area">محله</label>
+          {{ form.area }}
+          {% if form.area.errors %}<div class="text-danger small mt-1">{{ form.area.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_category">دسته‌بندی *</label>
+          {{ form.category }}
+          {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors }}</div>{% endif %}
+        </div>
+        {% if form.agency %}
+        <div class="col-12">
+          <label class="form-label" for="id_agency">مشاوره املاک</label>
+          {{ form.agency }}
+        </div>
+        {% endif %}
+        <div class="col-md-3">
+          <label class="form-label" for="id_deal">نوع معامله</label>
+          {{ form.deal }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="id_status">وضعیت</label>
+          {{ form.status }}
+          {% if not user|is_site_admin %}<small class="text-muted d-block">آگهی پس از تأیید ادمین منتشر می‌شود.</small>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_short_description">خلاصه کوتاه</label>
+          {{ form.short_description }}
+        </div>
+        <div class="col-12 field-description">
+          <label class="form-label" for="id_description">توضیحات</label>
+          <div class="w-100">
+            {{ form.description }}
+          </div>
+        </div>
+        <div class="col-md-4" id="price-row">
+          <label class="form-label" for="id_price">قیمت</label>
+          {{ form.price }}
+        </div>
+        <div class="col-md-4" id="price-mortgage-row" style="display:none">
+          <label class="form-label" for="id_price_mortgage">مبلغ رهن</label>
+          {{ form.price_mortgage }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="id_price_unit">واحد قیمت</label>
+          {{ form.price_unit }}
+        </div>
+        <div class="col-12" id="attributes-section" style="display:none;">
+          <hr class="my-4">
+          <h3 class="h6 mb-3">ویژگی‌های ملک</h3>
+          <p class="text-muted small mb-3">با انتخاب دسته‌بندی، ویژگی‌های مربوط به آن نمایش داده می‌شوند.</p>
+          <div id="attributes-container" class="row g-3"></div>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+          {% if object and object.rejection_reason %}<i class="fi-send me-1"></i>ارسال مجدد برای تأیید{% else %}ذخیره{% endif %}
+        </button>
+        <a class="btn btn-outline-secondary me-2" href="{% url 'panel:listing_list' %}">انصراف</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function() {
+  const citySelect = document.getElementById('id_city');
+  const areaSelect = document.getElementById('id_area');
+  const categorySelect = document.getElementById('id_category');
+  const dealSelect = document.getElementById('id_deal');
+  const priceMortgageRow = document.getElementById('price-mortgage-row');
+  const attributesSection = document.getElementById('attributes-section');
+  const attributesContainer = document.getElementById('attributes-container');
+  const areasUrl = "{% url 'panel:areas_json' %}";
+  const attributesUrl = "{% url 'panel:attributes_json' %}";
+  const initialListingId = {{ initial_listing_id|default:"null" }};
+  const attrPost = {{ attr_post_json|default:"{}"|safe }};
+
+  function loadAreas(cityId) {
+    areaSelect.innerHTML = '<option value="">---------</option>';
+    if (!cityId) return;
+    fetch(areasUrl + '?city_id=' + cityId)
+      .then(r => r.json())
+      .then(areas => {
+        areas.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = a.fa_name;
+          areaSelect.appendChild(opt);
+        });
+      });
+  }
+
+  if (citySelect) {
+    citySelect.addEventListener('change', function() {
+      loadAreas(this.value);
+    });
+    if (citySelect.value) loadAreas(citySelect.value);
+  }
+
+  function loadAttributes(categoryId) {
+    attributesContainer.innerHTML = '';
+    attributesSection.style.display = 'none';
+    if (!categoryId) return;
+    let url = attributesUrl + '?category_id=' + categoryId;
+    if (initialListingId) url += '&listing_id=' + initialListingId;
+    fetch(url)
+      .then(r => r.json())
+      .then(attrs => {
+        if (attrs.length === 0) return;
+        attrs.forEach(function(attr) {
+          const key = 'attr_' + attr.id;
+          const postVal = attrPost[key];
+          const val = postVal !== undefined ? postVal : (attr.current_value != null && attr.current_value !== '' ? attr.current_value : '');
+          const col = document.createElement('div');
+          col.className = 'col-md-6 col-lg-4';
+          let html = '<label class="form-label">' + (attr.unit ? attr.name + ' (' + attr.unit + ')' : attr.name) + '</label>';
+          if (attr.value_type === 'integer') {
+            const numVal = (val !== '' && val !== null && val !== undefined) ? String(val) : '';
+            html += '<input type="number" name="' + key + '" class="form-control" placeholder="" value="' + numVal + '">';
+          } else if (attr.value_type === 'boolean') {
+            const sel1 = (val === '1' || val === true || val === 'true') ? ' selected' : '';
+            const sel0 = (val === '0' || val === false || val === 'false') ? ' selected' : '';
+            html += '<select name="' + key + '" class="form-select"><option value="">---------</option><option value="1"' + sel1 + '>بله</option><option value="0"' + sel0 + '>خیر</option></select>';
+          } else if (attr.value_type === 'choice') {
+            html += '<select name="' + key + '" class="form-select"><option value="">---------</option>';
+            (attr.options || []).forEach(function(opt) {
+              html += '<option value="' + opt.id + '"' + (val == opt.id || val === String(opt.id) ? ' selected' : '') + '>' + opt.value + '</option>';
+            });
+            html += '</select>';
+          } else {
+            html += '<input type="text" name="' + key + '" class="form-control" placeholder="" value="' + (val || '').replace(/"/g, '&quot;') + '" maxlength="500">';
+          }
+          col.innerHTML = html;
+          attributesContainer.appendChild(col);
+        });
+        attributesSection.style.display = 'block';
+      });
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener('change', function() {
+      loadAttributes(this.value);
+    });
+    if (categorySelect.value) loadAttributes(categorySelect.value);
+  }
+
+  const form = document.getElementById('listing-form');
+  if (form && form.dataset.rejected === 'true') {
+    form.addEventListener('submit', function() {
+      const statusSelect = document.getElementById('id_status');
+      if (statusSelect) statusSelect.value = 'pending';
+    });
+  }
+
+  function togglePriceMortgage() {
+    const isMortgage = dealSelect && dealSelect.value === 'mortgage_rent';
+    priceMortgageRow.style.display = isMortgage ? 'block' : 'none';
+  }
+  if (dealSelect) {
+    dealSelect.addEventListener('change', togglePriceMortgage);
+    togglePriceMortgage();
+  }
+})();
+</script>
+{% endblock %}

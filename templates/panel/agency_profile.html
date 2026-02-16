@@ -1,0 +1,56 @@
+{% extends "panel/base.html" %}
+{% block extra_css %}{{ block.super }}{{ form.media.css }}{% endblock %}
+{% block panel_content %}
+<div class="mb-3">
+  {% include "partials/breadcrumbs.html" %}
+</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">پروفایل مشاوره املاک</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="id_name">نام مشاوره املاک</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="id_phone">تلفن</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_address">آدرس</label>
+          {{ form.address }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_intro_content">متن معرفی</label>
+          {{ form.intro_content }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_main_content">محتوای اصلی</label>
+          {{ form.main_content }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_logo">لوگو</label>
+          {% if agency.logo %}<p class="small text-muted mb-1">لوگوی فعلی:</p><img src="{{ agency.logo.url }}" alt="" class="rounded mb-2" style="max-height:60px">{% endif %}
+          {{ form.logo }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="id_cities">شهرهای تحت فعالیت</label>
+          {{ form.cities }}
+          <small class="text-muted">برای انتخاب چند شهر، Ctrl (یا Cmd) را نگه دارید.</small>
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <a class="btn btn-outline-secondary me-2" href="{{ agency.get_absolute_url }}" target="_blank">مشاهده صفحه مشاوره</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}{{ form.media.js }}{% endblock %}

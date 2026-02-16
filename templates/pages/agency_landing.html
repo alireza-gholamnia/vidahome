@@ -1,5 +1,5 @@
 {% extends "base/base.html" %}
-{% load static %}
+{% load static panel_tags %}
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
@@ -88,10 +88,30 @@
         </div>
         {% endif %}
 
-        {% if employees %}
+        {% if agency.owner or employees %}
         <div class="mb-4 pb-md-3">
           <h2 class="h5">تیم مشاوره</h2>
           <div class="row g-2">
+            {% if agency.owner %}
+            <div class="col-sm-6">
+              <div class="d-flex align-items-center gap-2 p-2 rounded bg-light">
+                {% if agency.owner.avatar %}
+                <img src="{{ agency.owner.avatar.url }}" alt="{{ agency.owner.get_full_name|default:agency.owner.username }}" class="rounded-circle flex-shrink-0" style="width: 40px; height: 40px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle bg-faded-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                  <i class="fi-user text-primary"></i>
+                </div>
+                {% endif %}
+                <div class="min-w-0">
+                  <div class="fw-medium">{% if agency.owner|is_agent %}<a href="{{ agency.owner.get_absolute_url }}" class="text-decoration-none">{{ agency.owner.get_full_name|default:agency.owner.username }}</a>{% else %}{{ agency.owner.get_full_name|default:agency.owner.username }}{% endif %} <span class="badge bg-primary fs-xs">مالک</span></div>
+                  <small class="text-muted">{{ agency.owner.get_role_display }}</small>
+                  {% if agency.owner.phone %}
+                  <br><small><a href="tel:{{ agency.owner.phone }}">{{ agency.owner.phone }}</a></small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endif %}
             {% for employee in employees %}
             <div class="col-sm-6">
               <div class="d-flex align-items-center gap-2 p-2 rounded bg-light">
@@ -103,7 +123,7 @@
                 </div>
                 {% endif %}
                 <div class="min-w-0">
-                  <div class="fw-medium">{{ employee.get_full_name|default:employee.username }}</div>
+                  <div class="fw-medium">{% if employee|is_agent %}<a href="{{ employee.get_absolute_url }}" class="text-decoration-none">{{ employee.get_full_name|default:employee.username }}</a>{% else %}{{ employee.get_full_name|default:employee.username }}{% endif %}</div>
                   <small class="text-muted">{{ employee.get_role_display }}</small>
                   {% if employee.phone %}
                   <br><small><a href="tel:{{ employee.phone }}">{{ employee.phone }}</a></small>

@@ -21,7 +21,9 @@ class Listing(BaseSEO, models.Model):
 
     class Status(models.TextChoices):
         DRAFT = "draft", "پیش‌نویس"
+        PENDING = "pending", "در انتظار تأیید"
         PUBLISHED = "published", "منتشر شده"
+        REJECTED = "rejected", "رد شده"
         ARCHIVED = "archived", "بایگانی شده"
 
     # =====================================================
@@ -76,6 +78,12 @@ class Listing(BaseSEO, models.Model):
     )
 
     published_at = models.DateTimeField(null=True, blank=True, verbose_name="تاریخ انتشار")
+
+    rejection_reason = models.TextField(
+        blank=True,
+        verbose_name="علت رد",
+        help_text="توضیح ادمین هنگام رد آگهی؛ به صاحب آگهی نمایش داده می‌شود.",
+    )
 
     # =====================================================
     # Content (Human-readable)
@@ -186,6 +194,16 @@ class Listing(BaseSEO, models.Model):
         if self.deal == self.Deal.MORTGAGE_RENT:
             return bool(self.price is not None or self.price_mortgage is not None)
         return self.price is not None
+
+    def get_pending_type_display(self):
+        """نوع آگهی در صف تأیید برای نمایش به ادمین."""
+        if self.status != self.Status.PENDING:
+            return ""
+        if self.rejection_reason:
+            return "ارسال مجدد پس از رد"
+        if self.published_at:
+            return "ویرایش شده در انتظار تأیید"
+        return "ثبت شده در انتظار تأیید"
 
 
 

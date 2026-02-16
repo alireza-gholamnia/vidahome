@@ -1,5 +1,5 @@
 {% extends "base/base.html" %}
-{% load static humanize %}
+{% load static humanize panel_tags %}
 {% block extra_css %}
 {% endblock extra_css %}
 {% block extra_head_js %}
@@ -172,10 +172,18 @@
               {% endif %}
             </div>
             {% if listing.agency %}
-            <div>
+            <div class="mb-3 pb-3 border-bottom">
               <h4 class="h6 mb-2">مشاوره املاک</h4>
               <a href="{{ listing.agency.get_absolute_url }}" class="btn btn-primary rounded-pill w-100">
                 {{ listing.agency.name }}<i class="fi-chevron-left fs-sm me-2"></i>
+              </a>
+            </div>
+            {% endif %}
+            {% if listing.created_by and listing.created_by|is_agent %}
+            <div>
+              <h4 class="h6 mb-2">مشاور</h4>
+              <a href="{{ listing.created_by.get_absolute_url }}" class="btn btn-outline-primary rounded-pill w-100">
+                {{ listing.created_by.get_full_name|default:listing.created_by.username }}<i class="fi-chevron-left fs-sm me-2"></i>
               </a>
             </div>
             {% endif %}

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
-from .models import User
+
+from .models import User, OTPRequest, RoleChangeRequest
 
 User = get_user_model()
 
@@ -15,7 +16,7 @@ class CustomUserAdmin(BaseUserAdmin):
     autocomplete_fields = ("agency",)
 
     fieldsets = BaseUserAdmin.fieldsets + (
-        ("پروفایل", {"fields": ("phone", "agency", "avatar", "is_verified")}),
+        ("پروفایل", {"fields": ("phone", "agency", "avatar", "slug", "is_verified")}),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ("پروفایل", {"fields": ("phone", "agency", "avatar", "is_verified")}),
@@ -25,3 +26,17 @@ class CustomUserAdmin(BaseUserAdmin):
         return obj.get_role_display()
 
     _role.short_description = "نقش (از گروه)"
+
+
+@admin.register(OTPRequest)
+class OTPRequestAdmin(admin.ModelAdmin):
+    list_display = ("phone", "code", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("phone",)
+
+
+@admin.register(RoleChangeRequest)
+class RoleChangeRequestAdmin(admin.ModelAdmin):
+    list_display = ("user", "requested_role", "status", "created_at")
+    list_filter = ("status", "requested_role")
+    search_fields = ("user__username", "message")

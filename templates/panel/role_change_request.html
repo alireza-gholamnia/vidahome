@@ -1,0 +1,70 @@
+{% extends "panel/base.html" %}
+{% load panel_tags %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">درخواست تغییر نقش</h2>
+    <p class="text-muted mb-4">درخواست خود را برای تغییر نقش به «صاحب مشاوره املاک» یا «کارمند مشاوره املاک» ثبت کنید. توضیحات و دلیل درخواست خود را بنویسید. درخواست پس از بررسی توسط ادمین سایت تأیید یا رد می‌شود.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label" for="id_requested_role">نقش مورد نظر</label>
+        {{ form.requested_role }}
+        {% if form.requested_role.errors %}<div class="text-danger small mt-1">{{ form.requested_role.errors }}</div>{% endif %}
+        {% if not can_request_role %}
+        <div class="alert alert-info mt-2 mb-0 py-2">شما هم‌اکنون هر دو نقش صاحب مشاوره و کارمند مشاوره را دارید.</div>
+        {% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label" for="id_message">توضیحات درخواست</label>
+        {{ form.message }}
+        {% if form.message.errors %}<div class="text-danger small mt-1">{{ form.message.errors }}</div>{% endif %}
+      </div>
+      {% if can_request_role %}
+      <button type="submit" class="btn btn-primary">ارسال درخواست</button>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+{% if requests %}
+<div class="card shadow-sm mt-4">
+  <div class="card-body p-4">
+    <h3 class="h6 mb-3">درخواست‌های من</h3>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>نقش درخواستی</th>
+            <th>وضعیت</th>
+            <th>تاریخ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in requests %}
+          <tr>
+            <td>{{ r.get_requested_role_display }}</td>
+            <td>
+              {% if r.status == 'pending' %}
+              <span class="badge bg-warning">در انتظار تأیید</span>
+              {% elif r.status == 'approved' %}
+              <span class="badge bg-success">تأیید شده</span>
+              {% else %}
+              <span class="badge bg-danger">رد شده</span>
+              {% endif %}
+            </td>
+            <td>{{ r.created_at|date:"Y/m/d H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

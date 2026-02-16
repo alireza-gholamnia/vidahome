@@ -1,0 +1,112 @@
+{% extends "panel/base.html" %}
+{% load humanize panel_tags %}
+{% block panel_content %}
+<div class="mb-3">
+  {% include "partials/breadcrumbs.html" %}
+</div>
+{% if listings_with_rejection %}
+<div class="alert alert-warning d-flex align-items-start mb-3" role="alert">
+  <i class="fi-alert-circle fs-4 me-2 mt-1"></i>
+  <div>
+    <strong>آگهی‌های رد شده:</strong> برخی آگهی‌های شما توسط ادمین رد شده‌اند. علت رد را در هر ردیف ببینید، ایراد را برطرف کرده و با انتخاب «درخواست تأیید و انتشار» دوباره ثبت کنید.
+  </div>
+</div>
+{% endif %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h5 mb-0">آگهی‌های من</h2>
+  <a class="btn btn-primary btn-sm" href="{% url 'panel:listing_add' %}">
+    <i class="fi-plus me-1"></i>ثبت ملک جدید
+  </a>
+</div>
+{% if listings %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>عنوان</th>
+          <th>شهر</th>
+          {% if user.is_superuser or user|has_agency %}<th>ایجادکننده</th>{% endif %}
+          <th>نوع</th>
+          <th>وضعیت</th>
+          <th>قیمت</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in listings %}
+        <tr>
+          <td>{{ l.id }}</td>
+          <td>{{ l.title|truncatewords:6 }}</td>
+          <td>{{ l.city.fa_name }}</td>
+          {% if user.is_superuser or user|has_agency %}<td>{% if l.created_by %}{{ l.created_by.get_full_name|default:l.created_by.username }}{% else %}-{% endif %}</td>{% endif %}
+          <td>{{ l.get_deal_display }}</td>
+          <td>
+            {% if l.status == 'published' %}
+            <span class="badge bg-success">تأیید شده</span>
+            {% elif l.status == 'pending' %}
+            <span class="badge bg-info">در انتظار تأیید</span>
+            {% elif l.status == 'rejected' or l.rejection_reason %}
+            <span class="badge bg-danger" title="{{ l.rejection_reason|truncatewords:15 }}">رد شده</span>
+            {% elif l.status == 'archived' %}
+            <span class="badge bg-warning">بایگانی</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ l.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if l.has_price_display %}
+              {% if l.deal == 'mortgage_rent' %}
+                {% if l.price_mortgage %}رهن {{ l.price_mortgage|intcomma }}{% endif %}{% if l.price_mortgage and l.price %} | {% endif %}{% if l.price %}اجاره {{ l.price|intcomma }}{% endif %}
+              {% else %}
+                {{ l.price|intcomma }}
+              {% endif %}
+              {{ l.price_unit|default:"تومان" }}
+            {% else %}
+              تماس
+            {% endif %}
+          </td>
+          <td>
+            {% if user|can_edit_listing:l %}
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:listing_edit' l.pk %}">ویرایش</a>
+            {% endif %}
+            {% if user|can_delete_listing:l %}
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'panel:listing_delete' l.pk %}">حذف</a>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ l.get_absolute_url }}" target="_blank">مشاهده</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="mt-3" aria-label="صفحه‌بندی">
+  <ul class="pagination justify-content-center mb-0">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}">قبلی</a>
+    </li>
+    {% endif %}
+    <li class="page-item active"><span class="page-link">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}">بعدی</a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-5">
+    <p class="text-muted mb-4">هنوز آگهی ثبت نکرده‌اید.</p>
+    <a class="btn btn-primary" href="{% url 'panel:listing_add' %}">
+      <i class="fi-plus me-2"></i>ثبت اولین آگهی
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

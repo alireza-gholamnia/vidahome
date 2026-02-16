@@ -7,7 +7,8 @@ app_name = "accounts"
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/accounts/login/", permanent=False)),
-    path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("login/", views.PhoneLoginView.as_view(), name="login"),
+    path("login/verify/", views.OTPVerifyView.as_view(), name="otp_verify"),
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("signup/", views.SignUpView.as_view(), name="signup"),
 ]

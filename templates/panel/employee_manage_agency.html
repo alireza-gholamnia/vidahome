@@ -1,0 +1,26 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">مدیریت مشاوره کارمند</h2>
+    <p class="mb-3"><strong>کاربر:</strong> {{ emp.get_full_name|default:emp.username }}</p>
+    <p class="mb-4"><strong>مشاوره فعلی:</strong> {{ emp.agency.name }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" for="agency">مشاوره املاک جدید</label>
+        <select name="agency" id="agency" class="form-select">
+          <option value="remove">— حذف از مشاوره (خارج کردن) —</option>
+          {% for a in agencies %}
+          <option value="{{ a.pk }}" {% if emp.agency_id == a.pk %}selected{% endif %}>{{ a.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">اعمال تغییر</button>
+      <a class="btn btn-outline-secondary me-2" href="{% url 'panel:approve_dashboard' %}?tab=employees">انصراف</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-4">تأیید مشاوره املاک: {{ agency.name }}</h2>
+    <p class="mb-4">مالک: {{ agency.owner.get_full_name|default:agency.owner.username }}</p>
+    <form method="post" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="approve">
+      <button type="submit" class="btn btn-success">تأیید</button>
+    </form>
+    <form method="post" class="d-inline me-2">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reject">
+      <button type="submit" class="btn btn-outline-danger">رد</button>
+    </form>
+    <a class="btn btn-outline-secondary" href="{% url 'panel:approve_dashboard' %}">بازگشت</a>
+  </div>
+</div>
+{% endblock %}
