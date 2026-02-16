@@ -1,6 +1,16 @@
+from django import forms
 from django.contrib import admin
 
 from .models import Attribute, AttributeOption, ListingAttribute
+
+
+class AttributeAdminForm(forms.ModelForm):
+    class Meta:
+        model = Attribute
+        fields = "__all__"
+        widgets = {
+            "icon": forms.ClearableFileInput(attrs={"accept": ".png,.svg"}),
+        }
 
 
 class AttributeOptionInline(admin.TabularInline):
@@ -62,7 +72,8 @@ class ListingAttributeInline(admin.TabularInline):
 
 @admin.register(Attribute)
 class AttributeAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "value_type", "unit", "sort_order", "is_active", "is_filterable", "_categories_display", "_values_count")
+    form = AttributeAdminForm
+    list_display = ("name", "slug", "value_type", "unit", "icon", "sort_order", "is_active", "is_filterable", "_categories_display", "_values_count")
     list_filter = ("value_type", "is_active", "is_filterable")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}

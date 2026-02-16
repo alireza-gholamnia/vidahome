@@ -22,175 +22,235 @@
   {% include "partials/SignUpModal.html" %}
   {% include "partials/header.html" %}
 
-  <!-- Page header -->
-  <section class="container pt-5 mt-5">
+  <section class="container mt-5 mb-lg-5 mb-4 pt-5 pb-lg-5">
     {% include "partials/breadcrumbs.html" %}
-    <div class="d-sm-flex align-items-center justify-content-between mb-4 pb-sm-2">
-      <h1 class="h2 me-3 mb-sm-0">{{ listing.seo_h1|default:listing.title }}</h1>
-      <div class="text-nowrap">
-        <div class="dropdown d-inline-block" data-bs-toggle="tooltip" title="اشتراک‌گذاری">
-          <button class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle" type="button" data-bs-toggle="dropdown"><i class="fi-share"></i></button>
-          <div class="dropdown-menu dropdown-menu-end my-1">
-            <button class="dropdown-item" type="button" onclick="navigator.share && navigator.share({title: '{{ listing.title|escapejs }}', url: window.location.href})"><i class="fi-facebook fs-base opacity-75 me-2"></i>اشتراک</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Gallery -->
-  {% if listing.images.all %}
-  <section class="container overflow-auto mb-5" data-simplebar>
-    <div class="row g-2 g-md-3 gallery" style="min-width: 30rem;">
-      <div class="col-8">
-        {% with first_img=listing.images.all|first %}
-        <a href="{{ first_img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 overflow-hidden">
-          <img src="{{ first_img.image.url }}" class="img-fluid w-100" alt="{{ first_img.alt|default:listing.title }}" loading="lazy" style="height: 320px; object-fit: cover;">
-        </a>
-        {% endwith %}
-      </div>
-      <div class="col-4">
-        {% for img in listing.images.all %}
-          {% if forloop.counter == 2 %}
-        <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 mb-2 mb-md-3 overflow-hidden">
-          <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 154px; object-fit: cover;">
-        </a>
-          {% elif forloop.counter == 3 %}
-        <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded rounded-md-3 overflow-hidden">
-          <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 154px; object-fit: cover;">
-        </a>
-          {% endif %}
-        {% endfor %}
-      </div>
-      {% if listing.images.all|length > 3 %}
-      <div class="col-12">
-        <div class="row g-2 g-md-3">
-          {% for img in listing.images.all %}
-            {% if forloop.counter > 3 %}
-          <div class="col">
-            <a href="{{ img.image.url }}" target="_blank" rel="noopener" class="d-block rounded-1 rounded-md-2 overflow-hidden">
-              <img src="{{ img.image.url }}" class="img-fluid w-100" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 80px; object-fit: cover;">
-            </a>
-          </div>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-  </section>
-  {% endif %}
-
-  <!-- Main content -->
-  <section class="container pb-5 mb-md-4">
-    <div class="row">
-      <div class="col-lg-8 mb-4 mb-lg-0">
-        <div class="card py-2 px-sm-4 px-3 shadow-sm">
-          <div class="card-body mx-n2">
-            <!-- Place info -->
-            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
-              <div class="ps-2 ms-1 flex-grow-1">
-                <h3 class="h5 mb-2">{{ listing.title }}</h3>
-                <ul class="list-unstyled d-flex flex-wrap fs-sm text-muted">
-                  <li class="me-2 mb-1 pe-1"><i class="fi-map-pin mt-n1 me-1 align-middle opacity-70"></i>{{ listing.city.fa_name }}{% if listing.area %}، {{ listing.area.fa_name }}{% endif %}</li>
-                  <li class="me-2 mb-1 pe-1"><i class="fi-folder mt-n1 me-1 align-middle opacity-70"></i>{{ listing.category.fa_name }}</li>
-                  <li class="me-2 mb-1 pe-1"><i class="fi-home mt-n1 me-1 align-middle opacity-70"></i>{{ listing.get_deal_display_fa }}</li>
-                </ul>
+    <div class="row gy-5 pt-lg-2">
+      <!-- Left column: gallery + title + description + agent -->
+      <div class="col-lg-7">
+        <div class="d-flex flex-column">
+          <!-- Carousel with thumbnails -->
+          <div class="order-lg-1 order-2">
+            {% if listing.images.all %}
+            <div class="tns-carousel-wrapper">
+              <div class="tns-slides-count text-light"><i class="fi-image fs-lg me-2"></i>
+                <div class="pe-1"><span class="tns-current-slide fs-5 fw-bold"></span><span class="fs-5 fw-bold">/</span><span class="tns-total-slides fs-5 fw-bold"></span></div>
               </div>
-              {% if listing.has_price_display %}
-              <div class="flex-shrink-0">
-                <span class="badge bg-primary fs-6">
-                  {% if listing.deal == 'mortgage_rent' %}
-                    {% if listing.price_mortgage %}رهن {{ listing.price_mortgage|floatformat:0|intcomma }}{% endif %}{% if listing.price_mortgage and listing.price %} | {% endif %}{% if listing.price %}اجاره {{ listing.price|floatformat:0|intcomma }}{% endif %} {{ listing.price_unit|default:"تومان" }}
-                  {% else %}
-                    {{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}
-                  {% endif %}
-                </span>
-              </div>
-              {% endif %}
-            </div>
-
-            <!-- Attributes -->
-            {% with attrs_with_value=listing.attribute_values.all %}
-              {% if attrs_with_value %}
-            <div class="mb-3 pb-3 border-bottom">
-              <h4 class="h6 mb-2">ویژگی‌ها</h4>
-              <div class="row row-cols-sm-2 row-cols-1 g-2">
-                {% for av in attrs_with_value %}
-                  {% if av.value_int is not None or av.value_bool is not None or av.value_str or av.value_option_id %}
-                <div class="col">
-                  <div class="d-flex align-items-center py-1">
-                    <i class="fi-check-circle text-primary mt-n1 me-2"></i>
-                    <span><strong>{{ av.attribute.name }}:</strong> {{ av.display_value }}</span>
-                  </div>
-                </div>
-                  {% endif %}
+              <div class="tns-carousel-inner" data-carousel-options='{"navAsThumbnails": true, "navContainer": "#listing-thumbnails", "gutter": 12, "responsive": {"0":{"controls": false},"500":{"controls": true}}}'>
+                {% for img in listing.images.all %}
+                <div><img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="{{ forloop.first|yesno:'eager,lazy' }}" style="height: 400px; object-fit: cover;"></div>
                 {% endfor %}
               </div>
             </div>
-              {% endif %}
-            {% endwith %}
-
-            {% if listing.short_description %}
-            <div class="mb-3 pb-3 border-bottom">
-              <p class="mb-0">{{ listing.short_description }}</p>
-            </div>
-            {% endif %}
-
-            {% if listing.description %}
-            <div class="mb-0">
-              <h4 class="h6 mb-2">توضیحات</h4>
-              <div class="content">{{ listing.description|safe }}</div>
+            <ul class="tns-thumbnails mb-4" id="listing-thumbnails">
+              {% for img in listing.images.all %}
+              <li class="tns-thumbnail"><img src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}"></li>
+              {% endfor %}
+            </ul>
+            {% else %}
+            <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center mb-4" style="height: 400px;">
+              <i class="fi-home fs-1 text-muted opacity-50"></i>
             </div>
             {% endif %}
           </div>
+
+          <!-- Title + featured attributes (bed, bath, car, area) -->
+          <div class="order-lg-2 order-1">
+            <h1 class="h2 mb-2">{{ listing.seo_h1|default:listing.title }}</h1>
+            <p class="mb-2 pb-1 fs-base">{{ listing.city.fa_name }}{% if listing.area %}، {{ listing.area.fa_name }}{% endif %}</p>
+            <ul class="d-flex mb-4 pb-lg-2 list-unstyled flex-wrap">
+              {% with attrs=listing.attribute_values.all %}
+              {% for av in attrs %}
+                {% if av.value_int is not None or av.value_bool is not None or av.value_option_id or av.value_str %}
+              <li class="me-3 pe-3 border-end d-flex align-items-center">
+                {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2" style="width:24px;height:24px;object-fit:contain">{% endif %}
+                <b>{{ av.display_value }}</b>
+              </li>
+                {% endif %}
+              {% endfor %}
+              {% endwith %}
+              {% if not listing.attribute_values.all %}
+              <li class="text-muted"><i class="fi-home mt-n1 me-1 align-middle"></i>{{ listing.category.fa_name }}</li>
+              {% endif %}
+            </ul>
+          </div>
         </div>
+
+        <!-- Description -->
+        <h2 class="h5">توضیحات</h2>
+        {% if listing.short_description %}
+        <p class="mb-4 pb-2">{{ listing.short_description }}</p>
+        {% endif %}
+        {% if listing.description %}
+        <div class="content mb-4 pb-2">{{ listing.description|safe }}</div>
+        {% elif not listing.short_description %}
+        <p class="mb-4 pb-2 text-muted">توضیحاتی ثبت نشده است.</p>
+        {% endif %}
+
+        <!-- Agent/Agency card -->
+        {% if listing.agency or listing.created_by|is_agent %}
+        <h2 class="h5">{% if listing.agency %}{{ listing.agency.name }}{% else %}مشاور{% endif %}</h2>
+        <div class="card card-horizontal">
+          <div class="card-img-top bg-position-center-x d-flex align-items-center justify-content-center" style="min-width: 180px; min-height: 180px; background-size: cover; background-color: var(--bs-secondary-bg); {% if listing.created_by|is_agent and listing.created_by.avatar %}background-image: url({{ listing.created_by.avatar.url }});{% elif listing.agency %}{% with cover=listing.agency.get_landing_cover_image %}{% if cover %}background-image: url({{ cover.image.url }});{% endif %}{% endwith %}{% endif %}">
+            {% if listing.created_by|is_agent %}{% if not listing.created_by.avatar %}<i class="fi-user fs-1 text-muted opacity-50"></i>{% endif %}{% elif listing.agency %}{% with cover=listing.agency.get_landing_cover_image %}{% if not cover %}<i class="fi-building fs-1 text-muted opacity-50"></i>{% endif %}{% endwith %}{% endif %}
+          </div>
+          <blockquote class="blockquote card-body p-4">
+            {% if listing.agency and listing.agency.intro_content %}
+            <p class="mb-4">{{ listing.agency.intro_content|truncatewords:50 }}</p>
+            {% elif listing.created_by|is_agent %}
+            <p class="mb-4">مشاور املاک شما برای خرید، فروش یا اجاره ملک.</p>
+            {% else %}
+            <p class="mb-4">مشاوره املاک معتبر در خدمت شما.</p>
+            {% endif %}
+            <footer class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="pe-3">
+                {% if listing.created_by|is_agent %}
+                <h6 class="mb-0">{{ listing.created_by.get_full_name|default:listing.created_by.username }}</h6>
+                <div class="text-muted fw-normal fs-sm mb-3">{{ listing.created_by.get_role_display }}</div>
+                <a href="{{ listing.created_by.get_absolute_url }}" class="btn btn-sm btn-outline-primary rounded-pill">مشاهده پروفایل<i class="fi-chevron-left ms-2 fs-sm"></i></a>
+                {% elif listing.agency %}
+                <h6 class="mb-0">{{ listing.agency.name }}</h6>
+                <div class="text-muted fw-normal fs-sm mb-3">مشاوره املاک</div>
+                <a href="{{ listing.agency.get_absolute_url }}" class="btn btn-sm btn-outline-primary rounded-pill">مشاهده مشاوره<i class="fi-chevron-left ms-2 fs-sm"></i></a>
+                {% endif %}
+              </div>
+            </footer>
+          </blockquote>
+        </div>
+        {% endif %}
       </div>
 
-      <!-- Sidebar - Agency / Contact -->
-      <div class="col-lg-4">
-        <div class="card py-2 px-sm-4 px-3 shadow-sm sticky-top">
-          <div class="card-body">
-            {% if listing.has_price_display %}
-            <div class="mb-3 pb-3 border-bottom">
-              <h4 class="h5 mb-2">قیمت</h4>
-              {% if listing.deal == 'mortgage_rent' %}
-              <p class="fs-5 mb-0">
-                {% if listing.price_mortgage %}<span class="d-block">رهن: {{ listing.price_mortgage|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</span>{% endif %}
-                {% if listing.price %}<span class="d-block">اجاره ماهانه: {{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</span>{% endif %}
-              </p>
-              {% else %}
-              <p class="fs-5 mb-0">{{ listing.price|floatformat:0|intcomma }} {{ listing.price_unit|default:"تومان" }}</p>
-              {% endif %}
-            </div>
-            {% endif %}
-            <div class="mb-3 pb-3 border-bottom">
-              <h4 class="h6 mb-2">موقعیت</h4>
-              <p class="mb-1"><i class="fi-map-pin mt-n1 me-2 align-middle opacity-70"></i>{{ listing.city.fa_name }}</p>
-              {% if listing.area %}
-              <p class="mb-0"><i class="fi-map-pin mt-n1 me-2 align-middle opacity-70"></i>{{ listing.area.fa_name }}</p>
-              {% endif %}
-            </div>
-            {% if listing.agency %}
-            <div class="mb-3 pb-3 border-bottom">
-              <h4 class="h6 mb-2">مشاوره املاک</h4>
-              <a href="{{ listing.agency.get_absolute_url }}" class="btn btn-primary rounded-pill w-100">
-                {{ listing.agency.name }}<i class="fi-chevron-left fs-sm me-2"></i>
-              </a>
-            </div>
-            {% endif %}
-            {% if listing.created_by and listing.created_by|is_agent %}
+      <!-- Sidebar -->
+      <aside class="col-lg-5">
+        <div class="ps-lg-5">
+          <div class="d-flex align-items-center justify-content-between mb-3">
             <div>
-              <h4 class="h6 mb-2">مشاور</h4>
-              <a href="{{ listing.created_by.get_absolute_url }}" class="btn btn-outline-primary rounded-pill w-100">
-                {{ listing.created_by.get_full_name|default:listing.created_by.username }}<i class="fi-chevron-left fs-sm me-2"></i>
-              </a>
+              <span class="badge bg-success me-2 mb-2">تأیید شده</span>
+              <span class="badge {% if listing.deal == 'rent' or listing.deal == 'daily_rent' %}bg-info{% elif listing.deal == 'mortgage_rent' %}bg-warning text-dark{% else %}bg-primary{% endif %} me-2 mb-2">{{ listing.get_deal_display_fa }}</span>
             </div>
-            {% endif %}
+            <div class="text-nowrap">
+              <div class="dropdown d-inline-block" data-bs-toggle="tooltip" title="اشتراک‌گذاری">
+                <button class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle ms-2 mb-2" type="button" data-bs-toggle="dropdown"><i class="fi-share"></i></button>
+                <div class="dropdown-menu dropdown-menu-end my-1">
+                  <button class="dropdown-item" type="button" onclick="navigator.share && navigator.share({title: '{{ listing.title|escapejs }}', url: window.location.href})"><i class="fi-facebook fs-base opacity-75 me-2"></i>اشتراک</button>
+                </div>
+              </div>
+            </div>
           </div>
+
+          {% if listing.has_price_display %}
+          <h3 class="h5 mb-2">{{ listing.get_deal_display_fa }}:</h3>
+          <h2 class="h3 mb-4 pb-2">
+            {% if listing.deal == 'mortgage_rent' %}
+              {% if listing.price_mortgage %}{{ listing.price_mortgage|floatformat:0|intcomma }} رهن{% endif %}{% if listing.price_mortgage and listing.price %} | {% endif %}{% if listing.price %}{{ listing.price|floatformat:0|intcomma }} اجاره{% endif %}
+            {% else %}
+              {{ listing.price|floatformat:0|intcomma }}
+            {% endif %}
+            <span class="d-inline-block ms-1 fs-base fw-normal text-body">{% if listing.deal == 'rent' or listing.deal == 'mortgage_rent' %}/{{ listing.price_unit|default:"تومان" }}{% else %} {{ listing.price_unit|default:"تومان" }}{% endif %}</span>
+          </h2>
+          {% endif %}
+
+          <!-- Property details -->
+          {% with attrs_with_value=listing.attribute_values.all %}
+          {% if attrs_with_value %}
+          <div class="card border-0 bg-secondary mb-4">
+            <div class="card-body">
+              <h5 class="mb-0 pb-3">مشخصات</h5>
+              <ul class="list-unstyled mt-n2 mb-0">
+                <li class="mt-2 mb-0"><b>نوع: </b>{{ listing.category.fa_name }}</li>
+                {% for av in attrs_with_value %}
+                  {% if av.value_int is not None or av.value_bool is not None or av.value_str or av.value_option_id %}
+                <li class="mt-2 mb-0 d-flex align-items-center">
+                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" style="width:24px;height:24px;object-fit:contain">{% endif %}
+                  <span><b>{{ av.attribute.name }}: </b>{{ av.display_value }}</span>
+                </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          {% if listing.agency %}
+          <a class="btn btn-lg btn-primary w-100 mb-3" href="{{ listing.agency.get_absolute_url }}">{{ listing.agency.name }}<i class="fi-chevron-left ms-2 fs-sm"></i></a>
+          {% elif listing.created_by|is_agent %}
+          <a class="btn btn-lg btn-primary w-100 mb-3" href="{{ listing.created_by.get_absolute_url }}">تماس با {{ listing.created_by.get_full_name|default:listing.created_by.username }}<i class="fi-chevron-left ms-2 fs-sm"></i></a>
+          {% endif %}
+
+          <!-- Amenities from boolean attributes -->
+          {% if amenity_attrs %}
+          <div class="card border-0 bg-secondary mb-4">
+            <div class="card-body">
+              <h5>امکانات</h5>
+              <ul class="list-unstyled row row-cols-md-2 row-cols-1 gy-2 mb-0 text-nowrap">
+                {% for av in amenity_attrs %}
+                <li class="col d-flex align-items-center">
+                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" style="width:24px;height:24px;object-fit:contain">{% else %}<i class="fi-check-circle mt-n1 me-2 fs-lg align-middle text-primary"></i>{% endif %}
+                  {{ av.attribute.name }}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Post meta -->
+          <ul class="d-flex mb-4 list-unstyled fs-sm flex-wrap">
+            {% if listing.published_at %}
+            <li class="me-3 pe-3 border-end">تاریخ انتشار: <b>{{ listing.published_at|date:"d F Y" }}</b></li>
+            {% endif %}
+            <li class="me-3 pe-3 border-end">شماره آگهی: <b>{{ listing.id }}</b></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Related / Recently viewed -->
+    {% if related_listings %}
+    <section class="mt-5 pt-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h3 mb-0">آگهی‌های مشابه</h2>
+        <a class="btn btn-link fw-normal p-0" href="{% url 'listing_catalog' %}?city={{ listing.city.slug }}">مشاهده همه<i class="fi-arrow-long-left ms-2"></i></a>
+      </div>
+      <div class="tns-carousel-wrapper tns-controls-outside-xxl tns-nav-outside tns-nav-outside-flush mx-n2">
+        <div class="tns-carousel-inner row gx-4 mx-0 pt-3 pb-4" data-carousel-options='{"items": 4, "responsive": {"0":{"items":1},"500":{"items":2},"768":{"items":3},"992":{"items":4}}}'>
+          {% for item in related_listings %}
+          <div class="col">
+            <div class="card shadow-sm card-hover border-0 h-100">
+              <div class="card-img-top card-img-hover">
+                <a class="img-overlay" href="{{ item.get_absolute_url }}"></a>
+                {% for img in item.images.all %}
+                  {% if forloop.first %}
+                <img src="{{ img.image.url }}" alt="{{ img.alt|default:item.title }}">
+                  {% endif %}
+                {% empty %}
+                <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                  <i class="fi-home fs-1 text-muted opacity-50"></i>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="card-body position-relative pb-3">
+                <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">{{ item.get_deal_display_fa }}</h4>
+                <h3 class="h6 mb-2 fs-base"><a class="nav-link stretched-link" href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
+                <p class="mb-2 fs-sm text-muted">{{ item.city.fa_name }}{% if item.area %}، {{ item.area.fa_name }}{% endif %}</p>
+                <div class="fw-bold"><i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i>{% if item.has_price_display %}{% if item.deal == 'mortgage_rent' %}{% if item.price_mortgage %}رهن {{ item.price_mortgage|floatformat:0|intcomma }}{% endif %}{% if item.price_mortgage and item.price %} | {% endif %}{% if item.price %}اجاره {{ item.price|floatformat:0|intcomma }}{% endif %}{% else %}{{ item.price|floatformat:0|intcomma }}{% endif %} {{ item.price_unit|default:"تومان" }}{% else %}تماس{% endif %}</div>
+              </div>
+              <div class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap">
+                {% for av in item.attribute_values.all %}
+                  <span class="d-inline-flex align-items-center mx-1 px-2 fs-sm">
+                    {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-1" style="width:18px;height:18px;object-fit:contain">{% endif %}
+                    {{ av.display_value }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
       </div>
-    </div>
+    </section>
+    {% endif %}
   </section>
 
   {% include "partials/footer.html" %}

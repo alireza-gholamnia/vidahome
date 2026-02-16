@@ -143,9 +143,12 @@ vidahome/
 | `/accounts/signup/` | ثبت‌نام |
 | `/accounts/logout/` | خروج (POST only) |
 | `/agencies/` | لیست مشاوره‌های املاک (فیلتر شهر: `?city=`) |
+| `/agents/` | لیست کارشناسان (صاحب/کارمند مشاوره — فیلتر شهر: `?city=`) |
 | `/a/` | Redirect to `/agencies/` |
 | `/a/{id}-{slug}/` | Agency landing (canonical) |
 | `/a/{id}/` | Agency landing (ID-only) |
+| `/agent/{id}-{slug}/` | Agent (کارشناس) landing (canonical) |
+| `/agent/{id}/` | Agent landing (ID-only) |
 | `/listings/` | کاتالوگ آگهی‌ها با فیلتر (شهر، دسته، محله، نوع معامله، جستجو) |
 | `/s/` | Redirect to `/listings/` |
 | `/s/{slug}/` | City landing OR Category landing (resolver) |
@@ -239,7 +242,7 @@ vidahome/
 
 ### 5.8 attributes (EAV)
 
-- **Attribute**: name, slug, value_type (integer | boolean | choice | string), unit, categories (M2M), sort_order, is_active, is_filterable (نمایش در فیلتر کاتالوگ)
+- **Attribute**: name, slug, value_type (integer | boolean | choice | string), unit, **icon** (FileField، آپلود PNG/SVG، max 64KB، 128×128)، categories (M2M), sort_order, is_active, is_filterable (نمایش در فیلتر کاتالوگ)
 - **AttributeOption**: مقادیر از پیش تعریف‌شده (مثل ۱، ۲، ۳ برای تعداد اتاق)
 - **ListingAttribute**: مقدار هر ویژگی برای هر آگهی — value_int, value_bool, value_str, value_option (FK)
 - همگام‌سازی خودکار با دسته‌بندی: سینگال رکوردهای ListingAttribute را بر اساس دستهٔ آگهی ایجاد/حذف می‌کند
@@ -289,6 +292,7 @@ templates/
 │   ├── area_category_landing.html
 │   ├── agency_landing.html
 │   ├── agency_list.html
+│   ├── agent_list.html
 │   ├── listing_catalog.html
 │   ├── listing_detail.html
 │   ├── blog_index.html
@@ -334,6 +338,7 @@ Registered in `config/settings/base.py` → `TEMPLATES['OPTIONS']['context_proce
 - `MEDIA_ROOT = PROJECT_DIR / "media"`
 - `CKEDITOR_UPLOAD_PATH = "uploads/"` — مسیر واحد آپلود ریچ‌تکست و تصاویر محتوا
 - **مسیرهای ذخیره تصاویر:**
+  - آیکون ویژگی‌ها: `attribute_icons/`
   - لیستینگ: `listings/%Y/%m/`
   - شهر، محله، دسته، لندینگ‌ها: `uploads/cities/`, `uploads/areas/`, `uploads/categories/`, `uploads/city_category/`, `uploads/area_category/`
   - CKEditor (ریچ‌تکست): `uploads/%Y/%m/`
@@ -621,7 +626,7 @@ This README is a **living document** and the only authoritative reference.
 - **بردکرامپ:** در صفحات شهر، محله، دسته، آگهی، مشاوره، بلاگ، اکانت
 - **فیلتر دسته‌بندی:** نمایش آگهی‌های دسته والد + فرزند در صفحات لندینگ
 - **بلاگ مرتبط:** نمایش پست‌های بلاگ در انتهای صفحات شهر و دسته‌بندی
-- **Header:** لینک «آگهی‌های املاک» و «مشاوران املاک» در منو
+- **Header:** لینک «آگهی‌های املاک»، «مشاوران املاک» (لیست مشاوره‌ها) و «کارشناسان» (لیست کارشناسان فردی) در منو
 
 **Next step**
 
@@ -742,6 +747,50 @@ This README is a **living document** and the only authoritative reference.
 **Next step**
 
 - فیلتر بازه قیمت؛ ریسپانسیو سایر صفحات
+
+---
+
+### Version 22 — صفحه لیست کارشناسان و جداسازی منو (Completed)
+
+**Scope:** جداسازی لینک «کارشناسان» از «مشاوران املاک»؛ صفحه لیست کارشناسان فردی.
+
+**What was implemented**
+
+- **/agents/:** لیست کارشناسان (صاحبان و کارمندان مشاوره‌های تأییدشده) با سایدبار فیلتر شهر
+- **agent_list view:** کوئری کاربران با `owned_agencies` یا `agency` تأییدشده؛ فیلتر بر اساس شهرهای مشاوره/مشاورهٔ کارمند
+- **تمپلیت agent_list.html:** ظاهر مشابه agency_list؛ کارت با آواتار، نام، نقش، تلفن، نام مشاوره
+- **Header:** «مشاوران املاک» → `/agencies/`؛ «کارشناسان» → `/agents/`
+
+**Architectural intent**
+
+- تفکیک لیست مشاوره‌ها (آژانس‌ها) از لیست کارشناسان (افراد)
+
+**Next step**
+
+- فیلتر بازه قیمت؛ پروفایل کاربر
+
+---
+
+### Version 23 — آیکون ویژگی با آپلود فایل (Completed)
+
+**Scope:** آیکون برای هر ویژگی (Attribute) با آپلود فایل PNG/SVG، نمایش در جزئیات آگهی.
+
+**What was implemented**
+
+- **Attribute.icon:** فیلد FileField با مسیر `attribute_icons/`؛ اعتبارسنجی: PNG یا SVG، حداکثر ۶۴KB، برای PNG ابعاد حداکثر ۱۲۸×۱۲۸
+- **validators.py:** `validate_attribute_icon` در `apps.attributes`
+- **ادمین:** فیلد آیکون با ClearableFileInput و `accept=".png,.svg"`
+- **پنل:** فرم ویژگی (افزودن/ویرایش) با فیلد آیکون، `enctype="multipart/form-data"` و پاس‌دادن `request.FILES`؛ override CSS برای نمایش input فایل (theme `display:none` روی file input را لغو می‌کند)
+- **صفحه جزئیات آگهی:** نمایش آیکون کنار ویژگی‌ها در بخش‌های برجسته، مشخصات، امکانات و کارت آگهی‌های مشابه
+
+**Architectural intent**
+
+- آیکون اختیاری برای هر ویژگی، بدون وابستگی به فونت آیکون
+- اعتبارسنجی سمت سرور برای نوع، حجم و ابعاد
+
+**Next step**
+
+- فیلتر بازه قیمت؛ پروفایل کاربر
 
 ---
 

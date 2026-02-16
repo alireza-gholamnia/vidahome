@@ -1,5 +1,7 @@
 from django.db import models
 
+from .validators import validate_attribute_icon
+
 
 class Attribute(models.Model):
     """
@@ -40,6 +42,14 @@ class Attribute(models.Model):
         default=False,
         verbose_name="نمایش در فیلترها",
         help_text="اگر فعال باشد، این ویژگی در سایدبار فیلتر صفحه آگهی‌ها نمایش داده می‌شود",
+    )
+    icon = models.FileField(
+        upload_to="attribute_icons/",
+        blank=True,
+        null=True,
+        verbose_name="آیکون",
+        help_text="فقط PNG یا SVG، حداکثر ۶۴ کیلوبایت، ابعاد حداکثر ۱۲۸×۱۲۸",
+        validators=[validate_attribute_icon],
     )
 
     class Meta:

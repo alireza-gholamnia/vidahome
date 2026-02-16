@@ -931,7 +931,7 @@ def attribute_add(request):
     if not _is_site_admin(request.user):
         return redirect("panel:dashboard")
     if request.method == "POST":
-        form = AttributeForm(request.POST)
+        form = AttributeForm(request.POST, request.FILES)
         formset = AttributeOptionFormSet(request.POST, instance=Attribute())
         if form.is_valid():
             attr = form.save(commit=False)
@@ -947,7 +947,7 @@ def attribute_add(request):
                 return redirect("panel:attribute_list")
             else:
                 attr.delete()  # rollback
-                form = AttributeForm(request.POST)
+                form = AttributeForm(request.POST, request.FILES)
                 formset = AttributeOptionFormSet(request.POST, instance=Attribute())
                 err = formset.non_form_errors()
                 messages.error(request, f"خطا در گزینه‌ها: {err}" if err else "خطا در گزینه‌ها.")
@@ -978,7 +978,7 @@ def attribute_edit(request, pk):
         return redirect("panel:dashboard")
     attr = get_object_or_404(Attribute, pk=pk)
     if request.method == "POST":
-        form = AttributeForm(request.POST, instance=attr)
+        form = AttributeForm(request.POST, request.FILES, instance=attr)
         formset = AttributeOptionFormSet(request.POST, instance=attr)
         if form.is_valid() and formset.is_valid():
             attr = form.save(commit=False)

@@ -1,6 +1,9 @@
 {% extends "base/base.html" %}
+{% load static %}
 {% block extra_css %}
-
+<link rel="preload" href="{% static 'img/real-estate/recent/01.jpg' %}" as="image">
+<link rel="preload" href="{% static 'img/real-estate/recent/02.jpg' %}" as="image">
+<link rel="preload" href="{% static 'img/real-estate/recent/03.jpg' %}" as="image">
 {% endblock extra_css %}
 {% block extra_head_js %}
     <!-- Page loading scripts-->

@@ -39,6 +39,43 @@ def _render_agency_landing(request, agency, seo_canonical=None):
     return render(request, "pages/agency_landing.html", ctx)
 
 
+def agent_list(request):
+    """لیست کارشناسان/مشاورین (کاربران با نقش صاحب یا کارمند مشاوره)."""
+    from apps.locations.models import City
+
+    agents = (
+        User.objects.filter(is_active=True)
+        .filter(
+            Q(owned_agencies__is_active=True, owned_agencies__approval_status=Agency.ApprovalStatus.APPROVED)
+            | Q(agency__is_active=True, agency__approval_status=Agency.ApprovalStatus.APPROVED)
+        )
+        .select_related("agency")
+        .prefetch_related("owned_agencies", "groups")
+        .distinct()
+        .order_by("first_name", "last_name", "username")
+    )
+    city_slug = request.GET.get("city", "").strip()
+    if city_slug:
+        agents = agents.filter(
+            Q(owned_agencies__cities__slug=city_slug) | Q(agency__cities__slug=city_slug)
+        ).distinct()
+    cities = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "کارشناسان", "url": None},
+    ]
+    return render(
+        request,
+        "pages/agent_list.html",
+        {
+            "agents": agents,
+            "breadcrumbs": breadcrumbs,
+            "cities": cities,
+            "filter_city": city_slug,
+        },
+    )
+
+
 def agency_list(request):
     from apps.locations.models import City
 
@@ -101,13 +138,21 @@ def _get_agent_listings(user):
     qs = Listing.objects.filter(
         status=Listing.Status.PUBLISHED
     ).select_related("city", "area", "category").prefetch_related("images")
-    # صاحب: آگهی‌های مشاوره‌هایش یا ایجادشده توسط خودش
     owned = Agency.objects.filter(
         owner=user, is_active=True, approval_status=Agency.ApprovalStatus.APPROVED
     ).values_list("id", flat=True)
     return qs.filter(
         Q(agency_id__in=owned) | Q(created_by=user) | Q(agency=user.agency)
-    ).order_by("-published_at", "-id")[:24]
+    ).order_by("-published_at", "-id")
+
+
+def _split_listings_by_deal(listings_qs, limit=24):
+    """جداسازی آگهی‌ها برای تب اجاره و فروش."""
+    listings = list(listings_qs[:limit * 2])
+    rent_deals = (Listing.Deal.RENT, Listing.Deal.DAILY_RENT, Listing.Deal.MORTGAGE_RENT)
+    rent_listings = [l for l in listings if l.deal in rent_deals][:limit]
+    buy_listings = [l for l in listings if l.deal == Listing.Deal.BUY][:limit]
+    return rent_listings, buy_listings
 
 
 def agent_landing(request, user_id, slug=None):
@@ -130,7 +175,8 @@ def agent_landing(request, user_id, slug=None):
     if agent.agency_id and agent.agency.is_active and agent.agency.approval_status == Agency.ApprovalStatus.APPROVED:
         if agent.agency not in agencies:
             agencies.append(agent.agency)
-    listings = _get_agent_listings(agent)
+    listings_qs = _get_agent_listings(agent)
+    rent_listings, buy_listings = _split_listings_by_deal(listings_qs)
     display_name = agent.get_full_name() or agent.username or f"کاربر {agent.id}"
     seo_title = f"{display_name} | مشاور املاک | VidaHome"
     seo_h1 = display_name
@@ -147,7 +193,8 @@ def agent_landing(request, user_id, slug=None):
         {
             "agent": agent,
             "agencies": agencies,
-            "listings": listings,
+            "rent_listings": rent_listings,
+            "buy_listings": buy_listings,
             "display_name": display_name,
             "seo_title": seo_title,
             "seo_h1": seo_h1,
@@ -168,7 +215,8 @@ def agent_landing_by_id(request, user_id):
     if not agent.is_agent():
         raise Http404()
     canonical = request.build_absolute_uri(agent.get_absolute_url())
-    listings = _get_agent_listings(agent)
+    listings_qs = _get_agent_listings(agent)
+    rent_listings, buy_listings = _split_listings_by_deal(listings_qs)
     agencies = list(
         agent.owned_agencies.filter(
             is_active=True, approval_status=Agency.ApprovalStatus.APPROVED
@@ -184,7 +232,8 @@ def agent_landing_by_id(request, user_id):
         {
             "agent": agent,
             "agencies": agencies,
-            "listings": listings,
+            "rent_listings": rent_listings,
+            "buy_listings": buy_listings,
             "display_name": display_name,
             "seo_title": f"{display_name} | مشاور املاک | VidaHome",
             "seo_h1": display_name,

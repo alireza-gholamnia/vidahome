@@ -1,0 +1,116 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_css %}
+{% endblock extra_css %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper fixed-bottom-btn">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <div class="container-fluid mt-5 pt-5 p-0">
+    <div class="row g-0 mt-n3">
+      <!-- Filters sidebar -->
+      <aside class="col-lg-4 col-xl-3 border-top-lg border-end-lg shadow-sm px-3 px-xl-4 px-xxl-5 pt-lg-2">
+        <div class="offcanvas-lg offcanvas-end" id="filters-sidebar">
+          <div class="offcanvas-header d-flex d-lg-none align-items-center">
+            <h2 class="h5 mb-0">فیلتر کارشناسان</h2>
+            <button class="btn-close" type="button" data-bs-dismiss="offcanvas" data-bs-target="#filters-sidebar"></button>
+          </div>
+          <form method="get" action="" id="agent-filters" class="offcanvas-body py-lg-4">
+            <div class="border-bottom py-3">
+              <h3 class="h6">شهر</h3>
+              <select class="form-select" name="city" id="filter-city">
+                <option value="">همه شهرها</option>
+                {% for c in cities %}
+                <option value="{{ c.slug }}" {% if filter_city == c.slug %}selected{% endif %}>{{ c.fa_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="border-top py-4">
+              <button class="btn btn-primary rounded-pill w-100" type="submit"><i class="fi-search me-2"></i>اعمال فیلتر</button>
+              <a class="btn btn-outline-secondary rounded-pill w-100 mt-2" href="{% url 'agent_list' %}"><i class="fi-rotate-right me-2"></i>حذف فیلتر</a>
+            </div>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div class="col-lg-8 col-xl-9 position-relative overflow-hidden pb-5 pt-4 px-3 px-xl-4 px-xxl-5">
+        <nav class="mb-3 pt-md-2" aria-label="Breadcrumb">
+          {% include "partials/breadcrumbs.html" %}
+        </nav>
+        <div class="d-sm-flex align-items-center justify-content-between pb-3 pb-sm-4">
+          <h1 class="h2 mb-sm-0">کارشناسان</h1>
+        </div>
+        <div class="d-flex flex-sm-row flex-column align-items-sm-center align-items-stretch my-2">
+          <hr class="d-none d-sm-block w-100 mx-4">
+          <div class="d-none d-sm-flex align-items-center flex-shrink-0 text-muted">
+            <i class="fi-user me-2"></i>
+            <span class="fs-sm mt-n1">{{ agents|length }} کارشناس</span>
+          </div>
+        </div>
+
+        <div class="row row-cols-xl-3 row-cols-sm-2 row-cols-1 gy-4 gx-3 gx-xxl-4 py-4">
+          {% for agent in agents %}
+          <div class="col pb-sm-2">
+            <article class="position-relative">
+              <div class="position-relative mb-3">
+                <a class="d-block rounded-3 overflow-hidden" href="{{ agent.get_absolute_url }}">
+                  {% if agent.avatar %}
+                  <img class="rounded-3 w-100" src="{{ agent.avatar.url }}" alt="{{ agent.get_full_name|default:agent.username }}" loading="lazy" style="height: 200px; object-fit: cover;">
+                  {% else %}
+                  <div class="rounded-3 bg-faded-primary d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fi-user text-primary fs-1 opacity-50"></i>
+                  </div>
+                  {% endif %}
+                </a>
+              </div>
+              <h3 class="mb-2 fs-lg"><a class="nav-link stretched-link" href="{{ agent.get_absolute_url }}">{{ agent.get_full_name|default:agent.username }}</a></h3>
+              <ul class="list-inline mb-0 fs-sm">
+                <li class="list-inline-item pe-1 text-muted">{{ agent.get_role_display }}</li>
+                {% if agent.phone %}
+                <li class="list-inline-item pe-1"><i class="fi-phone mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.phone }}</li>
+                {% endif %}
+                {% if agent.agency %}
+                <li class="list-inline-item pe-1"><i class="fi-building mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.agency.name }}</li>
+                {% elif agent.owned_agencies.exists %}
+                <li class="list-inline-item pe-1"><i class="fi-building mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.owned_agencies.first.name }}</li>
+                {% endif %}
+              </ul>
+            </article>
+          </div>
+          {% empty %}
+          <div class="col-12 py-5 text-center text-muted">
+            <i class="fi-user fs-1 d-block mb-3 opacity-50"></i>
+            <p class="mb-0">کارشناسی یافت نشد.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-sm w-100 rounded-0 fixed-bottom d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filters-sidebar"><i class="fi-filter me-2"></i>فیلتر</button>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}
+{% block extra_js %}
+{% endblock extra_js %}

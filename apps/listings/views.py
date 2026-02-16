@@ -537,9 +537,33 @@ def listing_detail(request, listing_id: int, slug: str):
     if not listing:
         raise Http404()
 
+    related_listings = (
+        Listing.objects.filter(
+            status=Listing.Status.PUBLISHED
+        )
+        .exclude(id=listing.id)
+        .filter(city=listing.city)
+        .select_related("city", "area", "category")
+        .prefetch_related("images", "attribute_values__attribute")
+        .order_by("-published_at", "-id")[:8]
+    )
+    if not related_listings.exists():
+        related_listings = (
+            Listing.objects.filter(status=Listing.Status.PUBLISHED)
+            .exclude(id=listing.id)
+            .select_related("city", "area", "category")
+            .prefetch_related("images", "attribute_values__attribute")
+            .order_by("-published_at", "-id")[:8]
+        )
+
+    amenity_attrs = [av for av in listing.attribute_values.all() if av.value_bool]
     seo = _build_seo_for_listing(request, listing)
     breadcrumbs = _listing_breadcrumbs(listing)
-    return render(request, "pages/listing_detail.html", {"listing": listing, "breadcrumbs": breadcrumbs, **seo})
+    return render(
+        request,
+        "pages/listing_detail.html",
+        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, **seo},
+    )
 
 def listing_detail_by_id(request, listing_id: int):
     listing = (
@@ -552,7 +576,29 @@ def listing_detail_by_id(request, listing_id: int):
     if not listing:
         raise Http404()
 
+    related_listings = (
+        Listing.objects.filter(status=Listing.Status.PUBLISHED)
+        .exclude(id=listing.id)
+        .filter(city=listing.city)
+        .select_related("city", "area", "category")
+        .prefetch_related("images", "attribute_values__attribute")
+        .order_by("-published_at", "-id")[:8]
+    )
+    if not related_listings.exists():
+        related_listings = (
+            Listing.objects.filter(status=Listing.Status.PUBLISHED)
+            .exclude(id=listing.id)
+            .select_related("city", "area", "category")
+            .prefetch_related("images", "attribute_values__attribute")
+            .order_by("-published_at", "-id")[:8]
+        )
+
+    amenity_attrs = [av for av in listing.attribute_values.all() if av.value_bool]
     seo = _build_seo_for_listing(request, listing)
     seo["seo_canonical"] = request.build_absolute_uri(listing.get_absolute_url())
     breadcrumbs = _listing_breadcrumbs(listing)
-    return render(request, "pages/listing_detail.html", {"listing": listing, "breadcrumbs": breadcrumbs, **seo})
+    return render(
+        request,
+        "pages/listing_detail.html",
+        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, **seo},
+    )
