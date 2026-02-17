@@ -3,7 +3,16 @@
 {% block panel_content %}
 <div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
 
-{% if already_member %}
+{% if needs_role_first %}
+<div class="card shadow-sm">
+  <div class="card-body py-5">
+    <p class="text-warning mb-3"><i class="fi-info-circle fs-4"></i></p>
+    <h3 class="h6 mb-3">درخواست عضویت در مشاوره املاک</h3>
+    <p class="mb-4">برای عضویت در یک مشاوره املاک، ابتدا باید نقش «کارمند مشاوره» را درخواست کنید.</p>
+    <p class="mb-0">از بخش <a href="{% url 'panel:role_change_request' %}">درخواست تغییر نقش</a>، نقش «کارمند مشاوره املاک» را انتخاب و درخواست خود را ارسال کنید. پس از تأیید ادمین سایت، می‌توانید مشاوره مورد نظر خود را انتخاب کنید.</p>
+  </div>
+</div>
+{% elif already_member %}
 <div class="card shadow-sm">
   <div class="card-body text-center py-5">
     <p class="text-success mb-2"><i class="fi-check-circle fs-4"></i></p>

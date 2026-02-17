@@ -1,6 +1,9 @@
 import json
 import uuid
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -207,6 +210,7 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
             {"title": "ثبت ملک جدید", "url": None},
         ]
         context["initial_listing_id"] = None
+        context["neshan_api_key"] = getattr(settings, "NESHAN_API_KEY", "") or ""
         attr_post = {}
         if self.request.method == "POST":
             for k, v in self.request.POST.items():
@@ -265,6 +269,7 @@ class ListingUpdateView(LoginRequiredMixin, UpdateView):
             {"title": f"ویرایش: {self.object.title[:30]}...", "url": None},
         ]
         context["initial_listing_id"] = self.object.pk if self.object else None
+        context["neshan_api_key"] = getattr(settings, "NESHAN_API_KEY", "") or ""
         attr_post = {}
         if self.request.method == "POST":
             for k, v in self.request.POST.items():
@@ -348,7 +353,9 @@ def profile_edit(request):
 
 @login_required(login_url="/accounts/login/")
 def agency_list(request):
-    """لیست مشاوره‌های املاک کاربر (صاحب مشاوره)."""
+    """لیست مشاوره‌های املاک کاربر (صاحب مشاوره) — فقط با نقش agency_owner."""
+    if not request.user.groups.filter(name="agency_owner").exists():
+        return redirect("panel:dashboard")
     agencies = _get_user_agencies(request.user)
     if not agencies.exists():
         if request.user.groups.filter(name="agency_owner").exists():
@@ -401,7 +408,9 @@ def agency_add(request):
 
 @login_required(login_url="/accounts/login/")
 def agency_edit(request, pk):
-    """ویرایش پروفایل مشاوره املاک."""
+    """ویرایش پروفایل مشاوره املاک — فقط با نقش agency_owner."""
+    if not request.user.groups.filter(name="agency_owner").exists():
+        return redirect("panel:dashboard")
     agency = get_object_or_404(Agency, pk=pk, owner=request.user)
     if request.method == "POST":
         form = AgencyProfileForm(
@@ -430,7 +439,9 @@ def agency_edit(request, pk):
 
 @login_required(login_url="/accounts/login/")
 def agency_employees(request):
-    """لیست کارمندان مشاوره‌های مالک و امکان درخواست حذف — فقط صاحب مشاوره."""
+    """لیست کارمندان مشاوره‌های مالک و امکان درخواست حذف — فقط صاحب مشاوره (دارای نقش)."""
+    if not request.user.groups.filter(name="agency_owner").exists():
+        return redirect("panel:dashboard")
     agencies = _get_user_agencies(request.user).filter(
         approval_status=Agency.ApprovalStatus.APPROVED,
         is_active=True,
@@ -536,11 +547,9 @@ def role_change_request(request):
     else:
         form = RoleChangeRequestForm(user=request.user)
     requests_qs = RoleChangeRequest.objects.filter(user=request.user).order_by("-created_at")[:20]
-    # آیا کاربر نقش‌ای برای درخواست دارد؟ (هنوز یکی از دو نقش را ندارد)
+    # کاربر فقط وقتی می‌تواند درخواست نقش دهد که هیچ‌کدام از agency_owner و agency_employee را نداشته باشد
     existing = set(request.user.groups.values_list("name", flat=True))
-    can_request_role = any(
-        r not in existing for r in ["agency_owner", "agency_employee"]
-    )
+    can_request_role = "agency_owner" not in existing and "agency_employee" not in existing
     return render(
         request,
         "panel/role_change_request.html",
@@ -566,9 +575,21 @@ def _get_pending_listings_queryset():
 
 @login_required(login_url="/accounts/login/")
 def employee_request_join(request):
-    """درخواست عضویت در مشاوره املاک — فقط برای کاربران با نقش کارمند."""
-    if not request.user.groups.filter(name="agency_employee").exists():
-        return redirect("panel:dashboard")
+    """درخواست عضویت در مشاوره املاک — کاربران بدون نقش کارمند به صفحه راهنما هدایت می‌شوند."""
+    needs_role = not request.user.groups.filter(name="agency_employee").exists()
+    if needs_role:
+        return render(
+            request,
+            "panel/employee_request_join.html",
+            {
+                "needs_role_first": True,
+                "breadcrumbs": [
+                    {"title": "صفحه اصلی", "url": "/"},
+                    {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                    {"title": "درخواست عضویت در مشاوره", "url": None},
+                ],
+            },
+        )
     if request.user.agency_id:
         return render(
             request,
@@ -613,6 +634,26 @@ def employee_request_join(request):
                 {"title": "صفحه اصلی", "url": "/"},
                 {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
                 {"title": "درخواست عضویت در مشاوره", "url": None},
+            ],
+        },
+    )
+
+
+@login_required(login_url="/accounts/login/")
+def employee_my_agency(request):
+    """نمایش اطلاعات مشاوره‌ای که کاربر عضو آن است — فقط برای کارمندان با user.agency."""
+    if not request.user.agency_id:
+        return redirect("panel:employee_request_join")
+    agency = request.user.agency
+    return render(
+        request,
+        "panel/employee_my_agency.html",
+        {
+            "agency": agency,
+            "breadcrumbs": [
+                {"title": "صفحه اصلی", "url": "/"},
+                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                {"title": "اطلاعات مشاوره املاک", "url": None},
             ],
         },
     )
@@ -816,11 +857,15 @@ def approve_role_change_request(request, pk):
     if action == "approve":
         from django.contrib.auth.models import Group
 
-        # اگر کاربر از قبل این نقش را دارد، فقط وضعیت را تأیید می‌کنیم (تغییر گروهی انجام نمی‌شود)
-        if not req.user.groups.filter(name=req.requested_role).exists():
-            group = Group.objects.filter(name=req.requested_role).first()
-            if group:
-                req.user.groups.add(group)
+        # حذف نقش‌های قبلی (member, agency_owner, agency_employee) و افزودن نقش جدید — انحصار نقش‌ها
+        main_roles = ("member", "agency_owner", "agency_employee")
+        for gname in main_roles:
+            g = Group.objects.filter(name=gname).first()
+            if g and req.user.groups.filter(pk=g.pk).exists():
+                req.user.groups.remove(g)
+        new_group = Group.objects.filter(name=req.requested_role).first()
+        if new_group:
+            req.user.groups.add(new_group)
         req.status = RoleChangeRequest.Status.APPROVED
         from django.utils import timezone
 
@@ -1048,6 +1093,62 @@ def attribute_delete(request, pk):
 
 
 @login_required(login_url="/accounts/login/")
+def reverse_geocode_json(request):
+    """تبدیل مختصات به شهر/محله با سرویس نشان؛ برگرداندن city_id و area_id برای فرم آگهی."""
+    lat = request.GET.get("lat", "").strip()
+    lng = request.GET.get("lng", "").strip()
+    if not lat or not lng:
+        return JsonResponse({"city_id": None, "area_id": None, "error": "lat and lng required"})
+
+    try:
+        lat_f = float(lat)
+        lng_f = float(lng)
+    except ValueError:
+        return JsonResponse({"city_id": None, "area_id": None, "error": "invalid coordinates"})
+
+    api_key = getattr(settings, "NESHAN_SERVICE_API_KEY", "") or getattr(settings, "NESHAN_API_KEY", "")
+    if not api_key:
+        return JsonResponse({"city_id": None, "area_id": None, "error": "NESHAN_SERVICE_API_KEY not set"})
+
+    url = f"https://api.neshan.org/v5/reverse?lat={lat_f}&lng={lng_f}"
+    req = Request(url, headers={"Api-Key": api_key})
+    try:
+        with urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+    except (HTTPError, URLError, json.JSONDecodeError) as e:
+        return JsonResponse({"city_id": None, "area_id": None, "error": str(e)})
+
+    if data.get("status") != "OK":
+        return JsonResponse({
+            "city_id": None, "area_id": None,
+            "error": data.get("status", "unknown") or "Neshan API error"
+        })
+
+    city_name = (data.get("city") or "").strip()
+    neighbourhood = (data.get("neighbourhood") or "").strip()
+
+    city_id = None
+    area_id = None
+
+    if city_name:
+        city = City.objects.filter(fa_name__iexact=city_name, is_active=True).first()
+        if not city:
+            city = City.objects.filter(fa_name__icontains=city_name, is_active=True).first()
+        if city:
+            city_id = city.id
+            if neighbourhood and city_id:
+                area = Area.objects.filter(
+                    city_id=city_id,
+                    is_active=True,
+                ).filter(
+                    Q(fa_name__iexact=neighbourhood) | Q(fa_name__icontains=neighbourhood)
+                ).first()
+                if area:
+                    area_id = area.id
+
+    return JsonResponse({"city_id": city_id, "area_id": area_id, "city_name": city_name, "neighbourhood": neighbourhood})
+
+
 def areas_json(request):
     """برگرداندن محله‌های یک شهر به صورت JSON برای پر کردن select."""
     city_id = request.GET.get("city_id", "").strip()

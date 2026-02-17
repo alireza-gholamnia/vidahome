@@ -1,3 +1,13 @@
+def panel_neshan_api_key(request):
+    """کلید API نقشه نشان برای صفحات پنل."""
+    if "/panel" not in request.path:
+        return {}
+    import os
+    from django.conf import settings
+    key = getattr(settings, "NESHAN_API_KEY", None) or os.environ.get("NESHAN_API_KEY", "") or ""
+    return {"neshan_api_key": key}
+
+
 def panel_pending_count(request):
     """تعداد موارد در انتظار تأیید برای ادمین سایت در پنل."""
     if "/panel" not in request.path:

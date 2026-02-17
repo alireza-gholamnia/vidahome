@@ -252,7 +252,7 @@ class Command(BaseCommand):
         self.stdout.write("Previous data cleared.")
 
     def _seed_groups(self):
-        groups = ["site_admin", "seo_admin", "member", "independent_agent", "agency_owner", "agency_employee"]
+        groups = ["site_admin", "seo_admin", "member", "agency_owner", "agency_employee"]
         for g in groups:
             Group.objects.get_or_create(name=g)
         self.stdout.write(f"  Groups: {len(groups)}")

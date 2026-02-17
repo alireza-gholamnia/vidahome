@@ -15,7 +15,6 @@ GROUP_ROLE_LABELS = {
     "site_admin": "مدیر سایت",
     "seo_admin": "کاربر سئو",
     "member": "کاربر معمولی",
-    "independent_agent": "مشاور مستقل",
     "agency_owner": "صاحب مشاوره",
     "agency_employee": "کارمند مشاوره",
 }

@@ -2,6 +2,7 @@
 {% load static panel_tags %}
 {% block extra_css %}
 {{ block.super }}
+<link rel="stylesheet" href="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css" />
 <style>
   #listing-form .field-description #id_description,
   #listing-form .field-description textarea,
@@ -76,11 +77,15 @@
           <label class="form-label" for="id_deal">نوع معامله</label>
           {{ form.deal }}
         </div>
+        {% if object %}
         <div class="col-md-3">
           <label class="form-label" for="id_status">وضعیت</label>
           {{ form.status }}
           {% if not user|is_site_admin %}<small class="text-muted d-block">آگهی پس از تأیید ادمین منتشر می‌شود.</small>{% endif %}
         </div>
+        {% else %}
+        <input type="hidden" name="status" value="pending">
+        {% endif %}
         <div class="col-12">
           <label class="form-label" for="id_short_description">خلاصه کوتاه</label>
           {{ form.short_description }}
@@ -99,9 +104,22 @@
           <label class="form-label" for="id_price_mortgage">مبلغ رهن</label>
           {{ form.price_mortgage }}
         </div>
+        {% if object %}
         <div class="col-md-4">
           <label class="form-label" for="id_price_unit">واحد قیمت</label>
           {{ form.price_unit }}
+        </div>
+        {% else %}
+        <input type="hidden" name="price_unit" value="تومان">
+        {% endif %}
+        <div class="col-12">
+          <label class="form-label d-block">موقعیت روی نقشه</label>
+          <p class="text-muted small mb-2">روی نقشه کلیک کنید یا مارکر را جابه‌جا کنید تا مختصات ملک ذخیره شود.</p>
+          <div id="neshan-map-picker" style="width:100%; height:350px; border-radius:8px; overflow:hidden;"></div>
+          <p class="small text-muted mt-2 mb-0" id="map-coords-display"></p>
+          <p class="small mb-0" id="map-geocode-status"></p>
+          {{ form.latitude }}
+          {{ form.longitude }}
         </div>
         <div class="col-12" id="attributes-section" style="display:none;">
           <hr class="my-4">
@@ -121,6 +139,7 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+<script src="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js"></script>
 <script>
 (function() {
   const citySelect = document.getElementById('id_city');
@@ -131,14 +150,15 @@
   const attributesSection = document.getElementById('attributes-section');
   const attributesContainer = document.getElementById('attributes-container');
   const areasUrl = "{% url 'panel:areas_json' %}";
+  const reverseGeocodeUrl = "{% url 'panel:reverse_geocode_json' %}";
   const attributesUrl = "{% url 'panel:attributes_json' %}";
   const initialListingId = {{ initial_listing_id|default:"null" }};
   const attrPost = {{ attr_post_json|default:"{}"|safe }};
 
-  function loadAreas(cityId) {
+  function loadAreas(cityId, thenSelectAreaId) {
     areaSelect.innerHTML = '<option value="">---------</option>';
-    if (!cityId) return;
-    fetch(areasUrl + '?city_id=' + cityId)
+    if (!cityId) return Promise.resolve();
+    return fetch(areasUrl + '?city_id=' + cityId)
       .then(r => r.json())
       .then(areas => {
         areas.forEach(a => {
@@ -147,6 +167,7 @@
           opt.textContent = a.fa_name;
           areaSelect.appendChild(opt);
         });
+        if (thenSelectAreaId) areaSelect.value = thenSelectAreaId;
       });
   }
 
@@ -210,6 +231,62 @@
       const statusSelect = document.getElementById('id_status');
       if (statusSelect) statusSelect.value = 'pending';
     });
+  }
+
+  var neshanApiKey = '{{ neshan_api_key|escapejs }}';
+  if (neshanApiKey) {
+    var initLat = parseFloat(document.getElementById('id_latitude').value) || 35.6997;
+    var initLng = parseFloat(document.getElementById('id_longitude').value) || 51.3381;
+    var neshanMap = new L.Map('neshan-map-picker', {
+      key: neshanApiKey,
+      maptype: 'dreamy',
+      center: [initLat, initLng],
+      zoom: 14
+    });
+    var marker = L.marker([initLat, initLng], { draggable: true }).addTo(neshanMap);
+    function updateCoords(lat, lng) {
+      document.getElementById('id_latitude').value = lat.toFixed(7);
+      document.getElementById('id_longitude').value = lng.toFixed(7);
+      var disp = document.getElementById('map-coords-display');
+      if (disp) disp.textContent = 'عرض: ' + lat.toFixed(6) + ' — طول: ' + lng.toFixed(6);
+    }
+    function fetchCityAreaFromMap(lat, lng) {
+      var statusEl = document.getElementById('map-geocode-status');
+      if (statusEl) statusEl.textContent = 'در حال دریافت شهر و محله...';
+      if (statusEl) statusEl.className = 'small mb-0 text-muted';
+      fetch(reverseGeocodeUrl + '?lat=' + encodeURIComponent(lat) + '&lng=' + encodeURIComponent(lng), { credentials: 'same-origin' })
+        .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function(data) {
+          if (data.city_id && citySelect) {
+            citySelect.value = data.city_id;
+            loadAreas(data.city_id, data.area_id || null);
+            if (statusEl) { statusEl.textContent = 'شهر و محله به‌روزرسانی شد. — شهر: ' + (data.city_name || '') + '، محله: ' + (data.neighbourhood || ''); statusEl.className = 'small mb-0 text-success'; }
+          } else if (data.city_name || data.error) {
+            if (statusEl) {
+              statusEl.textContent = data.city_name ? 'شهر «' + data.city_name + '» در دیتابیس یافت نشد. لطفاً دستی انتخاب کنید.' : 'خطا: ' + (data.error || 'نامشخص');
+              statusEl.className = 'small mb-0 text-warning';
+            }
+          } else if (statusEl) {
+            statusEl.textContent = '';
+          }
+        })
+        .catch(function(err) {
+          if (statusEl) { statusEl.textContent = 'خطا در دریافت شهر و محله. لطفاً دستی انتخاب کنید.'; statusEl.className = 'small mb-0 text-danger'; }
+        });
+    }
+    updateCoords(initLat, initLng);
+    neshanMap.on('click', function(e) {
+      marker.setLatLng(e.latlng);
+      updateCoords(e.latlng.lat, e.latlng.lng);
+      fetchCityAreaFromMap(e.latlng.lat, e.latlng.lng);
+    });
+    marker.on('dragend', function(e) {
+      var pos = marker.getLatLng();
+      updateCoords(pos.lat, pos.lng);
+      fetchCityAreaFromMap(pos.lat, pos.lng);
+    });
+  } else {
+    document.getElementById('neshan-map-picker').innerHTML = '<div class="p-4 text-center text-muted bg-light rounded">برای نمایش نقشه، کلید API نشان را در تنظیمات پروژه (NESHAN_API_KEY) قرار دهید.</div>';
   }
 
   function togglePriceMortgage() {

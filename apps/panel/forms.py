@@ -26,6 +26,8 @@ class ListingForm(forms.ModelForm):
             "price",
             "price_mortgage",
             "price_unit",
+            "latitude",
+            "longitude",
         ]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "عنوان آگهی"}),
@@ -45,6 +47,8 @@ class ListingForm(forms.ModelForm):
             "price_unit": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "تومان", "value": "تومان"}
             ),
+            "latitude": forms.HiddenInput(attrs={"id": "id_latitude"}),
+            "longitude": forms.HiddenInput(attrs={"id": "id_longitude"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -57,6 +61,8 @@ class ListingForm(forms.ModelForm):
         self.fields["price_mortgage"].required = False
         self.fields["short_description"].required = False
         self.fields["description"].required = False
+        self.fields["latitude"].required = False
+        self.fields["longitude"].required = False
         # پر کردن محله‌ها بر اساس شهر
         cid = city_id or (self.instance.city_id if self.instance else None)
         if cid:
@@ -183,17 +189,21 @@ class RoleChangeRequestForm(forms.ModelForm):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user:
-            # حذف نقش‌هایی که کاربر از قبل دارد
             existing_roles = set(user.groups.values_list("name", flat=True))
-            choices = [
-                (k, v)
-                for k, v in RoleChangeRequest.RequestedRole.choices
-                if k not in existing_roles
-            ]
-            self.fields["requested_role"].choices = choices
-            if not choices:
-                self.fields["requested_role"].choices = [("", "--- شما هر دو نقش را دارید ---")]
-                self.fields["requested_role"].required = False  # تا validation خطا ندهد
+            # اگر کاربر agency_owner یا agency_employee دارد، اجازه درخواست نقش جدید نده
+            if "agency_owner" in existing_roles or "agency_employee" in existing_roles:
+                self.fields["requested_role"].choices = [("", "--- شما نقشی دارید و امکان درخواست نقش دیگر نیست ---")]
+                self.fields["requested_role"].required = False
+            else:
+                choices = [
+                    (k, v)
+                    for k, v in RoleChangeRequest.RequestedRole.choices
+                    if k not in existing_roles
+                ]
+                self.fields["requested_role"].choices = choices
+                if not choices:
+                    self.fields["requested_role"].choices = [("", "--- شما این نقش را دارید ---")]
+                    self.fields["requested_role"].required = False
 
 
 class AttributeForm(forms.ModelForm):

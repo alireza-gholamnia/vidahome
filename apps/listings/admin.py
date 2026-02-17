@@ -172,6 +172,7 @@ class ListingAdmin(admin.ModelAdmin):
                 "title", "slug",
                 ("city", "area", "category"),
                 ("deal", "status", "published_at"),
+                ("latitude", "longitude"),
                 ("created_by", "agency"),
             )
         }),

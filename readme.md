@@ -225,8 +225,11 @@ vidahome/
 - **User** (Custom User, `AUTH_USER_MODEL`): extends AbstractUser
   - `phone`, `avatar`, `is_verified`, `agency` (FK to Agency)
   - `get_role_display()` — نقش از Django Groups
-- **نقش‌ها:** از طریق Django Groups تعیین می‌شوند (سوپرکاربر گروه‌ها را در ادمین می‌سازد)
-- Login: `CustomLoginView`, Signup: `SignUpView`, Logout: `CustomLogoutView` (POST)
+- **نقش‌ها:** از طریق Django Groups تعیین می‌شوند — `site_admin`, `seo_admin`, `member`, `agency_owner`, `agency_employee`
+- **نقش پیش‌فرض:** کاربران جدید به‌طور خودکار نقش `member` دریافت می‌کنند (سیگنال `post_save`)
+- **انحصار نقش‌ها:** `member`, `agency_owner`, `agency_employee` انحصاری‌اند — هر کاربر فقط یکی را دارد؛ هنگام تأیید درخواست تغییر نقش، نقش قبلی حذف و نقش جدید اضافه می‌شود
+- **جلوگیری از درخواست نقش دوم:** کاربران دارای `agency_owner` یا `agency_employee` نمی‌توانند نقش دیگر درخواست دهند
+- Login: OTP (موبایل), `SignUpView`, Logout: `CustomLogoutView` (POST)
 
 ### 5.6 agencies
 
@@ -787,6 +790,31 @@ This README is a **living document** and the only authoritative reference.
 
 - آیکون اختیاری برای هر ویژگی، بدون وابستگی به فونت آیکون
 - اعتبارسنجی سمت سرور برای نوع، حجم و ابعاد
+
+**Next step**
+
+- فیلتر بازه قیمت؛ پروفایل کاربر
+
+---
+
+### Version 24 — نقش پیش‌فرض member، انحصار نقش‌ها، صفحه مشاوره کارمند، حذف مشاور مستقل (Completed)
+
+**Scope:** نقش‌های انحصاری، نقش پیش‌فرض برای کاربران جدید، منوی کارمند قابل کلیک، حذف نقش independent_agent.
+
+**What was implemented**
+
+- **نقش member برای کاربران جدید:** سیگنال `post_save` در `apps.accounts.signals` — کاربران تازه‌ایجادشده (ثبت‌نام یا ورود OTP) در صورت نداشتن نقش، به گروه `member` اضافه می‌شوند
+- **انحصار نقش‌ها:** `member`, `agency_owner`, `agency_employee` با هم انحصاری‌اند؛ در `approve_role_change_request` هنگام تأیید، تمام این نقش‌ها حذف و نقش درخواستی اضافه می‌شود
+- **جلوگیری از درخواست نقش دوم:** کاربران دارای `agency_owner` یا `agency_employee` امکان درخواست نقش دیگر را ندارند — `can_request_role` و فرم `RoleChangeRequestForm` محدود شده‌اند
+- **منوی کارمند قابل کلیک:** «شما عضو این آژانس املاک هستید» در پنل لینک به صفحه `employee_my_agency` است
+- **صفحه اطلاعات مشاوره کارمند:** ویو `employee_my_agency` و قالب `employee_my_agency.html` — نمایش نام، تلفن، آدرس، معرفی و محتوای اصلی مشاوره؛ دکمه مشاهده صفحه عمومی
+- **حذف نقش independent_agent:** از `GROUP_ROLE_LABELS` و `seed_data` حذف شد
+- **دستور clear_user_agency_data:** پاک‌سازی ارتباطات کاربر با مشاوره‌ها (بدون حذف خود کاربر) — مالکیت آژانس به سوپرکاربر منتقل، حذف از گروه‌های agency
+
+**Architectural intent**
+
+- نقش‌های واضح و انحصاری برای ممبر، صاحب مشاوره و کارمند مشاوره
+- دسترسی کارمند به اطلاعات مشاوره‌ای که عضو آن است
 
 **Next step**
 

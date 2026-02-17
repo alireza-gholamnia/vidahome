@@ -72,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.common.context_processors.header_cities',
+                'apps.panel.context_processors.panel_neshan_api_key',
                 'apps.panel.context_processors.panel_pending_count',
             ],
         },
@@ -140,7 +141,13 @@ AUTH_USER_MODEL = "accounts.User"
 LOGIN_REDIRECT_URL = "/panel/"
 LOGIN_URL = "/accounts/login/"
 
+# نقشه نشان
+NESHAN_API_KEY = os.environ.get("NESHAN_API_KEY", "")
+# کلید سرویس برای Reverse Geocoding (تبدیل مختصات به شهر/محله)؛ در صورت نبود از NESHAN_API_KEY استفاده می‌شود
+NESHAN_SERVICE_API_KEY = os.environ.get("NESHAN_SERVICE_API_KEY", "") or os.environ.get("NESHAN_API_KEY", "")
+
 # KaveNegar SMS
+
 KAVENEGAR_API_KEY = os.environ.get("KAVENEGAR_API_KEY", "")
 KAVENEGAR_SENDER = os.environ.get("KAVENEGAR_SENDER", "9982002624")
 KAVENEGAR_OTP_TEMPLATE = os.environ.get("KAVENEGAR_OTP_TEMPLATE", "login")

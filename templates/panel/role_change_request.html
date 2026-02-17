@@ -17,7 +17,7 @@
         {{ form.requested_role }}
         {% if form.requested_role.errors %}<div class="text-danger small mt-1">{{ form.requested_role.errors }}</div>{% endif %}
         {% if not can_request_role %}
-        <div class="alert alert-info mt-2 mb-0 py-2">شما هم‌اکنون هر دو نقش صاحب مشاوره و کارمند مشاوره را دارید.</div>
+        <div class="alert alert-info mt-2 mb-0 py-2">شما نقشی دارید و امکان درخواست نقش دیگر وجود ندارد. نقش‌های ممبر، صاحب مشاوره و کارمند مشاوره با هم انحصاری هستند.</div>
         {% endif %}
       </div>
       <div class="mb-4">

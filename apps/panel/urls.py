@@ -15,6 +15,7 @@ urlpatterns = [
     path("agencies/add/", views.agency_add, name="agency_add"),
     path("agencies/<int:pk>/edit/", views.agency_edit, name="agency_edit"),
     path("employee/request-join/", views.employee_request_join, name="employee_request_join"),
+    path("employee/my-agency/", views.employee_my_agency, name="employee_my_agency"),
     path("role-change/request/", views.role_change_request, name="role_change_request"),
     path("agency/employees/", views.agency_employees, name="agency_employees"),
     path("approve/", views.approve_dashboard, name="approve_dashboard"),
@@ -28,6 +29,7 @@ urlpatterns = [
     path("attributes/add/", views.attribute_add, name="attribute_add"),
     path("attributes/<int:pk>/edit/", views.attribute_edit, name="attribute_edit"),
     path("attributes/<int:pk>/delete/", views.attribute_delete, name="attribute_delete"),
+    path("api/reverse-geocode/", views.reverse_geocode_json, name="reverse_geocode_json"),
     path("api/areas/", views.areas_json, name="areas_json"),
     path("api/attributes/", views.attributes_json, name="attributes_json"),
 ]

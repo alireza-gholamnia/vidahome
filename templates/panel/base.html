@@ -47,7 +47,7 @@
                   <i class="fi-plus me-2 opacity-70"></i>ثبت ملک جدید
                 </a>
               </li>
-              {% if user|has_agency or user|is_agency_owner %}
+              {% if user|is_agency_owner %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'agency_list' or request.resolver_match.url_name == 'agency_edit' or request.resolver_match.url_name == 'agency_add' %}active fw-bold{% endif %}" href="{% url 'panel:agency_list' %}">
                   <i class="fi-building me-2 opacity-70"></i>مشاوره‌های املاک
@@ -59,7 +59,13 @@
                 </a>
               </li>
               {% endif %}
-              {% if user|is_agency_employee and not user.agency and not user|has_agency %}
+              {% if user.agency %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'employee_my_agency' %}active fw-bold{% endif %}" href="{% url 'panel:employee_my_agency' %}">
+                  <i class="fi-check-circle me-2 opacity-70"></i>شما عضو این آژانس املاک هستید
+                </a>
+              </li>
+              {% elif not user|has_agency %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'employee_request_join' %}active fw-bold{% endif %}" href="{% url 'panel:employee_request_join' %}">
                   <i class="fi-user-plus me-2 opacity-70"></i>درخواست عضویت در مشاوره

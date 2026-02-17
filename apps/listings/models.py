@@ -51,6 +51,23 @@ class Listing(BaseSEO, models.Model):
         verbose_name="محله",
     )
 
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+        verbose_name="عرض جغرافیایی",
+        help_text="انتخاب روی نقشه هنگام ثبت آگهی",
+    )
+    longitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+        verbose_name="طول جغرافیایی",
+        help_text="انتخاب روی نقشه هنگام ثبت آگهی",
+    )
+
     category = models.ForeignKey(
         "categories.Category",
         on_delete=models.PROTECT,

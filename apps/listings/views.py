@@ -1,3 +1,6 @@
+import json
+
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.views.generic import RedirectView
@@ -162,11 +165,27 @@ def listing_catalog(request):
     params.pop("page", None)
     pagination_query = urlencode(params, doseq=True)
 
+    # آگهی‌های دارای مختصات برای نقشه (صفحه فعلی)
+    map_listings = []
+    for l in listings:
+        if l.latitude is not None and l.longitude is not None:
+            map_listings.append({
+                "id": l.id,
+                "title": l.title,
+                "lat": float(l.latitude),
+                "lng": float(l.longitude),
+                "url": l.get_absolute_url(),
+            })
+
+    neshan_api_key = getattr(settings, "NESHAN_API_KEY", "") or ""
+
     return render(
         request,
         "pages/listing_catalog.html",
         {
             "listings": listings,
+            "map_listings_json": json.dumps(map_listings),
+            "neshan_api_key": neshan_api_key,
             "cities": cities,
             "categories": categories,
             "areas": areas,
@@ -559,10 +578,11 @@ def listing_detail(request, listing_id: int, slug: str):
     amenity_attrs = [av for av in listing.attribute_values.all() if av.value_bool]
     seo = _build_seo_for_listing(request, listing)
     breadcrumbs = _listing_breadcrumbs(listing)
+    neshan_api_key = getattr(settings, "NESHAN_API_KEY", "") or ""
     return render(
         request,
         "pages/listing_detail.html",
-        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, **seo},
+        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, "neshan_api_key": neshan_api_key, **seo},
     )
 
 def listing_detail_by_id(request, listing_id: int):
@@ -597,8 +617,9 @@ def listing_detail_by_id(request, listing_id: int):
     seo = _build_seo_for_listing(request, listing)
     seo["seo_canonical"] = request.build_absolute_uri(listing.get_absolute_url())
     breadcrumbs = _listing_breadcrumbs(listing)
+    neshan_api_key = getattr(settings, "NESHAN_API_KEY", "") or ""
     return render(
         request,
         "pages/listing_detail.html",
-        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, **seo},
+        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, "neshan_api_key": neshan_api_key, **seo},
     )
