@@ -3,3 +3,4 @@ django-ckeditor
 Pillow
 kavenegar
 python-dotenv
+django-ratelimit

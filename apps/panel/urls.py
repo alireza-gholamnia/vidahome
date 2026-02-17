@@ -10,6 +10,7 @@ urlpatterns = [
     path("listings/add/", views.ListingCreateView.as_view(), name="listing_add"),
     path("listings/<int:pk>/edit/", views.ListingUpdateView.as_view(), name="listing_edit"),
     path("listings/<int:pk>/delete/", views.ListingDeleteView.as_view(), name="listing_delete"),
+    path("listings/inquiries/", views.listing_inquiries, name="listing_inquiries"),
     path("profile/", views.profile_edit, name="profile_edit"),
     path("agencies/", views.agency_list, name="agency_list"),
     path("agencies/add/", views.agency_add, name="agency_add"),

@@ -6,6 +6,7 @@
 <div class="card shadow-sm">
   <div class="card-body p-4">
     <h2 class="h5 mb-4">درخواست تغییر نقش</h2>
+    <p class="mb-2"><strong>نقش فعلی شما:</strong> <span class="text-primary">{{ current_role_label }}</span></p>
     <p class="text-muted mb-4">درخواست خود را برای تغییر نقش به «صاحب مشاوره املاک» یا «کارمند مشاوره املاک» ثبت کنید. توضیحات و دلیل درخواست خود را بنویسید. درخواست پس از بررسی توسط ادمین سایت تأیید یا رد می‌شود.</p>
     <form method="post">
       {% csrf_token %}

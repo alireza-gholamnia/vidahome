@@ -27,6 +27,11 @@
 
   <section class="container mt-5 mb-lg-5 mb-4 pt-5 pb-lg-5">
     {% include "partials/breadcrumbs.html" %}
+    {% if messages %}
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+    {% endif %}
 
     <div class="row gy-5 pt-lg-2">
       <!-- Left column: gallery + title + description + agent -->
@@ -187,6 +192,53 @@
           <a class="btn btn-lg btn-primary w-100 mb-3" href="{{ listing.created_by.get_absolute_url }}">تماس با {{ listing.created_by.get_full_name|default:listing.created_by.username }}<i class="fi-chevron-left ms-2 fs-sm"></i></a>
           {% endif %}
 
+          <!-- فرم استعلام: قبل از لاگین فقط دکمه ورود، بعد از لاگین فرم با فیلدها -->
+          <div class="card border-0 bg-secondary mb-4">
+            <div class="card-body">
+              <h5 class="mb-3">استعلام درباره این آگهی</h5>
+              {% if not user.is_authenticated %}
+              <p class="text-muted mb-3">برای ارسال استعلام ابتدا وارد شوید. پس از ورود، فرم با اطلاعات شما نمایش داده می‌شود.</p>
+              <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#inquiry-login-modal">
+                <i class="fi-user me-2"></i>ورود برای ارسال استعلام
+              </button>
+              {% else %}
+              {% if inquiry_form.first_name.field.disabled %}
+              <p class="text-muted small mb-2">نام و نام خانوادگی از پروفایل شما استفاده می‌شود و فقط از <a href="{% url 'panel:profile_edit' %}">پنل کاربری</a> قابل تغییر است.</p>
+              {% endif %}
+              {% if inquiry_form.phone.field.disabled %}
+              <p class="text-muted small mb-2">شماره موبایل از پروفایل شما استفاده می‌شود.</p>
+              {% endif %}
+              <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="inquiry" value="1">
+                <div class="mb-2">
+                  <label class="form-label small" for="id_first_name">نام</label>
+                  {{ inquiry_form.first_name }}
+                  {% if inquiry_form.first_name.errors %}<div class="text-danger small">{{ inquiry_form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-2">
+                  <label class="form-label small" for="id_last_name">نام خانوادگی</label>
+                  {{ inquiry_form.last_name }}
+                  {% if inquiry_form.last_name.errors %}<div class="text-danger small">{{ inquiry_form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-2">
+                  <label class="form-label small" for="id_phone">تلفن</label>
+                  {{ inquiry_form.phone }}
+                  {% if inquiry_form.phone.errors %}<div class="text-danger small">{{ inquiry_form.phone.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small" for="id_message">پیام (اختیاری)</label>
+                  {{ inquiry_form.message }}
+                </div>
+                <button type="submit" class="btn btn-primary w-100">ارسال استعلام</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+          {% if not user.is_authenticated %}
+          {% include "partials/InquiryLoginModal.html" %}
+          {% endif %}
+
           <!-- Amenities from boolean attributes -->
           {% if amenity_attrs %}
           <div class="card border-0 bg-secondary mb-4">
@@ -270,15 +322,43 @@
 {% block extra_js %}
 <script>if (typeof bootstrap !== 'undefined') { var t = document.querySelectorAll('[data-bs-toggle="tooltip"]'); t.forEach(function(el){ new bootstrap.Tooltip(el); }); }</script>
 {% if listing.latitude and listing.longitude and neshan_api_key %}
-<script src="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js"></script>
 <script>
 (function() {
+  var NESHAN_SCRIPT_URL = "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js";
   var key = '{{ neshan_api_key|escapejs }}';
   var lat = {{ listing.latitude }};
   var lng = {{ listing.longitude }};
-  if (key && lat && lng) {
+  function initListingMap() {
+    if (!key || !lat || !lng) return;
+    var container = document.getElementById('listing-map');
+    if (!container) return;
     var map = new L.Map('listing-map', { key: key, maptype: 'dreamy', center: [lat, lng], zoom: 15 });
     L.marker([lat, lng]).addTo(map);
+  }
+
+  function loadNeshanScriptAndInit() {
+    if (window.L && window.L.Map) {
+      initListingMap();
+      return;
+    }
+    var existing = document.querySelector('script[src="' + NESHAN_SCRIPT_URL + '"]');
+    if (existing) {
+      existing.addEventListener('load', initListingMap);
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = NESHAN_SCRIPT_URL;
+    script.async = true;
+    script.onload = initListingMap;
+    document.head.appendChild(script);
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(loadNeshanScriptAndInit, 0);
+  } else {
+    window.addEventListener('load', function() {
+      setTimeout(loadNeshanScriptAndInit, 0);
+    });
   }
 })();
 </script>

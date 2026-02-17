@@ -82,6 +82,17 @@
                 <option value="mortgage_rent" {% if filter_deal == 'mortgage_rent' %}selected{% endif %}>رهن و اجاره</option>
               </select>
             </div>
+            <div class="border-bottom py-3">
+              <h3 class="h6">بازه قیمت (تومان)</h3>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="price_min" value="{{ filter_price_min|default:'' }}" placeholder="از" min="0" step="1000000">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="price_max" value="{{ filter_price_max|default:'' }}" placeholder="تا" min="0" step="1000000">
+                </div>
+              </div>
+            </div>
             {% for af in attr_filters %}
             <div class="border-bottom py-3">
               <h3 class="h6">{{ af.attr.name }}{% if af.attr.unit %} ({{ af.attr.unit }}){% endif %}</h3>
@@ -210,25 +221,52 @@
 {% endblock body %}
 {% block extra_js %}
 {% if neshan_api_key %}
-<script src="https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js"></script>
 <script>
 (function() {
+  var NESHAN_SCRIPT_URL = "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js";
   var key = '{{ neshan_api_key|escapejs }}';
   var mapListings = {{ map_listings_json|safe }};
-  if (!key || !document.getElementById('catalog-map')) return;
-  var defaultCenter = [35.6997, 51.3381];
-  var defaultZoom = 6;
-  if (mapListings.length > 0) {
-    var lats = mapListings.map(function(x) { return x.lat; });
-    var lngs = mapListings.map(function(x) { return x.lng; });
-    defaultCenter = [(Math.min.apply(null, lats) + Math.max.apply(null, lats)) / 2, (Math.min.apply(null, lngs) + Math.max.apply(null, lngs)) / 2];
-    defaultZoom = 12;
+  function initCatalogMap() {
+    if (!key || !document.getElementById('catalog-map')) return;
+    var defaultCenter = [35.6997, 51.3381];
+    var defaultZoom = 6;
+    if (mapListings.length > 0) {
+      var lats = mapListings.map(function(x) { return x.lat; });
+      var lngs = mapListings.map(function(x) { return x.lng; });
+      defaultCenter = [(Math.min.apply(null, lats) + Math.max.apply(null, lats)) / 2, (Math.min.apply(null, lngs) + Math.max.apply(null, lngs)) / 2];
+      defaultZoom = 12;
+    }
+    var map = new L.Map('catalog-map', { key: key, maptype: 'dreamy', center: defaultCenter, zoom: defaultZoom });
+    mapListings.forEach(function(item) {
+      var m = L.marker([item.lat, item.lng]).addTo(map);
+      m.on('click', function() { window.open(item.url, '_blank', 'noopener'); });
+    });
   }
-  var map = new L.Map('catalog-map', { key: key, maptype: 'dreamy', center: defaultCenter, zoom: defaultZoom });
-  mapListings.forEach(function(item) {
-    var m = L.marker([item.lat, item.lng]).addTo(map);
-    m.on('click', function() { window.open(item.url, '_blank', 'noopener'); });
-  });
+
+  function loadNeshanScriptAndInit() {
+    if (window.L && window.L.Map) {
+      initCatalogMap();
+      return;
+    }
+    var existing = document.querySelector('script[src="' + NESHAN_SCRIPT_URL + '"]');
+    if (existing) {
+      existing.addEventListener('load', initCatalogMap);
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = NESHAN_SCRIPT_URL;
+    script.async = true;
+    script.onload = initCatalogMap;
+    document.head.appendChild(script);
+  }
+
+  if (document.readyState === 'complete') {
+    setTimeout(loadNeshanScriptAndInit, 0);
+  } else {
+    window.addEventListener('load', function() {
+      setTimeout(loadNeshanScriptAndInit, 0);
+    });
+  }
 })();
 </script>
 {% endif %}

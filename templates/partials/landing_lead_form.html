@@ -1,0 +1,74 @@
+{% comment %}
+فرم لید لندینگ — شامل نام، تلفن، ایمیل، موضوع، پیام.
+قبل از لاگین: فقط دکمه ورود و مودال. بعد از لاگین: فرم با پری‌فیل و قفل نام/تلفن در صورت وجود در پروفایل.
+نیاز به متغیرها: landing_lead_form، landing_lead_heading (اختیاری)، landing_lead_action (اختیاری)
+{% endcomment %}
+<section class="mt-5 pt-5 border-top">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+          <h2 class="h5 mb-4">{{ landing_lead_heading|default:"دریافت مشاوره رایگان" }}</h2>
+          <p class="text-muted mb-4">برای دریافت مشاوره درباره املاک در این محدوده، فرم زیر را پر کنید. در اسرع وقت با شما تماس گرفته می‌شود.</p>
+
+          {% if not user.is_authenticated %}
+          <p class="text-muted mb-3">برای ارسال درخواست ابتدا وارد شوید. پس از ورود، فرم با اطلاعات شما نمایش داده می‌شود.</p>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#inquiry-login-modal">
+            <i class="fi-user me-2"></i>ورود برای ارسال درخواست
+          </button>
+          {% include "partials/InquiryLoginModal.html" %}
+          {% else %}
+
+          {% if landing_lead_form.first_name.field.disabled %}
+          <p class="text-muted small mb-2">نام و نام خانوادگی از پروفایل شما استفاده می‌شود و فقط از <a href="{% url 'panel:profile_edit' %}">پنل کاربری</a> قابل تغییر است.</p>
+          {% endif %}
+          {% if landing_lead_form.phone.field.disabled %}
+          <p class="text-muted small mb-2">شماره موبایل از پروفایل شما استفاده می‌شود.</p>
+          {% endif %}
+          <form method="post" action="{{ landing_lead_action|default:request.path }}">
+            {% csrf_token %}
+            <input type="hidden" name="landing_lead" value="1">
+            {% if landing_lead_form.non_field_errors %}
+            <div class="alert alert-danger">{{ landing_lead_form.non_field_errors }}</div>
+            {% endif %}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="{{ landing_lead_form.first_name.id_for_label }}">نام</label>
+                {{ landing_lead_form.first_name }}
+                {% if landing_lead_form.first_name.errors %}<div class="text-danger small">{{ landing_lead_form.first_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ landing_lead_form.last_name.id_for_label }}">نام خانوادگی</label>
+                {{ landing_lead_form.last_name }}
+                {% if landing_lead_form.last_name.errors %}<div class="text-danger small">{{ landing_lead_form.last_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ landing_lead_form.phone.id_for_label }}">تلفن</label>
+                {{ landing_lead_form.phone }}
+                {% if landing_lead_form.phone.errors %}<div class="text-danger small">{{ landing_lead_form.phone.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="{{ landing_lead_form.email.id_for_label }}">ایمیل</label>
+                {{ landing_lead_form.email }}
+                {% if landing_lead_form.email.errors %}<div class="text-danger small">{{ landing_lead_form.email.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ landing_lead_form.subject.id_for_label }}">موضوع</label>
+                {{ landing_lead_form.subject }}
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="{{ landing_lead_form.message.id_for_label }}">پیام</label>
+                {{ landing_lead_form.message }}
+                {% if landing_lead_form.message.errors %}<div class="text-danger small">{{ landing_lead_form.message.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary">ارسال درخواست</button>
+              </div>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

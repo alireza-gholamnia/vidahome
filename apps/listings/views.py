@@ -1,10 +1,13 @@
 import json
 
 from django.conf import settings
-from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
+from django_ratelimit.decorators import ratelimit
 from django.views.generic import RedirectView
 from django.db.models import Q
+from django.urls import reverse
 
 from apps.locations.models import City, Area
 from apps.categories.models import Category
@@ -14,6 +17,15 @@ from apps.blog.models import BlogPost
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
 
 from .models import Listing
+from apps.lead.models import ListingLead, LandingLead
+from apps.lead.forms import ListingLeadForm, LandingLeadForm
+
+
+def _user_has_name_locked(user):
+    """اگر کاربر از قبل نام و نام خانوادگی داشته باشد، در فرم لید قابل تغییر نباشد (فقط از پنل)."""
+    if not user or not user.is_authenticated:
+        return False
+    return bool((getattr(user, "first_name", "") or "").strip()) and bool((getattr(user, "last_name", "") or "").strip())
 
 
 def _category_listing_filter(category):
@@ -40,6 +52,8 @@ def listing_catalog(request):
     area_slug = request.GET.get("area", "").strip()
     deal = request.GET.get("deal", "").strip()
     q = request.GET.get("q", "").strip()
+    price_min_str = request.GET.get("price_min", "").strip()
+    price_max_str = request.GET.get("price_max", "").strip()
 
     if city_slug:
         qs = qs.filter(city__slug=city_slug)
@@ -49,6 +63,20 @@ def listing_catalog(request):
         qs = qs.filter(area__slug=area_slug, city__slug=city_slug)
     if deal in ("buy", "rent", "daily_rent", "mortgage_rent"):
         qs = qs.filter(deal=deal)
+    if price_min_str:
+        try:
+            price_min_val = int(price_min_str)
+            if price_min_val > 0:
+                qs = qs.filter(price__isnull=False, price__gte=price_min_val)
+        except ValueError:
+            pass
+    if price_max_str:
+        try:
+            price_max_val = int(price_max_str)
+            if price_max_val > 0:
+                qs = qs.filter(price__isnull=False, price__lte=price_max_val)
+        except ValueError:
+            pass
     if q:
         qs = qs.filter(
             Q(title__icontains=q)
@@ -199,6 +227,8 @@ def listing_catalog(request):
             "filter_area": area_slug,
             "filter_deal": deal,
             "filter_q": q,
+            "filter_price_min": price_min_str,
+            "filter_price_max": price_max_str,
             "pagination_query": pagination_query,
         },
     )
@@ -311,9 +341,166 @@ def _build_seo_for_listing(request, listing: Listing):
 
 
 # =============================================================
+# Landing lead form helper
+# =============================================================
+
+def _landing_lead_initial_from_user(request):
+    """مقادیر اولیه فرم لید لندینگ براساس پروفایل کاربر لاگین‌شده."""
+    initial = {}
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        if getattr(user, "first_name", ""):
+            initial["first_name"] = user.first_name
+        if getattr(user, "last_name", ""):
+            initial["last_name"] = user.last_name
+        phone = getattr(user, "phone", "") or ""
+        if phone:
+            initial["phone"] = phone
+        email = getattr(user, "email", "") or ""
+        if email:
+            initial["email"] = email
+    return initial
+
+
+def _landing_lead_initial(request, source_type: str, source_path: str):
+    """
+    مقادیر اولیه فرم لید لندینگ: اول از session (بازگشت از لاگین)، وگرنه از پروفایل کاربر.
+    اگر نام قفل باشد، نام و نام‌خانوادگی همیشه از دیتابیس (پروفایل) به‌عنوان دیفالت قرار می‌گیرد.
+    """
+    saved = request.session.pop("landing_return_form", None)
+    if saved and saved.get("source_type") == source_type and saved.get("source_path") == source_path:
+        initial = {}
+        if saved.get("first_name"):
+            initial["first_name"] = saved["first_name"]
+        if saved.get("last_name"):
+            initial["last_name"] = saved["last_name"]
+        if saved.get("phone"):
+            initial["phone"] = saved["phone"]
+        if saved.get("email"):
+            initial["email"] = saved["email"]
+        if saved.get("subject"):
+            initial["subject"] = saved["subject"]
+        if saved.get("message"):
+            initial["message"] = saved["message"]
+        if not initial:
+            initial = _landing_lead_initial_from_user(request)
+    else:
+        initial = _landing_lead_initial_from_user(request)
+    user = getattr(request, "user", None)
+    if _user_has_name_locked(user) and user and user.is_authenticated:
+        initial["first_name"] = (user.first_name or "").strip()
+        initial["last_name"] = (user.last_name or "").strip()
+    return initial
+
+
+def _process_landing_lead_post(request, source_type: str, source_path: str, redirect_url: str):
+    """اگر POST مربوط به فرم لید لندینگ باشد، پردازش کن. برمی‌گرداند (redirect_response | None, form)."""
+    lock_name = _user_has_name_locked(getattr(request, "user", None))
+    lock_phone = getattr(request, "user", None) and request.user.is_authenticated and bool((getattr(request.user, "phone", "") or "").strip())
+    if request.method != "POST" or request.POST.get("landing_lead") != "1":
+        initial = _landing_lead_initial(request, source_type, source_path)
+        if lock_phone:
+            initial["phone"] = (request.user.phone or "").strip()
+        return None, LandingLeadForm(prefix="landing", initial=initial, lock_name_fields=lock_name, lock_phone_field=lock_phone)
+
+    if not request.user.is_authenticated:
+        first_name = (request.POST.get("landing-first_name") or "").strip()
+        last_name = (request.POST.get("landing-last_name") or "").strip()
+        phone = (request.POST.get("landing-phone") or "").strip()
+        email = (request.POST.get("landing-email") or "").strip()
+        subject = (request.POST.get("landing-subject") or "").strip()
+        message = (request.POST.get("landing-message") or "").strip()
+        request.session["landing_return_form"] = {
+            "source_type": source_type,
+            "source_path": source_path,
+            "first_name": first_name,
+            "last_name": last_name,
+            "phone": phone,
+            "email": email,
+            "subject": subject,
+            "message": message,
+        }
+        if phone:
+            request.session["login_otp_phone"] = phone
+        login_url = reverse("accounts:login")
+        return redirect(f"{login_url}?next={redirect_url}"), LandingLeadForm(prefix="landing")
+
+    if getattr(request, "limited", False):
+        messages.error(request, "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً یک ساعت دیگر تلاش کنید.")
+        post_data = request.POST
+        if (lock_name or lock_phone) and request.user.is_authenticated:
+            post_data = request.POST.copy()
+            if lock_name:
+                post_data["landing-first_name"] = (request.user.first_name or "").strip()
+                post_data["landing-last_name"] = (request.user.last_name or "").strip()
+            if lock_phone:
+                post_data["landing-phone"] = (request.user.phone or "").strip()
+        return None, LandingLeadForm(post_data, prefix="landing", lock_name_fields=lock_name, lock_phone_field=lock_phone)
+
+    post_data = request.POST
+    if (lock_name or lock_phone) and request.user.is_authenticated:
+        post_data = request.POST.copy()
+        if lock_name:
+            post_data["landing-first_name"] = (request.user.first_name or "").strip()
+            post_data["landing-last_name"] = (request.user.last_name or "").strip()
+        if lock_phone:
+            post_data["landing-phone"] = (request.user.phone or "").strip()
+    form = LandingLeadForm(post_data, prefix="landing", lock_name_fields=lock_name, lock_phone_field=lock_phone)
+    if form.is_valid():
+        user = getattr(request, "user", None)
+        if lock_name and user and user.is_authenticated:
+            first_name = (user.first_name or "").strip()
+            last_name = (user.last_name or "").strip()
+        else:
+            first_name = (form.cleaned_data.get("first_name") or "").strip()
+            last_name = (form.cleaned_data.get("last_name") or "").strip()
+        if lock_phone and user and user.is_authenticated:
+            phone = (user.phone or "").strip()
+        else:
+            phone = (form.cleaned_data.get("phone") or "").strip()
+        email = (form.cleaned_data.get("email") or "").strip()
+        subject = (form.cleaned_data.get("subject") or "").strip()
+        message = (form.cleaned_data.get("message") or "").strip()
+        full_name = f"{first_name} {last_name}".strip() or first_name or last_name
+
+        LandingLead.objects.create(
+            source_type=source_type,
+            source_path=source_path,
+            name=full_name,
+            phone=phone,
+            email=email,
+            subject=subject,
+            message=message,
+        )
+
+        if user is not None and user.is_authenticated and not lock_name:
+            updated_fields = []
+            if first_name and (user.first_name or "").strip() != first_name:
+                user.first_name = first_name
+                updated_fields.append("first_name")
+            if last_name and (user.last_name or "").strip() != last_name:
+                user.last_name = last_name
+                updated_fields.append("last_name")
+            if phone and (getattr(user, "phone", "") or "").strip() != phone:
+                user.phone = phone
+                updated_fields.append("phone")
+            if email and (getattr(user, "email", "") or "").strip() != email:
+                user.email = email
+                updated_fields.append("email")
+            if updated_fields:
+                user.save(update_fields=updated_fields)
+
+        messages.success(request, "درخواست شما با موفقیت ارسال شد. به زودی با شما تماس گرفته می‌شود.")
+        return redirect(redirect_url), form
+
+    return None, form
+
+
+# =============================================================
 # /s/{slug}  -> City OR Category
 # =============================================================
 
+@ratelimit(key="ip", rate="5/h", method="POST")
 def s_one_segment(request, slug):
     city = City.objects.filter(slug=slug, is_active=True).prefetch_related("images").first()
     if city:
@@ -335,6 +522,11 @@ def s_one_segment(request, slug):
             .select_related("blog_category", "author")
             .order_by("-published_at", "-id")[:6]
         )
+        redirect_resp, lead_form = _process_landing_lead_post(
+            request, LandingLead.SourceType.CITY, city.slug, request.path
+        )
+        if redirect_resp:
+            return redirect_resp
         return render(
             request,
             "pages/city_landing.html",
@@ -344,6 +536,9 @@ def s_one_segment(request, slug):
                 "listings": listings,
                 "city_posts": city_posts,
                 "breadcrumbs": breadcrumbs,
+                "landing_lead_form": lead_form,
+                "landing_lead_source_type": LandingLead.SourceType.CITY,
+                "landing_lead_source_path": city.slug,
                 **seo,
             },
         )
@@ -371,6 +566,11 @@ def s_one_segment(request, slug):
             .select_related("blog_category", "author")
             .order_by("-published_at", "-id")[:6]
         )
+        redirect_resp, lead_form = _process_landing_lead_post(
+            request, LandingLead.SourceType.CATEGORY, category.slug, request.path
+        )
+        if redirect_resp:
+            return redirect_resp
         return render(
             request,
             "pages/category_landing.html",
@@ -380,6 +580,9 @@ def s_one_segment(request, slug):
                 "children": children,
                 "category_posts": category_posts,
                 "breadcrumbs": breadcrumbs,
+                "landing_lead_form": lead_form,
+                "landing_lead_source_type": LandingLead.SourceType.CATEGORY,
+                "landing_lead_source_path": category.slug,
                 **seo,
             },
         )
@@ -391,6 +594,7 @@ def s_one_segment(request, slug):
 # /s/{city}/{category} OR /s/{city}/{area}
 # =============================================================
 
+@ratelimit(key="ip", rate="5/h", method="POST")
 def city_context(request, city_slug, context_slug):
     city = get_object_or_404(City, slug=city_slug, is_active=True)
 
@@ -409,10 +613,24 @@ def city_context(request, city_slug, context_slug):
             {"title": city.fa_name, "url": f"/s/{city.slug}/"},
             {"title": area.fa_name, "url": None},
         ]
+        redirect_resp, lead_form = _process_landing_lead_post(
+            request, LandingLead.SourceType.AREA, f"{city.slug}/{area.slug}", request.path
+        )
+        if redirect_resp:
+            return redirect_resp
         return render(
             request,
             "pages/area_landing.html",
-            {"city": city, "area": area, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+            {
+                "city": city,
+                "area": area,
+                "listings": listings,
+                "breadcrumbs": breadcrumbs,
+                "landing_lead_form": lead_form,
+                "landing_lead_source_type": LandingLead.SourceType.AREA,
+                "landing_lead_source_path": f"{city.slug}/{area.slug}",
+                **seo,
+            },
         )
 
     category = Category.objects.filter(slug=context_slug, is_active=True).prefetch_related("images").first()
@@ -432,6 +650,17 @@ def city_context(request, city_slug, context_slug):
             {"title": city.fa_name, "url": f"/s/{city.slug}/"},
             {"title": category.fa_name, "url": None},
         ]
+        redirect_resp, lead_form = _process_landing_lead_post(
+            request, LandingLead.SourceType.CITY_CATEGORY, f"{city.slug}/{category.slug}", request.path
+        )
+        if redirect_resp:
+            return redirect_resp
+        lead_ctx = {
+            "landing_lead_form": lead_form,
+            "landing_lead_source_type": LandingLead.SourceType.CITY_CATEGORY,
+            "landing_lead_source_path": f"{city.slug}/{category.slug}",
+        }
+
         if landing:
             seo = _build_seo_for_landing(
                 request,
@@ -444,7 +673,7 @@ def city_context(request, city_slug, context_slug):
             return render(
                 request,
                 "pages/city_category_landing.html",
-                {"city": city, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+                {"city": city, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **lead_ctx, **seo},
             )
 
         landing_cover = category.get_landing_cover_image()
@@ -460,7 +689,7 @@ def city_context(request, city_slug, context_slug):
         return render(
             request,
             "pages/city_category_landing.html",
-            {"city": city, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+            {"city": city, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **lead_ctx, **seo},
         )
 
     raise Http404()
@@ -470,6 +699,7 @@ def city_context(request, city_slug, context_slug):
 # /s/{city}/{area}/{category}
 # =============================================================
 
+@ratelimit(key="ip", rate="5/h", method="POST")
 def area_category(request, city_slug, area_slug, category_slug):
     city = get_object_or_404(City, slug=city_slug, is_active=True)
     area = get_object_or_404(Area, city=city, slug=area_slug, is_active=True)
@@ -496,6 +726,17 @@ def area_category(request, city_slug, area_slug, category_slug):
         {"title": area.fa_name, "url": f"/s/{city.slug}/{area.slug}/"},
         {"title": category.fa_name, "url": None},
     ]
+    redirect_resp, lead_form = _process_landing_lead_post(
+        request, LandingLead.SourceType.AREA_CATEGORY, f"{city.slug}/{area.slug}/{category.slug}", request.path
+    )
+    if redirect_resp:
+        return redirect_resp
+    lead_ctx = {
+        "landing_lead_form": lead_form,
+        "landing_lead_source_type": LandingLead.SourceType.AREA_CATEGORY,
+        "landing_lead_source_path": f"{city.slug}/{area.slug}/{category.slug}",
+    }
+
     if landing:
         seo = _build_seo_for_landing(
             request,
@@ -508,7 +749,7 @@ def area_category(request, city_slug, area_slug, category_slug):
         return render(
             request,
             "pages/area_category_landing.html",
-            {"city": city, "area": area, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+            {"city": city, "area": area, "category": category, "landing": landing, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **lead_ctx, **seo},
         )
 
     landing_cover = category.get_landing_cover_image()
@@ -524,7 +765,7 @@ def area_category(request, city_slug, area_slug, category_slug):
     return render(
         request,
         "pages/area_category_landing.html",
-        {"city": city, "area": area, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **seo},
+        {"city": city, "area": area, "category": category, "landing_cover": landing_cover, "listings": listings, "breadcrumbs": breadcrumbs, **lead_ctx, **seo},
     )
 
 
@@ -544,17 +785,118 @@ def _listing_breadcrumbs(listing: Listing):
     return breadcrumbs
 
 
-def listing_detail(request, listing_id: int, slug: str):
-    listing = (
-        Listing.objects
-        .select_related("city", "area", "category", "agency", "created_by", "created_by__agency")
-        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option", "created_by__owned_agencies")
-        .filter(id=listing_id, status=Listing.Status.PUBLISHED)
-        .first()
-    )
+def _listing_detail_render(request, listing, **extra):
+    """ریندر مشترک برای listing_detail و listing_detail_by_id."""
+    if request.method == "POST" and "inquiry" in request.POST:
+        # اگر کاربر لاگین نیست، قبل از ثبت استعلام او را به صفحه ورود هدایت می‌کنیم
+        # و بعد از ورود، دوباره به صفحه همین آگهی برمی‌گردانیم.
+        if not request.user.is_authenticated:
+            # داده‌های فرم را در session ذخیره کن تا بعد از برگشت از لاگین پر شوند
+            first_name = (request.POST.get("first_name") or "").strip()
+            last_name = (request.POST.get("last_name") or "").strip()
+            phone = (request.POST.get("phone") or "").strip()
+            message = (request.POST.get("message") or "").strip()
+            request.session["inquiry_return_form"] = {
+                "listing_id": listing.id,
+                "first_name": first_name,
+                "last_name": last_name,
+                "phone": phone,
+                "message": message,
+            }
+            # شماره کاربر را برای فرم لاگین هم اتوفیل کن
+            if phone:
+                request.session["login_otp_phone"] = phone
+            login_url = reverse("accounts:login")
+            next_url = listing.get_absolute_url()
+            return redirect(f"{login_url}?next={next_url}")
 
-    if not listing:
-        raise Http404()
+        lock_name = _user_has_name_locked(request.user)
+        lock_phone = request.user.is_authenticated and bool((getattr(request.user, "phone", "") or "").strip())
+        if getattr(request, "limited", False):
+            messages.error(request, "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً یک ساعت دیگر تلاش کنید.")
+            initial = {}
+            if lock_name and request.user.is_authenticated:
+                initial["first_name"] = (request.user.first_name or "").strip()
+                initial["last_name"] = (request.user.last_name or "").strip()
+            if lock_phone:
+                initial["phone"] = (request.user.phone or "").strip()
+            form = ListingLeadForm(initial=initial, lock_name_fields=lock_name, lock_phone_field=lock_phone)
+        else:
+            post_data = request.POST
+            if (lock_name or lock_phone) and request.user.is_authenticated:
+                post_data = request.POST.copy()
+                if lock_name:
+                    post_data["first_name"] = (request.user.first_name or "").strip()
+                    post_data["last_name"] = (request.user.last_name or "").strip()
+                if lock_phone:
+                    post_data["phone"] = (request.user.phone or "").strip()
+            form = ListingLeadForm(post_data, lock_name_fields=lock_name, lock_phone_field=lock_phone)
+            if form.is_valid():
+                user = request.user
+                if lock_name:
+                    first_name = (user.first_name or "").strip()
+                    last_name = (user.last_name or "").strip()
+                else:
+                    first_name = (form.cleaned_data.get("first_name") or "").strip()
+                    last_name = (form.cleaned_data.get("last_name") or "").strip()
+                if lock_phone:
+                    phone = (user.phone or "").strip()
+                else:
+                    phone = (form.cleaned_data.get("phone") or "").strip()
+                message = (form.cleaned_data.get("message") or "").strip()
+                ListingLead.objects.create(
+                    listing=listing,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone=phone,
+                    message=message,
+                )
+                # تکمیل پروفایل وقتی نام/تلفن قفل نباشند
+                if user.is_authenticated and (not lock_name or not lock_phone):
+                    updated = False
+                    if not lock_name and first_name and (user.first_name or "").strip() != first_name:
+                        user.first_name = first_name
+                        updated = True
+                    if not lock_name and last_name and (user.last_name or "").strip() != last_name:
+                        user.last_name = last_name
+                        updated = True
+                    if not lock_phone and phone and (getattr(user, "phone", "") or "").strip() != phone:
+                        user.phone = phone
+                        updated = True
+                    if updated:
+                        user.save(update_fields=["first_name", "last_name", "phone"])
+                messages.success(request, "استعلام شما با موفقیت ارسال شد. به زودی با شما تماس گرفته می‌شود.")
+                return redirect(listing.get_absolute_url())
+    else:
+        # مقادیر اولیه فرم: اول از session (بازگشت از لاگین)، وگرنه از پروفایل کاربر
+        initial = {}
+        saved = request.session.pop("inquiry_return_form", None)
+        if saved and saved.get("listing_id") == listing.id:
+            if saved.get("first_name"):
+                initial["first_name"] = saved["first_name"]
+            if saved.get("last_name"):
+                initial["last_name"] = saved["last_name"]
+            if saved.get("phone"):
+                initial["phone"] = saved["phone"]
+            if saved.get("message"):
+                initial["message"] = saved["message"]
+        if not initial and request.user.is_authenticated:
+            user = request.user
+            if getattr(user, "first_name", None):
+                initial["first_name"] = user.first_name
+            if getattr(user, "last_name", None):
+                initial["last_name"] = user.last_name
+            phone = getattr(user, "phone", "") or ""
+            if phone:
+                initial["phone"] = phone
+        lock_name = _user_has_name_locked(request.user)
+        lock_phone = request.user.is_authenticated and bool((getattr(request.user, "phone", "") or "").strip())
+        if lock_name and request.user.is_authenticated:
+            initial["first_name"] = (request.user.first_name or "").strip()
+            initial["last_name"] = (request.user.last_name or "").strip()
+        if lock_phone:
+            initial["phone"] = (request.user.phone or "").strip()
+        form = ListingLeadForm(initial=initial, lock_name_fields=lock_name, lock_phone_field=lock_phone)
 
     related_listings = (
         Listing.objects.filter(
@@ -582,9 +924,34 @@ def listing_detail(request, listing_id: int, slug: str):
     return render(
         request,
         "pages/listing_detail.html",
-        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, "neshan_api_key": neshan_api_key, **seo},
+        {
+            "listing": listing,
+            "breadcrumbs": breadcrumbs,
+            "related_listings": related_listings,
+            "amenity_attrs": amenity_attrs,
+            "neshan_api_key": neshan_api_key,
+            "inquiry_form": form,
+            **seo,
+            **extra,
+        },
     )
 
+
+@ratelimit(key="ip", rate="10/h", method="POST")
+def listing_detail(request, listing_id: int, slug: str):
+    listing = (
+        Listing.objects
+        .select_related("city", "area", "category", "agency", "created_by", "created_by__agency")
+        .prefetch_related("images", "attribute_values__attribute", "attribute_values__value_option", "created_by__owned_agencies")
+        .filter(id=listing_id, status=Listing.Status.PUBLISHED)
+        .first()
+    )
+    if not listing:
+        raise Http404()
+    return _listing_detail_render(request, listing)
+
+
+@ratelimit(key="ip", rate="10/h", method="POST")
 def listing_detail_by_id(request, listing_id: int):
     listing = (
         Listing.objects
@@ -595,31 +962,8 @@ def listing_detail_by_id(request, listing_id: int):
     )
     if not listing:
         raise Http404()
-
-    related_listings = (
-        Listing.objects.filter(status=Listing.Status.PUBLISHED)
-        .exclude(id=listing.id)
-        .filter(city=listing.city)
-        .select_related("city", "area", "category")
-        .prefetch_related("images", "attribute_values__attribute")
-        .order_by("-published_at", "-id")[:8]
-    )
-    if not related_listings.exists():
-        related_listings = (
-            Listing.objects.filter(status=Listing.Status.PUBLISHED)
-            .exclude(id=listing.id)
-            .select_related("city", "area", "category")
-            .prefetch_related("images", "attribute_values__attribute")
-            .order_by("-published_at", "-id")[:8]
-        )
-
-    amenity_attrs = [av for av in listing.attribute_values.all() if av.value_bool]
-    seo = _build_seo_for_listing(request, listing)
-    seo["seo_canonical"] = request.build_absolute_uri(listing.get_absolute_url())
-    breadcrumbs = _listing_breadcrumbs(listing)
-    neshan_api_key = getattr(settings, "NESHAN_API_KEY", "") or ""
-    return render(
+    return _listing_detail_render(
         request,
-        "pages/listing_detail.html",
-        {"listing": listing, "breadcrumbs": breadcrumbs, "related_listings": related_listings, "amenity_attrs": amenity_attrs, "neshan_api_key": neshan_api_key, **seo},
+        listing,
+        seo_canonical=request.build_absolute_uri(listing.get_absolute_url()),
     )

@@ -24,6 +24,11 @@
 
   <div class="container mt-5 pt-md-3 py-4 py-lg-5">
     {% include "partials/breadcrumbs.html" %}
+    {% if messages %}
+    {% for m in messages %}
+    <div class="alert alert-{{ m.tags }} alert-dismissible fade show" role="alert">{{ m }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+    {% endif %}
 
     {% with landing_cover=category.get_landing_cover_image %}
     {% if landing_cover %}
@@ -90,6 +95,8 @@
       </div>
     </section>
     {% endif %}
+
+    {% include "partials/landing_lead_form.html" with landing_lead_heading="دریافت مشاوره رایگان برای "|add:category.fa_name %}
   </div>
 
   {% include "partials/footer.html" %}

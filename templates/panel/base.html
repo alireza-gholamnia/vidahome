@@ -42,6 +42,13 @@
                   <i class="fi-map-pin me-2 opacity-70"></i>آگهی‌های من
                 </a>
               </li>
+              {% if user|is_site_admin %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'listing_inquiries' %}active fw-bold{% endif %}" href="{% url 'panel:listing_inquiries' %}">
+                  <i class="fi-phone me-2 opacity-70"></i>استعلام‌های آگهی
+                </a>
+              </li>
+              {% endif %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'listing_add' %}active fw-bold{% endif %}" href="{% url 'panel:listing_add' %}">
                   <i class="fi-plus me-2 opacity-70"></i>ثبت ملک جدید
@@ -62,10 +69,10 @@
               {% if user.agency %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'employee_my_agency' %}active fw-bold{% endif %}" href="{% url 'panel:employee_my_agency' %}">
-                  <i class="fi-check-circle me-2 opacity-70"></i>شما عضو این آژانس املاک هستید
+                  <i class="fi-building me-2 opacity-70"></i>مشاوره املاک من
                 </a>
               </li>
-              {% elif not user|has_agency %}
+              {% elif user|is_agency_employee %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'employee_request_join' %}active fw-bold{% endif %}" href="{% url 'panel:employee_request_join' %}">
                   <i class="fi-user-plus me-2 opacity-70"></i>درخواست عضویت در مشاوره

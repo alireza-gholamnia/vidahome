@@ -822,6 +822,73 @@ This README is a **living document** and the only authoritative reference.
 
 ---
 
+### Version 25 — لید با لاگین اجباری، مودال ورود، لاگ پیامک، محدودیت‌های پنل، نمایش نقش (Completed)
+
+**Scope:** فرم استعلام آگهی و فرم لید لندینگ با ورود اجباری و مودال OTP؛ لاگ پیامک در ادمین؛ استعلام‌های آگهی فقط برای ادمین؛ تب عضویت مشاوره فقط برای نقش کارمند؛ نمایش نقش فعلی در صفحه تغییر نقش؛ متن‌های پنل.
+
+**What was implemented**
+
+- **لید استعلام آگهی و لید لندینگ:** قبل از لاگین به‌جای فرم فقط دکمه «ورود برای ارسال استعلام/درخواست»؛ پس از کلیک مودال ورود OTP (شماره + کد) باز می‌شود؛ APIهای JSON برای request-otp و verify-otp؛ بعد از ورود موفق رفرش همان صفحه و نمایش فرم با پری‌فیل از پروفایل.
+- **قفل نام و تلفن:** اگر کاربر نام/نام‌خانوادگی یا شماره در پروفایل داشته باشد، فیلدهای مربوط در فرم لید غیرفعال و از پروفایل پر می‌شوند؛ مقدار از POST تزریق می‌شود تا اعتبارسنجی خطا ندهد (فیلدهای disabled در Django در cleaned_data نمی‌آیند؛ برای نام/تلفن قفل‌شده required=False).
+- **لاگ پیامک:** مدل SmsLog (receptor, message, response_json, is_success, created_at)؛ ذخیرهٔ هر ارسال به کاوه‌نگار در ادمین؛ بخش «لاگ پیامک‌های ارسالی» در ادمین common، فقط برای مشاهده.
+- **پنل:** «استعلام‌های آگهی» فقط برای ادمین سایت (لینک در منو و دسترسی به ویو)؛ «درخواست عضویت در مشاوره» فقط وقتی نمایش داده می‌شود که کاربر نقش کارمند (agency_employee) داشته باشد؛ کاربران بدون نقش کارمند باید از «درخواست تغییر نقش» ابتدا نقش کارمند بگیرند.
+- **صفحه تغییر نقش:** نمایش «نقش فعلی شما: …» (از get_role_display؛ در صورت بدون گروه یا member → «کاربر سایت»).
+- **متن‌های پنل:** منو «مشاوره املاک من» به‌جای «شما عضو این آژانس املاک هستید»؛ صفحه عضویت «عضویت شما در این مشاوره فعال است».
+
+**Architectural intent**
+
+- لید فقط از کاربران احراز هویت‌شده؛ UX با مودال بدون خروج از صفحه.
+- شفافیت نقش و دسترسی در پنل؛ لاگ پیامک برای دیباگ و پشتیبانی.
+
+**Next step**
+
+- فیلتر بازه قیمت؛ پروفایل کاربر؛ اعتبارسنجی next_url در لاگین.
+
+---
+
 ## Project Identity
 
 **VidaHome is a Django-based, SEO-first real estate platform designed with a domain-driven architecture to handle complex property data, scalable search, and database-controlled SEO — without frontend frameworks.**
+
+---
+
+## Known Issues & Findings (2026-02-17 Analysis)
+
+این بخش نتیجه یک مرور منطقی/امنیتی روی کد است تا **ایرادهای فعلی** شفاف ثبت شوند.  
+هر موردی که رفع شد، لطفاً این لیست را به‌روزرسانی کنید.
+
+- **Settings & Security**
+  - `SECRET_KEY` در `config/settings/base.py` هاردکد است و `DEBUG=True` است. در محیط واقعی باید `SECRET_KEY` فقط از `.env` و `DEBUG=False` باشد.
+  - در `config/settings/dev.py` مقدار `ALLOWED_HOSTS = ["*"]` است (برای dev قابل قبول، اما هرگز برای prod).
+  - در `config/settings/prod.py` مقدار `ALLOWED_HOSTS = []` خالی است و در صورت استفاده مستقیم از این کانفیگ، منجر به خطای `DisallowedHost` می‌شود؛ باید با دامنه/هاست‌های واقعی پر شود.
+  - پکیج `django-ckeditor` از CKEditor 4 استفاده می‌کند که طبق هشدار `manage.py check` دیگر پشتیبانی امنیتی رسمی ندارد؛ برای محیط واقعی باید به CKEditor 5 یا راه‌حل امن‌تر مهاجرت شود.
+
+- **OTP Login Flow**
+  - در `apps/accounts/views.py` هنگام لاگین با OTP، مقدار `next` از `GET/POST` و سشن خوانده می‌شود و مستقیماً `redirect(next_url)` انجام می‌شود؛ هیچ چک `url_has_allowed_host_and_scheme` روی `next_url` نیست → **ریسک Open Redirect**.
+  - در `apps/accounts/services.py` تابع `verify_otp` بعد از موفقیت، رکورد `OTPRequest` را حذف یا مصرف‌شده علامت‌گذاری نمی‌کند؛ تا قبل از انقضا، امکان استفادهٔ مجدد از همان کد (replay) وجود دارد.
+
+- **Panel & Listings Logic**
+  - در `apps/panel/views.py` تابع `_save_listing_attributes_from_post` برای ویژگی‌های عددی (`INTEGER`) مقدار را بدون `try/except` به `int(val)` تبدیل می‌کند؛ ورودی نامعتبر می‌تواند باعث خطای runtime در ذخیره آگهی شود.
+  - در `apps/panel/views.py` ویوی `agency_employees`:
+    - `pending_removes` فقط درخواست‌های حذف با `requested_by=request.user` را در UI نشان می‌دهد.
+    - اما در هنگام POST، برای جلوگیری از ایجاد درخواست تکراری، فقط روی `(user, agency, status=PENDING)` فیلتر می‌شود و **`requested_by` را در نظر نمی‌گیرد**؛ نتیجه: اگر کاربر دیگری قبلاً درخواست حذف داده باشد، صاحب مشاوره جدید دکمه را می‌زند ولی هیچ تغییری در «در انتظار» خود نمی‌بیند.
+  - در `apps/agencies/models.py` فیلد `approval_status` در مدل `Agency` پیش‌فرض را `APPROVED` قرار داده است؛ در حالی که در پنل هنگام ساخت، وضعیت به `PENDING` ست می‌شود. برای سازگاری منطقی، بهتر است پیش‌فرض مدل هم `PENDING` باشد تا هیچ Agency به‌طور ناخواسته auto-approved نشود.
+
+- **Error Handling & Diagnostics**
+  - چندین بلاک `except ...: pass` وجود دارد که خطا را کاملاً قورت می‌دهند و دیباگ را سخت می‌کنند:
+    - `apps/common/storage.py` در `_save` برای تبدیل WebP: در صورت خطا فایل اصلی ذخیره می‌شود (رفتار قابل قبول)، اما برای لاگ بهتر است حداقل خطا log شود.
+    - `apps/common/management/commands/seed_data.py` در `_seed_city_area_categories` همهٔ Exceptionها را `pass` می‌کند؛ این می‌تواند مشکلات داده‌ای را پنهان کند.
+    - چند جای `apps/panel/views.py` و `apps/listings/views.py` روی `ValueError` فقط `pass` دارند (مثلاً هنگام parse کردن `int` از ورودی) که در صورت ورودی خراب، مسیر خطا را مبهم می‌کند.
+
+- **Performance Considerations**
+  - در `apps/listings/views.py` برای ساخت گزینه‌های فیلتر ویژگی‌ها، برای هر `Attribute` جداگانه روی `AttributeOption` کوئری زده می‌شود (الگوی N+1) — برای دسته‌بندی‌های پر ویژگی می‌تواند کند شود؛ می‌شود با prefetch یا جمع‌کردن کوئری‌ها بهینه کرد.
+  - در `_save_listing_attributes_from_post` (`apps/panel/views.py`) داخل حلقهٔ ویژگی‌ها، برای هر ویژگی `Attribute.objects.get(pk=attr_id)` صدا زده می‌شود که با تعداد ویژگی بالا به N+1 تبدیل می‌شود؛ می‌توان همهٔ Attributeها را یک‌باره کش کرد.
+
+- **Dependency Versioning**
+  - در `requirements.txt` فقط `Django>=4.2` ذکر شده، در حالی که venv فعلی روی Django 6.0.2 است؛ برای ثبات محیط‌ها بهتر است نسخه Django و سایر پکیج‌ها به‌صورت مشخص (یا حداقل بازه محدود) پین شوند.
+
+> **Next Actions (پیشنهادی):**  
+> 1) اعتبارسنجی `next_url` با `django.utils.http.url_has_allowed_host_and_scheme`،  
+> 2) invalid کردن OTP پس از اولین استفاده،  
+> 3) اضافه کردن هندل امن برای `int(...)` و حذف/کاهش `except: pass`های کلی،  
+> 4) هم‌تراز کردن پیش‌فرض `Agency.approval_status` با فلوی پنل و تنظیم دقیق `ALLOWED_HOSTS` در prod.

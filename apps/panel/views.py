@@ -15,8 +15,9 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from apps.agencies.models import Agency, AgencyJoinRequest, EmployeeRemoveRequest
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
-from apps.accounts.models import RoleChangeRequest
+from apps.accounts.models import RoleChangeRequest, GROUP_ROLE_LABELS
 from apps.listings.models import Listing
+from apps.lead.models import ListingLead, LandingLead
 from apps.locations.models import Area, City
 
 from .forms import (
@@ -184,6 +185,67 @@ class ListingListView(LoginRequiredMixin, ListView):
             | (Q(status=Listing.Status.DRAFT) & ~Q(rejection_reason=""))
         ).exists()
         return context
+
+
+@login_required(login_url="/accounts/login/")
+def listing_inquiries(request):
+    """استعلام‌های آگهی — فقط برای ادمین سایت. مشاهده و تغییر وضعیت لیدهای آگهی و لندینگ."""
+    if not _is_site_admin(request.user):
+        messages.warning(request, "دسترسی به استعلام‌های آگهی فقط برای ادمین سایت امکان‌پذیر است.")
+        return redirect("panel:dashboard")
+    user_listing_ids = _get_user_listings_queryset(request.user).values_list("id", flat=True)
+    inquiries = (
+        ListingLead.objects.filter(listing_id__in=user_listing_ids)
+        .select_related("listing")
+        .order_by("-created_at")
+    )
+
+    landing_leads = []
+    landing_new_count = 0
+    is_site_admin = _is_site_admin(request.user)
+    if is_site_admin:
+        landing_leads = list(LandingLead.objects.all().order_by("-created_at")[:200])
+        landing_new_count = LandingLead.objects.filter(status=ListingLead.LeadStatus.NEW).count()
+
+    if request.method == "POST":
+        inquiry_id = request.POST.get("inquiry_id")
+        new_status = request.POST.get("status")
+        if inquiry_id and new_status and new_status in dict(ListingLead.LeadStatus.choices):
+            inv = inquiries.filter(pk=int(inquiry_id)).first()
+            if inv:
+                inv.status = new_status
+                inv.save()
+                messages.success(request, "وضعیت به‌روز شد.")
+                return redirect("panel:listing_inquiries")
+
+        landing_lead_id = request.POST.get("landing_lead_id")
+        landing_status = request.POST.get("landing_status")
+        if is_site_admin and landing_lead_id and landing_status and landing_status in dict(ListingLead.LeadStatus.choices):
+            ll = LandingLead.objects.filter(pk=int(landing_lead_id)).first()
+            if ll:
+                ll.status = landing_status
+                ll.save()
+                messages.success(request, "وضعیت لید لندینگ به‌روز شد.")
+                return redirect("panel:listing_inquiries")
+
+    new_count = inquiries.filter(status=ListingLead.LeadStatus.NEW).count()
+    breadcrumbs = [
+        {"title": "صفحه اصلی", "url": "/"},
+        {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+        {"title": "استعلام‌های آگهی", "url": None},
+    ]
+    return render(
+        request,
+        "panel/listing_inquiries.html",
+        {
+            "inquiries": inquiries,
+            "new_count": new_count,
+            "landing_leads": landing_leads,
+            "landing_new_count": landing_new_count,
+            "is_site_admin": is_site_admin,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
 
 
 class ListingCreateView(LoginRequiredMixin, CreateView):
@@ -550,6 +612,9 @@ def role_change_request(request):
     # کاربر فقط وقتی می‌تواند درخواست نقش دهد که هیچ‌کدام از agency_owner و agency_employee را نداشته باشد
     existing = set(request.user.groups.values_list("name", flat=True))
     can_request_role = "agency_owner" not in existing and "agency_employee" not in existing
+    current_role_label = request.user.get_role_display()
+    if current_role_label in ("-", "کاربر معمولی"):
+        current_role_label = "کاربر سایت"
     return render(
         request,
         "panel/role_change_request.html",
@@ -557,6 +622,7 @@ def role_change_request(request):
             "form": form,
             "requests": list(requests_qs),
             "can_request_role": can_request_role,
+            "current_role_label": current_role_label,
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
                 {"title": "پنل کاربری", "url": reverse("panel:dashboard")},

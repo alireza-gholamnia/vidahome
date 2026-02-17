@@ -1,0 +1,209 @@
+{% extends "panel/base.html" %}
+{% load humanize %}
+{% block extra_css %}
+{{ block.super }}
+<style>
+  /* حذف اسکرول از دراپ‌داون‌های تغییر وضعیت */
+  .card .table-responsive .dropdown-menu,
+  .card .table-responsive .dropdown-menu.show {
+    max-height: none !important;
+    overflow-y: visible !important;
+    overflow-x: visible !important;
+  }
+  /* استایل یکسان و حذف اسکرول از جدول لیدهای لندینگ */
+  #landing-leads-table .table-responsive {
+    overflow-x: visible;
+    overflow-y: visible;
+  }
+</style>
+{% endblock extra_css %}
+{% block panel_content %}
+<div class="mb-3">
+  {% include "partials/breadcrumbs.html" %}
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h5 mb-0">استعلام‌های آگهی (لیدها)</h2>
+  <div class="d-flex gap-2 align-items-center">
+    {% if new_count %}
+    <span class="badge bg-danger">{{ new_count }} مورد جدید</span>
+    {% endif %}
+    {% if is_site_admin and landing_new_count %}
+    <span class="badge bg-secondary">لندینگ: {{ landing_new_count }} مورد جدید</span>
+    {% endif %}
+  </div>
+</div>
+
+{% if inquiries %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>تاریخ</th>
+          <th>نام</th>
+          <th>تلفن</th>
+          <th>آگهی</th>
+          <th>وضعیت</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in inquiries %}
+        <tr>
+          <td>{{ inv.created_at|date:"Y/m/d H:i" }}</td>
+          <td>{{ inv.name }}</td>
+          <td dir="ltr" class="text-end">{{ inv.phone }}</td>
+          <td>
+            <a href="{{ inv.listing.get_absolute_url }}" target="_blank">{{ inv.listing.title|truncatewords:5 }}</a>
+          </td>
+          <td>
+            {% if inv.status == 'new' %}
+            <span class="badge bg-warning">جدید</span>
+            {% elif inv.status == 'viewed' %}
+            <span class="badge bg-info">مشاهده شده</span>
+            {% elif inv.status == 'contacted' %}
+            <span class="badge bg-success">تماس گرفته شده</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="dropdown d-inline-block">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">{% if inv.status == 'new' %}جدید{% elif inv.status == 'viewed' %}مشاهده شده{% elif inv.status == 'contacted' %}تماس گرفته شده{% else %}تغییر وضعیت{% endif %}</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="inquiry_id" value="{{ inv.id }}">
+                    <input type="hidden" name="status" value="viewed">
+                    <button type="submit" class="dropdown-item {% if inv.status == 'viewed' %}active{% endif %}">مشاهده شده</button>
+                  </form>
+                </li>
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="inquiry_id" value="{{ inv.id }}">
+                    <input type="hidden" name="status" value="contacted">
+                    <button type="submit" class="dropdown-item {% if inv.status == 'contacted' %}active{% endif %}">تماس گرفته شده</button>
+                  </form>
+                </li>
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="inquiry_id" value="{{ inv.id }}">
+                    <input type="hidden" name="status" value="new">
+                    <button type="submit" class="dropdown-item {% if inv.status == 'new' %}active{% endif %}">جدید</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% if inv.message %}
+        <tr class="table-light">
+          <td colspan="6" class="small text-muted py-2">
+            <strong>پیام:</strong> {{ inv.message }}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-5 text-muted">
+    <i class="fi-inbox fs-1 d-block mb-3 opacity-50"></i>
+    <p class="mb-0">هنوز استعلامی برای آگهی‌های شما ثبت نشده است.</p>
+  </div>
+</div>
+{% endif %}
+
+{% if is_site_admin %}
+<hr class="my-4">
+<h3 class="h6 mb-3">لیدهای لندینگ</h3>
+{% if landing_leads %}
+<div id="landing-leads-table" class="card shadow-sm">
+  <div class="table-responsive overflow-visible">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>تاریخ</th>
+          <th>نام</th>
+          <th>تلفن</th>
+          <th>صفحه مبدا</th>
+          <th>وضعیت</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ll in landing_leads %}
+        <tr>
+          <td>{{ ll.created_at|date:"Y/m/d H:i" }}</td>
+          <td>{{ ll.name }}</td>
+          <td dir="ltr" class="text-end">{{ ll.phone }}</td>
+          <td>{{ ll.get_source_display }}</td>
+          <td>
+            {% if ll.status == 'new' %}
+            <span class="badge bg-warning">جدید</span>
+            {% elif ll.status == 'viewed' %}
+            <span class="badge bg-info">مشاهده شده</span>
+            {% elif ll.status == 'contacted' %}
+            <span class="badge bg-success">تماس گرفته شده</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="dropdown d-inline-block">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">{% if ll.status == 'new' %}جدید{% elif ll.status == 'viewed' %}مشاهده شده{% elif ll.status == 'contacted' %}تماس گرفته شده{% else %}تغییر وضعیت{% endif %}</button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="landing_lead_id" value="{{ ll.id }}">
+                    <input type="hidden" name="landing_status" value="viewed">
+                    <button type="submit" class="dropdown-item {% if ll.status == 'viewed' %}active{% endif %}">مشاهده شده</button>
+                  </form>
+                </li>
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="landing_lead_id" value="{{ ll.id }}">
+                    <input type="hidden" name="landing_status" value="contacted">
+                    <button type="submit" class="dropdown-item {% if ll.status == 'contacted' %}active{% endif %}">تماس گرفته شده</button>
+                  </form>
+                </li>
+                <li>
+                  <form method="post" class="mb-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="landing_lead_id" value="{{ ll.id }}">
+                    <input type="hidden" name="landing_status" value="new">
+                    <button type="submit" class="dropdown-item {% if ll.status == 'new' %}active{% endif %}">جدید</button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% if ll.message or ll.email or ll.subject %}
+        <tr class="table-light">
+          <td colspan="6" class="small text-muted py-2">
+            {% if ll.email %}<strong>ایمیل:</strong> {{ ll.email }}{% if ll.subject or ll.message %} — {% endif %}{% endif %}
+            {% if ll.subject %}<strong>موضوع:</strong> {{ ll.subject }}{% if ll.message %} — {% endif %}{% endif %}
+            {% if ll.message %}<strong>پیام:</strong> {{ ll.message }}{% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-4 text-muted">
+    <p class="mb-0">هنوز لیدی از صفحات لندینگ ثبت نشده است.</p>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

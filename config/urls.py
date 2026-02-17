@@ -25,6 +25,18 @@ from apps.listings import views as listing_views
 
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps.views import sitemap
+from apps.common.sitemaps import StaticSitemap, ListingSitemap, CitySitemap, CategorySitemap, AgencySitemap, BlogPostSitemap
+
+sitemaps = {
+    "static": StaticSitemap,
+    "listings": ListingSitemap,
+    "cities": CitySitemap,
+    "categories": CategorySitemap,
+    "agencies": AgencySitemap,
+    "blog": BlogPostSitemap,
+}
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("apps.accounts.urls")),
@@ -40,5 +52,7 @@ urlpatterns = [
     path("categories/", include("apps.categories.urls")),
     path("blog/", include("apps.blog.urls")),
     path("", common_views.home, name="home"),
+    path("contact/", common_views.contact, name="contact"),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

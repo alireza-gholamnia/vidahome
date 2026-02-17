@@ -14,7 +14,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # PROJECT_DIR points to: .../vidahome (root next to manage.py)
 PROJECT_DIR = BASE_DIR.parent
 
-load_dotenv(PROJECT_DIR / ".env")
+# override=True تا مقدار .env همیشه اعمال شود (حتی اگر قبلاً در محیط ست شده باشد)
+load_dotenv(PROJECT_DIR / ".env", override=True)
 
 
 SECRET_KEY = 'django-insecure-sc&5zea_zsxyfgxqw_2e3@y5u7fpgl$)u+&)x(8h@3@+6l5l5q'
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'django.contrib.humanize',
     'ckeditor',
     'ckeditor_uploader',
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     "apps.attributes",
     "apps.listings",
     "apps.blog",
+    "apps.lead",
 ]
 
 MIDDLEWARE = [
@@ -87,6 +90,14 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         # DB next to manage.py (root)
         'NAME': PROJECT_DIR / 'db.sqlite3',
+    }
+}
+
+# Cache برای django-ratelimit و سایر موارد
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "OPTIONS": {"MAX_ENTRIES": 10000},
     }
 }
 
@@ -146,8 +157,7 @@ NESHAN_API_KEY = os.environ.get("NESHAN_API_KEY", "")
 # کلید سرویس برای Reverse Geocoding (تبدیل مختصات به شهر/محله)؛ در صورت نبود از NESHAN_API_KEY استفاده می‌شود
 NESHAN_SERVICE_API_KEY = os.environ.get("NESHAN_SERVICE_API_KEY", "") or os.environ.get("NESHAN_API_KEY", "")
 
-# KaveNegar SMS
-
-KAVENEGAR_API_KEY = os.environ.get("KAVENEGAR_API_KEY", "")
-KAVENEGAR_SENDER = os.environ.get("KAVENEGAR_SENDER", "9982002624")
+# KaveNegar SMS — مستندات: https://kavenegar.com/rest.html
+KAVENEGAR_API_KEY = (os.environ.get("KAVENEGAR_API_KEY", "") or "").strip()
+KAVENEGAR_SENDER = (os.environ.get("KAVENEGAR_SENDER", "9982002624") or "9982002624").strip()
 KAVENEGAR_OTP_TEMPLATE = os.environ.get("KAVENEGAR_OTP_TEMPLATE", "login")

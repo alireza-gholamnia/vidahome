@@ -1,179 +1,50 @@
-{% load static %}
-<!-- Recently added-->
+{% load static humanize %}
+<!-- Recently added - ملک‌های جدید -->
 <section class="container pb-4 pt-1 mb-5">
-  <div
-    class="d-flex align-items-end align-items-lg-center justify-content-between mb-4 pb-md-2"
-  >
-    <div
-      class="d-flex w-100 align-items-center justify-content-between justify-content-lg-start"
-    >
-      <h2 class="h3 mb-0 me-md-4">ملک های جدید اضافه شده</h2>
-      <div class="dropdown d-md-none" data-bs-toggle="select">
-        <button
-          class="btn btn-outline-secondary btn-sm dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          <span class="dropdown-toggle-label">خانه</span>
-        </button>
-        <input type="hidden" />
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="#"
-            ><span class="dropdown-item-label">آپارتمان</span></a
-          ><a class="dropdown-item" href="#"
-            ><span class="dropdown-item-label">خانه</span></a
-          ><a class="dropdown-item" href="#"
-            ><span class="dropdown-item-label">سوئیت</span></a
-          ><a class="dropdown-item" href="#"
-            ><span class="dropdown-item-label">دفتر تجاری</span></a
-          >
-        </div>
-      </div>
-      <ul class="nav nav-tabs d-none d-md-flex ps-lg-2 mb-0">
-        <li class="nav-item">
-          <a class="nav-link fs-sm mb-2 mb-md-0" href="#">آپارتمان</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link fs-sm active mb-2 mb-md-0" href="#">خانه</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link fs-sm mb-2 mb-md-0" href="#">سوئیت</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link fs-sm mb-2 mb-md-0" href="#">دفتر تجاری</a>
-        </li>
-      </ul>
-    </div>
-    <a
-      class="btn btn-link fw-normal d-none d-lg-block p-0"
-      href="real-estate-catalog-rent.html"
-      >مشاهده همه <i class="fi-arrow-long-left me-2"></i
-    ></a>
+  <div class="d-flex align-items-end align-items-lg-center justify-content-between mb-4 pb-md-2">
+    <h2 class="h3 mb-0 me-md-4">ملک های جدید اضافه شده</h2>
+    <a class="btn btn-link fw-normal d-none d-lg-block p-0" href="{% url 'listing_catalog' %}">مشاهده همه <i class="fi-arrow-long-left me-2"></i></a>
   </div>
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div
-        class="card bg-size-cover bg-position-center border-0 overflow-hidden mb-4"
-        style="background-image: url('{% static 'img/real-estate/recent/02.jpg' %}')"
-      >
-        <span class="img-gradient-overlay"></span>
-        <div class="card-body content-overlay pb-0">
-          <span class="badge bg-info fs-sm">جدید</span>
-        </div>
-        <div class="card-footer content-overlay border-0 pt-0 pb-4">
-          <div
-            class="d-sm-flex justify-content-between align-items-end pt-5 mt-2 mt-sm-5"
-          >
-            <a
-              class="text-decoration-none text-light pe-2"
-              href="real-estate-single-v1.html"
-            >
-              <div class="fs-sm text-uppercase pt-2 mb-1">فروشی</div>
-              <h3 class="h5 text-light mb-1">خانه دوبلکس</h3>
-              <div class="fs-sm opacity-70">
-                <i class="fi-map-pin me-1"></i> ایران، استان تهران ، میدان آزادی
-              </div></a
-            >
-            <div class="btn-group ms-n2 ms-sm-0 mt-3">
-              <a
-                class="btn btn-primary px-3"
-                href="real-estate-single-v1.html"
-                style="height: 2.75rem"
-                >شروع قیمت از 58.000.000 ت</a
-              >
-              <button
-                class="btn btn-primary btn-icon border-end-0 border-top-0 border-bottom-0 border-light fs-sm"
-                type="button"
-              >
-                <i class="fi-heart"></i>
-              </button>
+  {% if recent_listings %}
+  <div class="tns-carousel-wrapper tns-controls-outside tns-nav-outside tns-nav-outside-flush">
+    <div class="tns-carousel-inner row g-4 mx-0" data-carousel-options='{"items": 3, "responsive": {"0":{"items":1},"500":{"items":2},"768":{"items":3}}}'>
+      {% for item in recent_listings %}
+      <div class="col">
+        <div class="card shadow-sm card-hover border-0 h-100">
+          <div class="card-img-top card-img-hover">
+            <a class="img-overlay" href="{{ item.get_absolute_url }}"></a>
+            {% for img in item.images.all %}
+              {% if forloop.first %}
+            <img src="{{ img.image.url }}" alt="{{ img.alt|default:item.title }}" loading="lazy" style="height: 220px; object-fit: cover;">
+              {% endif %}
+            {% empty %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 220px;">
+              <i class="fi-home fs-1 text-muted opacity-50"></i>
             </div>
+            {% endfor %}
+          </div>
+          <div class="card-body position-relative pb-3">
+            <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">{{ item.get_deal_display_fa }}</h4>
+            <h3 class="h6 mb-2 fs-base"><a class="nav-link stretched-link" href="{{ item.get_absolute_url }}">{{ item.title }}</a></h3>
+            <p class="mb-2 fs-sm text-muted">{{ item.city.fa_name }}{% if item.area %}، {{ item.area.fa_name }}{% endif %}</p>
+            <div class="fw-bold"><i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i>{% if item.has_price_display %}{% if item.deal == 'mortgage_rent' %}{% if item.price_mortgage %}رهن {{ item.price_mortgage|floatformat:0|intcomma }}{% endif %}{% if item.price_mortgage and item.price %} | {% endif %}{% if item.price %}اجاره {{ item.price|floatformat:0|intcomma }}{% endif %}{% else %}{{ item.price|floatformat:0|intcomma }}{% endif %} {{ item.price_unit|default:"تومان" }}{% else %}تماس{% endif %}</div>
+          </div>
+          <div class="card-footer d-flex align-items-center justify-content-center mx-3 pt-2 pb-3 text-nowrap border-0">
+            {% for av in item.attribute_values.all %}
+              {% if av.value_int is not None or av.value_bool or av.value_option_id %}
+            <span class="d-inline-flex align-items-center mx-1 px-2 fs-sm">
+              {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-1" style="width:18px;height:18px;object-fit:contain">{% endif %}
+              {{ av.display_value }}
+            </span>
+              {% endif %}
+            {% endfor %}
           </div>
         </div>
       </div>
-      <div
-        class="card bg-size-cover bg-position-center border-0 overflow-hidden"
-        style="background-image: url('{% static 'img/real-estate/recent/03.jpg' %}')"
-      >
-        <span class="img-gradient-overlay"></span>
-        <div class="card-body content-overlay pb-0">
-          <span class="badge bg-info fs-sm">جدید</span>
-        </div>
-        <div class="card-footer content-overlay border-0 pt-0 pb-4">
-          <div
-            class="d-sm-flex justify-content-between align-items-end pt-5 mt-2 mt-sm-5"
-          >
-            <a
-              class="text-decoration-none text-light pe-2"
-              href="real-estate-single-v1.html"
-            >
-              <div class="fs-sm text-uppercase pt-2 mb-1">فروشی</div>
-              <h3 class="h5 text-light mb-1">واحد تجاری و اداری</h3>
-              <div class="fs-sm opacity-70">
-                <i class="fi-map-pin me-1"></i> ایران، استان تهران ، میدان آزادی
-              </div></a
-            >
-            <div class="btn-group ms-n2 ms-sm-0 mt-3">
-              <a
-                class="btn btn-primary px-3"
-                href="real-estate-single-v1.html"
-                style="height: 2.75rem"
-                >شروع قیمت از 58.000.000 ت</a
-              >
-              <button
-                class="btn btn-primary btn-icon border-end-0 border-top-0 border-bottom-0 border-light fs-sm"
-                type="button"
-              >
-                <i class="fi-heart"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div
-        class="card bg-size-cover bg-position-center border-0 overflow-hidden h-100"
-        style="background-image: url('{% static 'img/real-estate/recent/01.jpg' %}')"
-      >
-        <span class="img-gradient-overlay"></span>
-        <div class="card-body content-overlay pb-0">
-          <div class="d-flex">
-            <span class="badge bg-success fs-sm me-2">تایید</span
-            ><span class="badge bg-info fs-sm">جدید</span>
-          </div>
-        </div>
-        <div class="card-footer content-overlay border-0 pt-0 pb-4">
-          <div
-            class="d-sm-flex justify-content-between align-items-end pt-5 mt-2 mt-sm-5"
-          >
-            <a
-              class="text-decoration-none text-light pe-2"
-              href="real-estate-single-v1.html"
-            >
-              <div class="fs-sm text-uppercase pt-2 mb-1">اجاره ای</div>
-              <h3 class="h5 text-light mb-1">ویلا اجاره ای لاکچری</h3>
-              <div class="fs-sm opacity-70">
-                <i class="fi-map-pin me-1"></i> ایران، استان تهران ، میدان آزادی
-              </div></a
-            >
-            <div class="btn-group ms-n2 ms-sm-0 mt-3">
-              <a
-                class="btn btn-primary px-3"
-                href="real-estate-single-v1.html"
-                style="height: 2.75rem"
-                >شروع قیمت از 58.000.000 ت</a
-              >
-              <button
-                class="btn btn-primary btn-icon border-end-0 border-top-0 border-bottom-0 border-light fs-sm"
-                type="button"
-              >
-                <i class="fi-heart"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
   </div>
+  {% else %}
+  <p class="text-muted text-center py-5">هنوز آگهی منتشرشده‌ای ثبت نشده است.</p>
+  {% endif %}
 </section>

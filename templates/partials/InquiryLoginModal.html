@@ -1,0 +1,131 @@
+{% load static %}
+<!-- مودال ورود با موبایل برای استعلام (OTP) -->
+<div class="modal fade" id="inquiry-login-modal" tabindex="-1" aria-labelledby="inquiry-login-modal-label" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" id="inquiry-login-modal-label">ورود برای ارسال استعلام</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <p class="text-muted small mb-3">با وارد کردن شماره موبایل، کد تأیید برایتان ارسال می‌شود.</p>
+        <div id="inquiry-login-step-phone">
+          <form id="inquiry-login-phone-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" id="inquiry-login-next" value="{{ request.build_absolute_uri }}">
+            <div class="mb-3">
+              <label class="form-label" for="inquiry-login-phone">شماره موبایل</label>
+              <input class="form-control" type="tel" name="phone" id="inquiry-login-phone" placeholder="۰۹۱۲۳۴۵۶۷۸۹" required dir="ltr" maxlength="11">
+            </div>
+            <div id="inquiry-login-phone-error" class="alert alert-danger py-2 d-none" role="alert"></div>
+            <button type="submit" class="btn btn-primary w-100" id="inquiry-login-phone-btn">دریافت کد تأیید</button>
+          </form>
+        </div>
+        <div id="inquiry-login-step-otp" class="d-none">
+          <form id="inquiry-login-otp-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" id="inquiry-login-next-otp" value="{{ request.build_absolute_uri }}">
+            <div class="mb-2">
+              <span class="text-muted fs-sm">شماره: <strong id="inquiry-login-phone-display"></strong></span>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="inquiry-login-code">کد تأیید</label>
+              <input class="form-control form-control-lg text-center" type="text" name="code" id="inquiry-login-code" placeholder="۱۲۳۴۵" required maxlength="6" dir="ltr" inputmode="numeric">
+            </div>
+            <div id="inquiry-login-otp-error" class="alert alert-danger py-2 d-none" role="alert"></div>
+            <button type="submit" class="btn btn-primary w-100" id="inquiry-login-otp-btn">ورود</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var modalEl = document.getElementById('inquiry-login-modal');
+  if (!modalEl) return;
+  var requestOtpUrl = '{% url "accounts:api_request_otp" %}';
+  var verifyOtpUrl = '{% url "accounts:api_verify_otp" %}';
+
+  function getCookie(name) {
+    var v = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
+    return v ? v[1] : null;
+  }
+
+  function getCsrfToken() {
+    var modal = document.getElementById('inquiry-login-modal');
+    var input = modal ? modal.querySelector('[name=csrfmiddlewaretoken]') : null;
+    return input ? input.value : '';
+  }
+
+  function showPhoneError(msg) {
+    var el = document.getElementById('inquiry-login-phone-error');
+    if (el) { el.textContent = msg || ''; el.classList.toggle('d-none', !msg); }
+  }
+  function showOtpError(msg) {
+    var el = document.getElementById('inquiry-login-otp-error');
+    if (el) { el.textContent = msg || ''; el.classList.toggle('d-none', !msg); }
+  }
+
+  document.getElementById('inquiry-login-phone-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var phone = (document.getElementById('inquiry-login-phone').value || '').trim();
+    var nextVal = (document.getElementById('inquiry-login-next').value || '').trim();
+    var btn = document.getElementById('inquiry-login-phone-btn');
+    if (!phone) { showPhoneError('شماره موبایل را وارد کنید.'); return; }
+    showPhoneError('');
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('phone', phone);
+    fd.append('next', nextVal);
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
+    fetch(requestOtpUrl, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        btn.disabled = false;
+        if (data.success) {
+          document.getElementById('inquiry-login-step-phone').classList.add('d-none');
+          document.getElementById('inquiry-login-phone-display').textContent = phone;
+          document.getElementById('inquiry-login-next-otp').value = nextVal;
+          document.getElementById('inquiry-login-step-otp').classList.remove('d-none');
+          document.getElementById('inquiry-login-code').focus();
+        } else {
+          showPhoneError(data.message || 'خطا در ارسال کد.');
+        }
+      })
+      .catch(function() { btn.disabled = false; showPhoneError('خطا در ارتباط با سرور.'); });
+  });
+
+  document.getElementById('inquiry-login-otp-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var code = (document.getElementById('inquiry-login-code').value || '').trim();
+    var nextVal = (document.getElementById('inquiry-login-next-otp').value || '').trim();
+    var btn = document.getElementById('inquiry-login-otp-btn');
+    if (!code) { showOtpError('کد تأیید را وارد کنید.'); return; }
+    showOtpError('');
+    btn.disabled = true;
+    var fd = new FormData();
+    fd.append('code', code);
+    fd.append('next', nextVal);
+    fd.append('csrfmiddlewaretoken', getCsrfToken());
+    fetch(verifyOtpUrl, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        btn.disabled = false;
+        if (data.success && data.redirect) {
+          window.location.href = data.redirect;
+        } else {
+          showOtpError(data.message || 'کد تأیید نامعتبر.');
+        }
+      })
+      .catch(function() { btn.disabled = false; showOtpError('خطا در ارتباط با سرور.'); });
+  });
+
+  modalEl.addEventListener('hidden.bs.modal', function() {
+    document.getElementById('inquiry-login-step-phone').classList.remove('d-none');
+    document.getElementById('inquiry-login-step-otp').classList.add('d-none');
+    showPhoneError('');
+    showOtpError('');
+  });
+})();
+</script>

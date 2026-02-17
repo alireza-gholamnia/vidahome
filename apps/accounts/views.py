@@ -1,5 +1,6 @@
 from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
@@ -12,6 +13,10 @@ from .services import request_otp, verify_otp
 LOGIN_OTP_PHONE_KEY = "login_otp_phone"
 
 
+def _json_login_response(success: bool, message: str = "", redirect_url: str = ""):
+    return JsonResponse({"success": success, "message": message, "redirect": redirect_url})
+
+
 class PhoneLoginView(View):
     """ورود با موبایل - مرحله ۱: دریافت شماره و ارسال OTP"""
 
@@ -19,12 +24,15 @@ class PhoneLoginView(View):
         if request.user.is_authenticated:
             dest = "/admin/" if request.user.is_superuser else "/panel/"
             return redirect(dest)
+        # اگر کاربر از صفحه تأیید کد برگشته، شماره قبلی را اتوفیل کن
+        phone = request.session.get(LOGIN_OTP_PHONE_KEY, "")
         return render(
             request,
             "accounts/phone_login.html",
             {
                 "breadcrumbs": [{"title": "صفحه اصلی", "url": "/"}, {"title": "ورود", "url": None}],
                 "step": "phone",
+                "phone": phone,
             },
         )
 
@@ -102,6 +110,53 @@ class OTPVerifyView(View):
                 "error": "کد تأیید نامعتبر یا منقضی شده است.",
             },
         )
+
+
+class RequestOtpApiView(View):
+    """API برای درخواست OTP (برای لاگین در مودال). خروجی JSON."""
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return _json_login_response(True, redirect_url="/panel/")
+        phone = (request.POST.get("phone") or "").strip()
+        if not phone:
+            return _json_login_response(False, "شماره موبایل را وارد کنید.")
+        success, message = request_otp(phone)
+        if success:
+            request.session[LOGIN_OTP_PHONE_KEY] = phone
+            next_url = request.GET.get("next") or request.POST.get("next") or ""
+            if next_url:
+                request.session["login_next_url"] = next_url
+            return _json_login_response(True, message or "کد تأیید ارسال شد.")
+        return _json_login_response(False, message or "خطا در ارسال کد.")
+
+
+class VerifyOtpApiView(View):
+    """API برای تأیید OTP و ورود (برای مودال). خروجی JSON؛ بعد از موفقیت redirect برای رفرش صفحه."""
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            next_url = request.session.pop("login_next_url", None) or request.GET.get("next") or "/panel/"
+            return _json_login_response(True, redirect_url=next_url)
+        phone = request.session.get(LOGIN_OTP_PHONE_KEY)
+        if not phone:
+            return _json_login_response(False, "لطفاً ابتدا شماره موبایل را ارسال کنید.")
+        code = (request.POST.get("code") or "").strip()
+        if not code:
+            return _json_login_response(False, "کد تأیید را وارد کنید.")
+        user = verify_otp(phone, code)
+        if user:
+            del request.session[LOGIN_OTP_PHONE_KEY]
+            login(request, user)
+            next_url = (
+                request.GET.get("next")
+                or request.POST.get("next")
+                or request.session.pop("login_next_url", None)
+            )
+            if not next_url or next_url == "/":
+                next_url = "/admin/" if user.is_superuser else "/panel/"
+            return _json_login_response(True, "ورود موفق.", redirect_url=next_url)
+        return _json_login_response(False, "کد تأیید نامعتبر یا منقضی شده است.")
 
 
 class CustomLogoutView(LogoutView):
