@@ -23,22 +23,12 @@ env.bak/
 venv.bak/
 
 # Django
-*.sqlite3
-db.sqlite3
-media/
-staticfiles/
 local_settings.py
 *.log
 pip-log.txt
 pip-delete-this-directory.txt
 
 # Environment & secrets
-.env
-.env.*
-!.env.example
-*.pem
-secrets.json
-local.py
 
 # Test / coverage
 .coverage
