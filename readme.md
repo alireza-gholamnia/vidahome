@@ -61,6 +61,21 @@ python manage.py generate_placeholder_images
 python manage.py runserver
 ```
 
+### Git Hygiene (Important)
+
+- Do not commit local runtime artifacts:
+  - `media/` (user uploads)
+  - `db.sqlite3` and `*.sqlite3`
+  - `.env` and private secret files
+- Keep only `.env.example` in git for shared config template.
+- If `media/` was committed before, adding `.gitignore` is not enough.
+  You must untrack once with:
+
+```bash
+git rm -r --cached media db.sqlite3
+git commit -m "chore: stop tracking local media and sqlite db"
+```
+
 ### Admin
 
 - URL: `/admin/`

@@ -29,6 +29,16 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime artifacts
+db.sqlite3
+media/
+staticfiles/
+uploads/
+*.sqlite3
 
 # Test / coverage
 .coverage
