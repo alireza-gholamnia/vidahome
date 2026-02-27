@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
 
+from apps.categories.models import Category
 from .models import Attribute, AttributeOption, ListingAttribute
 
 
@@ -11,6 +12,11 @@ class AttributeAdminForm(forms.ModelForm):
         widgets = {
             "icon": forms.ClearableFileInput(attrs={"accept": ".png,.svg"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "categories" in self.fields:
+            self.fields["categories"].queryset = Category.listing_queryset().order_by("sort_order", "fa_name")
 
 
 class AttributeOptionInline(admin.TabularInline):

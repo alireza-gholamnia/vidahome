@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="fa">
+  
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<head>
+    <meta charset="utf-8">
+    <title>قالب Finder | قالب چند منظوره فایندر راهنما سفر | ثبت کسب کار جدید</title>
+    <!-- SEO Meta Tags-->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <!-- Viewport-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon and Touch Icons-->
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" color="#5bbad5" href="safari-pinned-tab.svg">
+    <meta name="msapplication-TileColor" content="#766df4">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Page loading styles-->
+    <style>
+      .page-loading {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-transition: all .4s .2s ease-in-out;
+        transition: all .4s .2s ease-in-out;
+        background-color: #fff;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 9999;
+      }
+      .page-loading.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .page-loading-inner {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+        -webkit-transition: opacity .2s ease-in-out;
+        transition: opacity .2s ease-in-out;
+        opacity: 0;
+      }
+      .page-loading.active > .page-loading-inner {
+        opacity: 1;
+      }
+      .page-loading-inner > span {
+        display: block;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #666276;;
+      }
+      .page-spinner {
+        display: inline-block;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: .75rem;
+        vertical-align: text-bottom;
+        border: .15em solid #bbb7c5;
+        border-right-color: transparent;
+        border-radius: 50%;
+        -webkit-animation: spinner .75s linear infinite;
+        animation: spinner .75s linear infinite;
+      }
+      @-webkit-keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      
+    </style>
+    <!-- Page loading scripts-->
+    <script>
+      (function () {
+        window.onload = function () {
+          var preloader = document.querySelector('.page-loading');
+          preloader.classList.remove('active');
+          setTimeout(function () {
+            preloader.remove();
+          }, 2000);
+        };
+      })();
+      
+    </script>
+    <!-- Vendor Styles-->
+    <link rel="stylesheet" media="screen" href="vendor/simplebar/dist/simplebar.min.css"/>
+    <link rel="stylesheet" media="screen" href="vendor/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" media="screen" href="vendor/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css"/>
+    <link rel="stylesheet" media="screen" href="vendor/filepond/dist/filepond.min.css"/>
+    <!-- Main Theme Styles + Bootstrap-->
+    <link rel="stylesheet" media="screen" href="css/theme.min.css">
+  </head>
+  <body class="bg-secondary"dir="rtl">
+    <!-- Demo switcher (offcanvas)-->
+     <button class="btn btn-icon btn-light rounded-circle shadow position-fixed top-50 start-0 translate-middle-y ms-3" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="تغییر دمو" style="z-index: 1035;">
+      <div class="d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#demo-switcher"><i class="fi-layers"></i></div>
+    </button>
+    <div class="offcanvas offcanvas-end" id="demo-switcher">
+      <div class="offcanvas-header d-block border-bottom">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h2 class="h5 mb-0">انتخاب دمو</h2>
+          <button class="btn-close" type="button" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="d-flex"><a class="btn btn-outline-secondary btn-sm w-100 me-2" href="index.html"><i class="fi-home me-2"></i>خانه</a><a class="btn btn-outline-secondary btn-sm w-100" href="components/typography.html"><i class="fi-file me-2"></i>ابزارهای بوت استرپ</a></div>
+      </div>
+      <div class="offcanvas-body">
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/car-finder.jpg" alt="Car Finder Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="car-finder-home.html">دمو ماشین</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/real-estate.jpg" alt="Real Estate Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="real-estate-home-v1.html">دمو املاک</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/job-board.jpg" alt="Job Board Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="job-board-home-v1.html">دمو کاریابی</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/city-guide.jpg" alt="City Guide Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="city-guide-home-v1.html">دمو راهنمای سفر</a></h3>
+          </div>
+        </div>
+      </div>
+      <div class="offcanvas-footer border-top"><a class="btn btn-primary btn-lg w-100" href="https://www.rtl-theme.com/finder-html-template/" target="_blank" rel="noopener"><i class="fi-cart fs-lg me-2"></i>مشاهده و خرید</a></div>
+    </div>
+    <!-- Page loading spinner-->
+    <div class="page-loading active">
+      <div class="page-loading-inner">
+        <div class="page-spinner"></div><span>لطفا منتظر باشید</span>
+      </div>
+    </div>
+    <main class="page-wrapper">
+      <!-- Navbar-->
+      <header class="navbar navbar-expand-lg navbar-light fixed-top" data-scroll-header>
+        <div class="container"><a class="navbar-brand me-3 me-xl-4" href="city-guide-home-v1.html"><img class="d-block" src="img/logo/logo-dark.svg" width="116" alt="Finder"></a>
+          <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+          <div class="dropdown d-none d-lg-block order-lg-3 my-n2 me-3"><a class="d-block py-2" href="city-guide-account-info.html"><img class="rounded-circle" src="img/avatars/36.png" width="40" alt=""></a>
+            <div class="dropdown-menu dropdown-menu-end">
+              <div class="d-flex align-items-start border-bottom px-3 py-1 mb-2" style="width: 16rem;"><img class="rounded-circle" src="img/avatars/24.png" width="48" alt="">
+                <div class="ps-2 text-end">
+                  <h6 class="fs-base mb-0">آنت بلک</h6><span class="star-rating star-rating-sm"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i></span>
+                  <div class="fs-xs py-2">(302) 555-0107<br>annette_black@email.com</div>
+                </div>
+              </div><a class="dropdown-item" href="city-guide-account-info.html"><i class="fi-user opacity-60 me-2"></i>اطلاعات فردی</a><a class="dropdown-item" href="city-guide-account-favorites.html"><i class="fi-heart opacity-60 me-2"></i>مورد علاقه های من</a><a class="dropdown-item" href="city-guide-vendor-businesses.html"><i class="fi-home opacity-60 me-2"></i>لیست آگهی های من</a><a class="dropdown-item" href="city-guide-account-reviews.html"><i class="fi-star opacity-60 me-2"></i>لیست نظرات من</a><a class="dropdown-item" href="city-guide-account-notifications.html"><i class="fi-bell opacity-60 me-2"></i>ایمیل های اطلاع رسانی من</a>
+              <div class="dropdown-divider"></div><a class="dropdown-item" href="car-finder-help-center.html">راهنما</a><a class="dropdown-item" href="#">خروج</a>
+            </div>
+          </div><a class="btn btn-primary btn-sm rounded-pill ms-2 order-lg-3" href="city-guide-add-business.html"><i class="fi-plus me-2"></i>ثبت<span class='d-none d-sm-inline'> کسب و کار</span></a>
+          <div class="collapse navbar-collapse order-lg-2" id="navbarNav">
+            <ul class="navbar-nav navbar-nav-scroll" style="max-height: 35rem;">
+              <!-- Demos switcher-->
+              <li class="nav-item dropdown py-2 me-lg-2"><a class="nav-link dropdown-toggle align-items-center border-end-lg py-1 pe-lg-4" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="fi-layers me-2"></i>دموها</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="real-estate-home-v1.html"><i class="fi-building fs-base opacity-50 me-2"></i>دمو املاک</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="car-finder-home.html"> <i class="fi-car fs-base opacity-50 me-2"></i>دمو خرید خودرو</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="job-board-home-v1.html"> <i class="fi-briefcase fs-base opacity-50 me-2"></i>دمو کاریابی</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="city-guide-home-v1.html"><i class="fi-map-pin fs-base opacity-50 me-2"></i>دمو راهنمای سفر</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="index.html"><i class="fi-home fs-base opacity-50 me-2"></i>صفحه اصلی</a></li>
+                  <li><a class="dropdown-item" href="components/typography.html"><i class="fi-list fs-base opacity-50 me-2"></i>ابزارهای بوت استرپ</a></li>
+                </ul>
+              </li>
+              <!-- Menu items-->
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">خانه</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="city-guide-home-v1.html">خانه - نسخه 1</a></li>
+                  <li><a class="dropdown-item" href="city-guide-home-v2.html">خانه - نسخه 2</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">اقامتگاه</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="city-guide-catalog.html">لیست هتل با فیلتر</a></li>
+                  <li><a class="dropdown-item" href="city-guide-single.html">جزئیات هتل  با گالری</a></li>
+                  <li><a class="dropdown-item" href="city-guide-single-info.html">جزئیات هتل با اطلاعات</a></li>
+                  <li><a class="dropdown-item" href="city-guide-single-reviews.html">جزئیات هتل با نظرات</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">اکانت</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="city-guide-account-info.html">اطلاعات فردی</a></li>
+                  <li><a class="dropdown-item" href="city-guide-account-favorites.html">مورد علاقه ها</a></li>
+                  <li><a class="dropdown-item" href="city-guide-account-reviews.html">نظرات</a></li>
+                  <li><a class="dropdown-item" href="city-guide-account-notifications.html">ایمیل اطلاع رسانی </a></li>
+				  <li><a class="dropdown-item" href="signin-light.html">ورود به اکانت</a></li>
+                  <li><a class="dropdown-item" href="signup-light.html">ثبت نام</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown active"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">ثبت آگهی</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="city-guide-add-business.html">ثبت کسب و کار</a></li>
+                  <li><a class="dropdown-item" href="city-guide-business-promotion.html">بروزرسانی آگهی</a></li>
+                  <li><a class="dropdown-item" href="city-guide-vendor-businesses.html">لیست آگهی ها</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">صفحات</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="city-guide-about.html">درباره ما</a></li>
+                  <li class="dropdown"><a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">صفحات وبلاگ</a>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="city-guide-blog.html">لیست</a></li>
+                      <li><a class="dropdown-item" href="city-guide-blog-single.html">جزئیات</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="dropdown-item" href="city-guide-contacts.html">تماس با ما</a></li>
+                  <li class="dropdown"><a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">سوالات متداول</a>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="city-guide-help-center.html">لیست</a></li>
+                      <li><a class="dropdown-item" href="city-guide-help-center-single-topic.html">جزئیات</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="dropdown-item" href="city-guide-404.html">صفحه 404</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown d-lg-none"><a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><img class="rounded-circle me-2" src="img/avatars/36.png" width="30" alt="">آنت بلک</a>
+                <div class="dropdown-menu">
+                  <div class="ps-3 text-end"><span class="star-rating star-rating-sm"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i></span>
+                    <div class="fs-xs py-2">(302) 555-0107<br>annette_black@email.com</div>
+                  </div><a class="dropdown-item" href="city-guide-account-info.html"><i class="fi-user opacity-60 me-2"></i>اطلاعات فردی</a>
+				  <a class="dropdown-item" href="city-guide-account-favorites.html"><i class="fi-heart opacity-60 me-2"></i>مورد علاقه های من</a>
+				  <a class="dropdown-item" href="city-guide-vendor-businesses.html"><i class="fi-home opacity-60 me-2"></i>لیست آگهی های من</a>
+				  <a class="dropdown-item" href="city-guide-account-reviews.html"><i class="fi-star opacity-60 me-2"></i>لیست نظرات من</a>
+				  <a class="dropdown-item" href="city-guide-account-notifications.html"><i class="fi-bell opacity-60 me-2"></i>ایمیل های اطلاع رسانی من</a>
+              <div class="dropdown-divider"></div><a class="dropdown-item" href="car-finder-help-center.html">راهنما</a><a class="dropdown-item" href="#">خروج</a>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <!-- Page content-->
+      <!-- Preview modal-->
+      <div class="modal fade" id="preview-modal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen" role="document">
+          <div class="modal-content">
+            <div class="modal-header d-block d-sm-flex">
+              <h3 class="fs-base text-muted fw-normal modal-title d-none d-sm-block">مشاهده پیش نمایش</h3>
+              <div class="d-flex align-items-center"><a class="btn btn-primary btn-sm me-4" href="city-guide-business-promotion.html">ذخیره و ادامه</a><span class="fs-xs text-muted ms-auto me-2">بستن</span>
+                <button class="btn-close me-0" type="button" data-bs-dismiss="modal"></button>
+              </div>
+            </div>
+            <div class="modal-body p-0">
+              <div class="container mt-2 mt-sm-0 py-4 py-sm-5">
+                <h1 class="h2 mb-2 font-vazir">هتل تجاری برلین</h1>
+                <p class="mb-4 fs-base">فرانکفورت، خیابان اصلی پلاک 45</p>
+                <div class="overflow-auto pb-3 px-2 mx-n2 mb-4" data-simplebar>
+                  <div class="row g-2 g-md-3" style="min-width: 30rem;">
+                    <div class="col-8"><img class="rounded rounded-md-3" src="img/city-guide/single/01.jpg" alt="Gallery thumbnail"></div>
+                    <div class="col-4"><img class="rounded rounded-md-3 mb-2 mb-md-3" src="img/city-guide/single/02.jpg" alt="Gallery thumbnail"><img class="rounded rounded-md-3" src="img/city-guide/single/03.jpg" alt="Gallery thumbnail"></div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-7 mb-md-0 mb-4"><span class="badge bg-success me-2 mb-3">تایید</span><span class="badge bg-info me-2 mb-3">جدید</span>
+                    <h2 class="h4 mb-4 pb-4 border-bottom">500-10000 تومان<span class="d-inline-block ms-1 fs-base fw-normal text-body">/هر شب</span></h2>
+                    <!-- About-->
+                    <div class="mb-4 pb-md-3">
+                      <h3 class="h5">درباره هتل</h3>
+                      <p class="mb-1">لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می باشد.</p>
+                      <div class="collapse" id="seeMoreOverview">
+                        <p class="mb-1">کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می طلبد تا با نرم افزارها شناخت بیشتری را برای طراحان رایانه ای علی الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد.</p>
+                      </div><a class="collapse-label collapsed" href="#seeMoreOverview" data-bs-toggle="collapse" data-bs-label-collapsed="مشاهده بشتر" data-bs-label-expanded="بستن" role="button" aria-expanded="false" aria-controls="seeMoreOverview"></a>
+                    </div>
+                    <!-- Amenities-->
+                    <div class="mb-4 pb-md-3">
+                      <h2 class="h5">امکانات رفاهی</h2>
+                      <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap">
+                        <li class="col"><i class="fi-wifi mt-n1 me-2 fs-lg align-middle"></i>وای فای رایگان</li>
+                        <li class="col"><i class="fi-swimming-pool mt-n1 me-2 fs-lg align-middle"></i>2 استخر</li>
+                        <li class="col"><i class="fi-pet mt-n1 me-2 fs-lg align-middle"></i>نگهداری حیوانات خانگی</li>
+                        <li class="col"><i class="fi-parking mt-n1 me-2 fs-lg align-middle"></i>پارکینگ رایگان</li>
+                        <li class="col"><i class="fi-spa mt-n1 me-2 fs-lg align-middle"></i>سالن آبگرم</li>
+                        <li class="col"><i class="fi-cafe mt-n1 me-2 fs-lg align-middle"></i>رستوران</li>
+                        <li class="col"><i class="fi-hotel-bell mt-n1 me-2 fs-lg align-middle"></i>سیستم گرمایشی</li>
+                        <li class="col"><i class="fi-cocktail mt-n1 me-2 fs-lg align-middle"></i>گاز رومیزی</li>
+                        <li class="col"><i class="fi-dumbell mt-n1 me-2 fs-lg align-middle"></i>باشگاه</li>
+                      </ul>
+                      <div class="collapse" id="seeMoreAmenities">
+                        <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap">
+                          <li class="col"><i class="fi-dish mt-n1 me-2 fs-lg align-middle"></i>ماشین لباسشویی</li>
+                          <li class="col"><i class="fi-thermometer mt-n1 me-2 fs-lg align-middle"></i>سیستم سرمایشی</li>
+                        </ul>
+                      </div><a class="collapse-label collapsed" href="#seeMoreAmenities" data-bs-toggle="collapse" data-bs-label-collapsed="مشاهده بیشتر" data-bs-label-expanded="بستن" role="button" aria-expanded="false" aria-controls="seeMoreAmenities"></a>
+                    </div>
+                    <!-- Room types-->
+                    <div class="mb-4 pb-md-3">
+                      <h2 class="h5">انواع اتاق</h2>
+                      <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap">
+                        <li class="col"><i class="fi-no-smoke mt-n1 me-2 fs-lg align-middle"></i>اتاق خواب</li>
+                        <li class="col"><i class="fi-single-bed mt-n1 me-2 fs-lg align-middle"></i>پذیرایی</li>
+                        <li class="col"><i class="fi-double-bed mt-n1 me-2 fs-lg align-middle"></i>اتاق کودک</li>
+                      </ul>
+                    </div>
+                    <!-- Awards-->
+                    <div class="pb-md-3">
+                      <h2 class="h5">جوایز اعطا شده</h2>
+						<ul class="list-unstyled">
+						  <li class="d-flex align-items-center mb-2"><img class="flex-shrink-0 me-2" src="img/city-guide/single/awards/01.jpg" width="40" alt="Award logo">
+							<div>2020 انتخاب مسافر</div>
+						  </li>
+						  <li class="d-flex align-items-center mb-2"><img class="flex-shrink-0 me-2" src="img/city-guide/single/awards/02.jpg" width="40" alt="Award logo">
+							<div>دریافت بهترین کیفیت 2020</div>
+						  </li>
+						  <li class="d-flex align-items-center mb-2"><img class="flex-shrink-0 me-2" src="img/city-guide/single/awards/03.jpg" width="40" alt="Award logo">
+							<div>خالد حسینی تو رمان باد بادک باز</div>
+						  </li>
+						</ul>
+                    </div>
+                  </div>
+                  <!-- Sidebar-->
+                  <aside class="col-md-5">
+                    <!-- Place card-->
+                    <article class="card mb-4 p-2 shadow-sm">
+                      <div class="card-body">
+                        <!-- Place info-->
+                        <div class="d-flex align-items-start mb-3 pb-2 border-bottom"><img class="rounded-circle" src="img/city-guide/brands/hotel.svg" width="60" alt="Place thumbnail">
+                          <div class="ps-2 ms-1">
+                            <h3 class="h5 mb-2">هتل تجاری برلین</h3>
+                            <ul class="list-unstyled d-flex flex-wrap fs-sm">
+                              <li class="me-2 mb-1 pe-1"><i class="fi-star-filled mt-n1 me-1 text-warning align-middle opacity-70"></i><b>4.9 </b>(48)</li>
+                              <li class="me-2 mb-1 pe-1"><i class="fi-wallet mt-n1 me-1 align-middle opacity-70"></i>45000 تومان</li>
+                              <li class="me-2 mb-1 pe-1"><i class="fi-map-pin mt-n1 me-1 align-middle opacity-70"></i>1.4 کیلومتر از دریا</li>
+                            </ul>
+                          </div>
+                        </div>
+                        <!-- Place contacts-->
+                        <div class="mb-3 pb-3 border-bottom">
+                          <h4 class="h5 mb-2">تماس با ما:</h4>
+                          <ul class="nav flex-column">
+                            <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-flex align-items-start" href="#"><i class="fi-map-pin mt-1 me-2 align-middle opacity-70"></i>فرانکفورت، خیابان اصلی پلاک 45</a></li>
+                            <li class="nav-item mb-2"><a class="nav-link d-inline-block p-0 fw-normal d-inline-flex align-items-start" href="tel:3025550107"><i class="fi-phone mt-1 me-2 align-middle opacity-70"></i>(302) 555-0107</a>, <a class="nav-link d-inline-block p-0 fw-normal" href="tel:3025550208">(302) 555-0208</a></li>
+                            <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-flex align-items-start" href="#"><i class="fi-globe mt-1 me-2 align-middle opacity-60"></i>bb-hotel.com</a></li>
+                            <li class="nav-item"><a class="nav-link p-0 fw-normal d-flex align-items-start" href="mailto:bb-hotel@example.com"><i class="fi-mail mt-1 me-2 align-middle opacity-70"></i>bb-hotel@example.com</a></li>
+                          </ul>
+                        </div>
+                        <!-- Place pricing-->
+                        <div class="mb-3 pb-4 border-bottom">
+                          <div class="row row-cols-1">
+                            <div class="col mb-3">
+                              <h4 class="h6 mb-0"><span class="fs-4">500-1000 تومان&nbsp; </span><span class="fs-base fw-normal text-body">/هر شب</span></h4>
+                            </div>
+                            <div class="col">
+                              <button class="btn btn-primary btn-lg rounded-pill w-sm-auto w-100" type="button">رزرو هتل<i class="fi-chevron-right fs-sm ms-2"></i></button>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Follow-->
+                        <div class="d-flex align-items-center">
+                          <h4 class="h5 mb-0 me-3">دنبال کردن</h4>
+                          <div class="text-nowrap"><a class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2" href="#"><i class="fi-facebook"></i></a><a class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2" href="#"><i class="fi-instagram"></i></a><a class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle" href="#"><i class="fi-twitter"></i></a></div>
+                        </div>
+                      </div>
+                    </article>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Page container-->
+      <div class="container mt-5 mb-md-4 py-5">
+        <div class="row">
+          <!-- Page content-->
+          <div class="col-lg-8 register-business">
+            <!-- Breadcrumb-->
+            <nav class="mb-3 pt-2 pt-lg-3" aria-label="Breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="city-guide-home-v1.html">خانه</a></li>
+                <li class="breadcrumb-item active" aria-current="page">ثبت کسب و کار</li>
+              </ol>
+            </nav>
+            <!-- Title-->
+            <div class="mb-4">
+              <h1 class="h4 font-vazir mb-0">ثبت کسب کار</h1>
+              <div class="d-lg-none pt-3 mb-2">33% محتوا تکمیل شده است</div>
+              <div class="progress d-lg-none mb-4" style="height: .25rem;">
+                <div class="progress-bar bg-danger" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <!-- Basic info-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="basic-info">
+              <h2 class="h5 mb-4"><i class="fi-info-circle text-primary fs-5 mt-n1 me-2"></i>اطلاعات پایه</h2>
+              <div class="mb-3">
+                <label class="form-label" for="ab-title">نام تجاری رسمی <span class="text-danger">*</span></label>
+                <input class="form-control" type="text" id="ab-title" value="هتل تجاری برلین" placeholder="نام تجاری رسمی را وارد کنید" required><span class="form-text">48 کاراکتر باقی مانده است</span>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">دسته بندی <span class="text-danger">*</span></label>
+                <div class="btn-group d-block dropdown" data-bs-toggle="select">
+                  <button class="btn btn-outline-secondary col-md-6 col-12 d-flex align-items-center justify-content-between ps-3 fw-normal dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="dropdown-toggle-label">اقامتگاه و بوم گردی</span></button>
+                  <input type="hidden">
+                  <div class="dropdown-menu w-100 my-1 p-3">
+                    <div class="row row-cols-md-5 row-cols-sm-3 row-cols-2 g-2">
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-bed mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">اقامتگاه و بوم گردی</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-cafe mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">رستوران و کافی شاپ</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-shopping-bag mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">مراکز خرید</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-museum mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">هنر و تئاتر</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-entertainment mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">تفریحی و سرگرمی</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-dumbell mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">باشگاه بدنسازی</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-disco-ball mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">تور و سفر</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-meds mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">سلامتی و پزشکی</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-makeup mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">آرایشی و زیبایی</span></button>
+                      </div>
+                      <div class="col">
+                        <button class="dropdown-item btn btn-outline-secondary border-0 d-block p-3 text-center" type="button"><i class="fi-car mb-1 fs-2 text-primary"></i><span class="dropdown-item-label d-block fs-sm">خدمات خودرو</span></button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="ab-subcategory">زیر دسته <span class="text-danger">*</span></label>
+                <select class="form-select" id="ab-subcategory" required>
+                  <option value="" disabled>انتخاب نوع مکان</option>
+                  <option value="hotel">هتل</option>
+                  <option value="hostel">مسافرخانه</option>
+                  <option value="apartment">آپارتمان</option>
+                  <option value="house">خانه</option>
+                  <option value="commercial">تجاری/ اداری</option>
+                </select>
+              </div>
+            </section>
+            <!-- Location-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="location">
+              <h2 class="h5 mb-4"><i class="fi-map-pin text-primary fs-5 mt-n1 me-2"></i>موقعیت مکانی</h2>
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <label class="form-label" for="ab-country">کشور / منطقه <span class="text-danger">*</span></label>
+                  <select class="form-select" id="ab-country" required>
+                    <option value="" disabled>انتخاب کشور</option>
+                    <option value="Germany" selected>آلمان</option>
+                    <option value="Belgium">بلژیک</option>
+                    <option value="Canada">کانادا</option>
+                    <option value="United States">آمریکا</option>
+                  </select>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <label class="form-label" for="ab-city">شهر <span class="text-danger">*</span></label>
+                  <select class="form-select" id="ab-city" required>
+                    <option value="" disabled>انتخاب شهر</option>
+                    <option value="Berlin" selected>برلین</option>
+                    <option value="Hamburg">هامبورگ</option>
+                    <option value="Munich">مونیخ</option>
+                    <option value="Frankfurt am Main">فرانکفورت</option>
+                    <option value="Stuttgart">پاریس</option>
+                    <option value="Cologne">آمستردام</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-8 mb-3">
+                  <label class="form-label" for="ab-district">منطقه <span class="text-danger">*</span></label>
+                  <select class="form-select" id="ab-district" required>
+                    <option value="" disabled>انتخاب منطقه</option>
+                    <option value="Berlin-Mitte" selected>برلین-میت</option>
+                    <option value="Charlottenburg">شارلوتنبورگ</option>
+                    <option value="Prenzlauer Berg">پاریس</option>
+                    <option value="Friedrichshain">آمستردام</option>
+                    <option value="Kreuzberg">مالزی</option>
+                  </select>
+                </div>
+                <div class="col-sm-4 mb-3">
+                  <label class="form-label" for="ab-zip">کد پستی <span class="text-danger">*</span></label>
+                  <input class="form-control" type="text" id="ab-zip" placeholder="کد پستی خود را وارد کنید" value="13127" required>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="ab-address">آدرس <span class="text-danger">*</span></label>
+                <input class="form-control" type="text" id="ab-address" value="خیابان اصلی فرانکفورت , 27" required>
+              </div>
+              <div class="form-label fw-bold pt-3 pb-2">مشاهده روی نقشه</div>
+              <div class="interactive-map rounded-3" data-map-options="{&quot;mapLayer&quot;: &quot;https://api.maptiler.com/maps/pastel/{z}/{x}/{y}.png?key=5vRQzd34MMsINEyeKPIs&quot;, &quot;coordinates&quot;: [52.52, 13.405], &quot;zoom&quot;: 13, &quot;scrollWheelZoom&quot;: false, &quot;markers&quot;: [{&quot;coordinates&quot;: [52.52, 13.405], &quot;className&quot;: &quot;custom-marker-dot&quot;, &quot;popup&quot;: &quot;&lt;div class='p-3'&gt;&lt;h6 class='fs-base'&gt;Berlin Business Hotel&lt;/h6&gt;&lt;p class='fs-xs text-muted pt-1 mt-n3 mb-0'&gt;Pasewalker Str. 97, Berlin&lt;/p&gt;&lt;/div&gt;&quot;}]}" style="height: 250px;"></div>
+            </section>
+            <!-- Contacts-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="contacts">
+              <h2 class="h5 mb-4"><i class="fi-phone text-primary fs-5 mt-n1 me-2"></i>راه های ارتباطی</h2>
+              <div class="row">
+                <div class="col-sm-6 mb-3">
+                  <label class="form-label" for="ab-email">پست الکترونیکی <span class="text-danger">*</span></label>
+                  <input class="form-control" type="email" id="ab-email" placeholder="ایمیل" required>
+                </div>
+                <div class="col-sm-6 mb-3">
+                  <label class="form-label" for="ab-phone">شماره تلفن <span class="text-danger">*</span></label>
+                  <input class="form-control" type="tel" id="ab-phone" placeholder="+989381234678" required>
+                </div>
+                <div class="col-12 mb-3 pb-3">
+                  <label class="form-label" for="ab-site">وب سایت</label>
+                  <input class="form-control" type="url" id="ab-site" placeholder="آدرس وب سایت خود را وارد کنید">
+                </div>
+                <div class="col-12">
+                  <label class="form-label mb-3 fw-bold">شبکه های اجتماعی</label>
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="btn btn-icon btn-light btn-xs shadow-sm rounded-circle pe-none flex-shrink-0 me-3"><i class="fi-facebook text-body"></i></div>
+                    <input class="form-control" type="text" placeholder="اکانت فیسبوک">
+                  </div>
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="btn btn-icon btn-light btn-xs shadow-sm rounded-circle pe-none flex-shrink-0 me-3"><i class="fi-foursquare text-body"></i></div>
+                    <input class="form-control" type="text" placeholder="اکانت گوگل پلاس">
+                  </div>
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="btn btn-icon btn-light btn-xs shadow-sm rounded-circle pe-none flex-shrink-0 me-3"><i class="fi-twitter text-body"></i></div>
+                    <input class="form-control" type="text" placeholder="اکانت توییتر">
+                  </div>
+                  <div class="collapse" id="showMoreSocials">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="btn btn-icon btn-light btn-xs shadow-sm rounded-circle pe-none flex-shrink-0 me-3"><i class="fi-instagram text-body"></i></div>
+                      <input class="form-control" type="text" placeholder="اکانت اینستاگرام">
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="btn btn-icon btn-light btn-xs shadow-sm rounded-circle pe-none flex-shrink-0 me-3"><i class="fi-linkedin text-body"></i></div>
+                      <input class="form-control" type="text" placeholder="اکانت لینکدین">
+                    </div>
+                  </div><a class="collapse-label collapsed d-inline-block fs-sm text-decoration-none pt-2 mb-1" href="#showMoreSocials" data-bs-toggle="collapse" data-bs-label-collapsed="موارد بیشتر" data-bs-label-expanded="بستن" role="button" aria-expanded="false" aria-controls="showMoreSocials"><i class="fi-arrow-down me-2"></i></a>
+                </div>
+              </div>
+            </section>
+            <!-- Description-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="description">
+              <h2 class="h5 mb-4"><i class="fi-edit text-primary fs-5 mt-n1 me-2"></i>توضیحات</h2>
+              <label class="form-label" for="ab-description">توضیحات <span class="text-danger">*</span></label>
+              <div class="row mb-4">
+                <div class="col-md-9 mb-md-0 mb-3">
+                  <textarea class="form-control" id="ab-description" rows="6" placeholder="توضیحات درباره هتل تجاری برلین"></textarea><span class="form-text">8000 کاراکتر باقی مانده است</span>
+                </div>
+                <div class="col-md-3">
+                  <input class="file-uploader bg-secondary" type="file" accept="image/png, image/jpeg" data-label-idle="&lt;i class=&quot;d-inline-block fi-cloud-upload fs-2 text-muted mb-2&quot;&gt;&lt;/i&gt;&lt;br&gt;&lt;span&gt;آپلود لوگو&lt;/span&gt;" data-style-panel-layout="compact" data-image-preview-height="160" data-image-crop-aspect-ratio="1:1" data-image-resize-target-width="200" data-image-resize-target-height="200">
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label d-block fw-bold mb-2 pb-1">تعداد اتاق</label>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Choose number of rooms">
+                  <input class="btn-check" type="radio" id="rooms-5" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-5">5+</label>
+                  <input class="btn-check" type="radio" id="rooms-10" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-10">10+</label>
+                  <input class="btn-check" type="radio" id="rooms-20" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-20">20+</label>
+                  <input class="btn-check" type="radio" id="rooms-50" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-50">50+</label>
+                  <input class="btn-check" type="radio" id="rooms-100" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-100">100+</label>
+                  <input class="btn-check" type="radio" id="rooms-200" name="rooms">
+                  <label class="btn btn-outline-secondary px-sm-3 px-2 fw-normal" for="rooms-200">200+</label>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label d-block fw-bold mb-2 pb-1">امتیاز هتل</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="5-star">
+                  <label class="form-check-label fs-sm align-middle mt-n2" for="5-star"><span class="star-rating"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i></span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="4-star">
+                  <label class="form-check-label fs-sm align-middle mt-n2" for="4-star"><span class="star-rating"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star"></i></span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="3-star">
+                  <label class="form-check-label fs-sm align-middle mt-n2" for="3-star"><span class="star-rating"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i></span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="2-star">
+                  <label class="form-check-label fs-sm align-middle mt-n2" for="2-star"><span class="star-rating"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i></span>
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="1-star">
+                  <label class="form-check-label fs-sm align-middle mt-n2" for="1-star"><span class="star-rating"><i class="star-rating-icon fi-star-filled active"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i><i class="star-rating-icon fi-star"></i></span>
+                  </label>
+                </div>
+              </div>
+              <div class="row row-cols-md-3 row-cols-sm-2 row-cols-1 gy-md-4 gy-3 mb-4">
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">حداقل اقامت</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-stay-3" type="radio" name="stay">
+                    <label class="form-check-label" for="ab-stay-3">3 شب یا کمتر</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-stay-more" type="radio" name="stay" checked>
+                    <label class="form-check-label" for="ab-stay-more">بیشتر از 3 شب</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">کارمند</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-on-site-staff-y" type="radio" name="on-site-staff" checked>
+                    <label class="form-check-label" for="ab-on-site-staff-y">بله</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-on-site-staff-n" type="radio" name="on-site-staff">
+                    <label class="form-check-label" for="ab-on-site-staff-n">خیر</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">خانه دار</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-housekeeping-included" type="radio" name="housekeeping">
+                    <label class="form-check-label" for="ab-housekeeping-included">ارزش افزوده</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-housekeeping-additional" type="radio" name="housekeeping" checked>
+                    <label class="form-check-label" for="ab-housekeeping-additional">هزینه مازاد</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">اجاره خانه</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-housekeeping-daily" type="radio" name="housekeeping-frequency" checked>
+                    <label class="form-check-label" for="ab-housekeeping-daily">روزانه</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-housekeeping-weekly" type="radio" name="housekeeping-frequency">
+                    <label class="form-check-label" for="ab-housekeeping-weekly">هفتگی</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-housekeeping-none" type="radio" name="housekeeping-frequency">
+                    <label class="form-check-label" for="ab-housekeeping-none">هیچ کدام</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">میز پذیرایی</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-front-desk-24" type="radio" name="front-desk">
+                    <label class="form-check-label" for="ab-front-desk-24">کارمند 24 ساعته</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-front-desk-limited" type="radio" name="front-desk" checked>
+                    <label class="form-check-label" for="ab-front-desk-limited">کارمند نیمه وقت</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-front-desk-none" type="radio" name="front-desk">
+                    <label class="form-check-label" for="ab-front-desk-none">هیچ کدام</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <label class="form-label d-block fw-bold mb-2 pb-1">سرویس بهداشتی</label>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-bathroom-all" type="radio" name="bathroom">
+                    <label class="form-check-label" for="ab-bathroom-all"> 2</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-bathroom-some" type="radio" name="bathroom" checked>
+                    <label class="form-check-label" for="ab-bathroom-some">3</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" id="ab-bathroom-shared" type="radio" name="bathroom">
+                    <label class="form-check-label" for="ab-bathroom-shared">مشترک</label>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label d-block fw-bold mb-2 pb-1">امکانات رفاهی</label>
+                <div class="row row-cols-md-3 row-cols-sm-2 row-cols-1">
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-wifi" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-wifi">وای فای</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-pets" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-pets">نگهداری حیوانات خانگی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-dishwasher" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-dishwasher">ماشین ظرفشویی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-parking" type="checkbox" checked>
+                      <label class="form-check-label" for="ab-amenity-parking">پارکینگ</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-restaurant" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-restaurant">رستوران</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-iron" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-iron">گاز رومیزی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-swimming-pool" type="checkbox" checked>
+                      <label class="form-check-label" for="ab-amenity-swimming-pool">استخر</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-bar" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-bar">هود</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-hair-dryer" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-hair-dryer">سیستم گرمایشی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-spa-lounge" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-spa-lounge">سالن آبگرم</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-tv" type="checkbox" checked>
+                      <label class="form-check-label" for="ab-amenity-tv">تلویزیون</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-kitchen" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-kitchen">آشپزخانه</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-gym" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-gym">باشگاه</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-air-conditioning" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-air-conditioning">تهویه هوا</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-breakfast" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-breakfast">صبحانه</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-laundry-service" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-laundry-service">ماشین لباسشویی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-heating" type="checkbox" checked>
+                      <label class="form-check-label" for="ab-amenity-heating">سیستم سرمایشی</label>
+                    </div>
+                  </div>
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" id="ab-amenity-security-cameras" type="checkbox">
+                      <label class="form-check-label" for="ab-amenity-security-cameras">دوربین مداربسته</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label d-block fw-bold mb-2 pb-1">نوع اتاق</label>
+                <div class="form-check">
+                  <input class="form-check-input" id="ab-room-non-smoking" type="checkbox">
+                  <label class="form-check-label" for="ab-room-non-smoking">بدون اتاق</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" id="ab-room-single" type="checkbox">
+                  <label class="form-check-label" for="ab-room-single">1 خواب</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" id="ab-room-double" type="checkbox">
+                  <label class="form-check-label" for="ab-room-double">2 خواب</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" id="ab-room-family" type="checkbox">
+                  <label class="form-check-label" for="ab-room-family">پذیرایی</label>
+                </div>
+              </div>
+              <div>
+                <label class="form-label d-block fw-bold mb-2 pb-1">جوایز دریافتی هتل</label>
+				<label class="upload form-control mb-3">
+				  <input name='Image' class="form-control border-left"type="file"/>
+				</label><a class="text-decoration-none text-nowrap" href="#"><i class="fi-plus me-2 mt-n1 fs-sm align-middle"></i>افزودن</a>
+  
+			  </div>
+            </section>
+            <!-- Price range-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="price">
+              <h2 class="h5 mb-4"><i class="fi-cash text-primary fs-5 mt-n1 me-2"></i>محدوده قیمت</h2>
+              <label class="form-label" for="ab-price">قیمت (به ازای هر شب)<span class="text-danger">*</span></label>
+              <div class="col-md-8 d-flex flex-sm-row flex-column px-0">
+                <div class="d-flex align-items-center me-sm-2 mb-sm-0 mb-2">
+                  <input class="form-control" id="ab-price" type="number" min="50" step="10" placeholder="حداقل" required>
+                  <div class="mx-2">—</div>
+                  <input class="form-control" type="number" placeholder="حداکثر" min="60" step="10" required>
+                </div>
+                <select class="form-select w-sm-25 me-sm-0 me-auto">
+                  <option value="usd">تومان</option>
+                  <option value="eur">دلار</option>
+                  <option value="gbp">یورو</option>
+                  <option value="jpy">پوند</option>
+                </select>
+              </div>
+            </section>
+            <!-- Photos / video-->
+            <section class="card card-body border-0 shadow-sm p-4 mb-4" id="photos">
+              <h2 class="h5 mb-4"><i class="fi-image text-primary fs-5 mt-n1 me-2"></i>تصاویر / ویدئو</h2>
+              <div class="alert alert-info mb-4" role="alert">
+                <div class="d-flex"><i class="fi-alert-circle me-2 me-sm-3"></i>
+                  <p class="fs-sm mb-1">حداکثر حجم عکس 8 مگابایت است. فرمت ها: jpeg ، jpg ، png. ابتدا تصویر اصلی را قرار دهید.<br>حداکثر حجم فیلم 10 مگابایت است. فرمت ها: mp4 ، mov.</p>
+                </div>
+              </div>
+              <input class="file-uploader file-uploader-grid" type="file" multiple data-max-file-size="10MB" accept="image/png, image/jpeg, video/mp4, video/mov" data-label-idle="&lt;div class=&quot;btn btn-primary rounded-pill mb-3&quot;&gt;آپلود تصویر / ویدوئو &lt;i class=&quot;fi-cloud-upload me-1&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;br&gt;یا فایل مورد را نظر به داخل کادر بکشید">
+            </section>
+            <!-- Action buttons -->
+            <section class="d-sm-flex justify-content-between pt-2"><a class="btn btn-outline-primary btn-lg d-block rounded-pill ps-3 mb-3 mb-sm-2" href="#preview-modal" data-bs-toggle="modal"><i class="fi-eye-on me-2"></i>پیش نمایش</a><a class="btn btn-primary btn-lg d-block rounded-pill mb-2" href="city-guide-business-promotion.html">ذخیره و ادامه</a></section>
+          </div>
+          <!-- Progress of completion-->
+          <aside class="col-lg-3 offset-lg-1 d-none d-lg-block">
+            <div class="sticky-top pt-5">
+              <h6 class="pt-5 mt-3 mb-2 font-vazir">33% محتوا تکمیل شده است</h6>
+              <div class="progress mb-4" style="height: .25rem;">
+                <div class="progress-bar bg-danger" role="progressbar" style="width: 33%" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <ul class="list-unstyled">
+                <li class="d-flex align-items-center"><i class="fi-check text-primary me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#basic-info" data-scroll data-scroll-offset="20">اطلاعات پایه</a></li>
+                <li class="d-flex align-items-center"><i class="fi-check text-primary me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#location" data-scroll data-scroll-offset="20">موقعیت مکانی</a></li>
+                <li class="d-flex align-items-center"><i class="fi-check text-muted me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#contacts" data-scroll data-scroll-offset="20">راه های ارتباطی</a></li>
+                <li class="d-flex align-items-center"><i class="fi-check text-muted me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#description" data-scroll data-scroll-offset="20">توضیحات</a></li>
+                <li class="d-flex align-items-center"><i class="fi-check text-muted me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#price" data-scroll data-scroll-offset="20">محدوده قیمت</a></li>
+                <li class="d-flex align-items-center"><i class="fi-check text-muted me-2"></i><a class="nav-link fw-normal ps-1 p-0" href="#photos" data-scroll data-scroll-offset="20">تصاویر / ویدئو</a></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+     <!-- Footer-->
+    <footer class="footer pt-lg-5 pt-4 bg-dark text-light">
+      <div class="container mb-4 py-4 pb-lg-5">
+        <div class="row gy-4">
+          <div class="col-lg-3 col-md-6 col-sm-4">
+            <div class="mb-4 pb-sm-3"><a class="d-inline-block" href="city-guide-home-v1.html"><img src="img/logo/logo-light.svg" width="116" alt="Logo"></a></div>
+            <ul class="nav nav-light flex-column">
+              <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal text-light text-nowrap" href="mailto:example@gmail.com"><i class="fi-mail mt-n1 me-1 align-middle text-primary"></i>example@gmail.com</a></li>
+              <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal text-light text-nowrap" href="tel:4065550120"><i class="fi-device-mobile mt-n1 me-1 align-middle text-primary"></i>(406) 555-0120</a></li>
+            </ul>
+          </div>
+          <!-- Links-->
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <h3 class="fs-base text-light">لینک های سریع</h3>
+            <ul class="list-unstyled fs-sm">
+              <li><a class="nav-link-light" href="#">شهرهای برتر</a></li>
+              <li><a class="nav-link-light" href="#">اقامتگاه</a></li>
+              <li><a class="nav-link-light" href="#">رستوران و کافی شاپ</a></li>
+              <li><a class="nav-link-light" href="#">رویدادها</a></li>
+            </ul>
+          </div>
+          <!-- Links-->
+          <div class="col-lg-2 col-md-3 col-sm-4">
+            <h3 class="fs-base text-light">حساب کاربری</h3>
+            <ul class="list-unstyled fs-sm">
+              <li><a class="nav-link-light" href="#">پروفایل من</a></li>
+              <li><a class="nav-link-light" href="#">مورد علاقه ها</a></li>
+              <li><a class="nav-link-light" href="#">کسب و کارهای من</a></li>
+              <li><a class="nav-link-light" href="#">ثبت کسب و کار جدید</a></li>
+            </ul>
+          </div>
+          <!-- Subscription form-->
+          <div class="col-lg-4 offset-lg-1">
+            <h3 class="h5 font-vazir text-light">مشترک شدن در خبرنامه ما</h3>
+            <p class="fs-sm mb-4 opacity-60">کسب و کارهای خوب را از دست ندهید!</p>
+            <form class="form-group form-group-light rounded-pill" style="max-width: 500px;">
+              <div class="input-group input-group-sm"><span class="input-group-text text-muted"><i class="fi-mail"></i></span>
+                <input class="form-control" type="email" placeholder="ایمیل شما">
+              </div>
+              <button class="btn btn-primary btn-sm rounded-pill" type="button">ارسال</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="py-4 border-top border-light">
+        <div class="container d-flex flex-column flex-lg-row align-items-center justify-content-between py-2">
+          <!-- Copyright-->
+          <p class="fs-sm text-center text-sm-start mb-4"><span class="text-light opacity-50">© تمام حقوق این سایت محفوظ است . ارائه شده در سایت </span><a class="nav-link-light fw-bold" href="https://createx.studio/" target="_blank" rel="noopener"></a></p>
+          <div class="d-flex flex-lg-row flex-column align-items-center order-lg-2 order-1 ms-lg-4 mb-lg-0 mb-4">
+            <!-- Links-->
+            <div class="d-flex flex-wrap fs-sm mb-lg-0 mb-4 pe-lg-4"><a class="nav-link-light px-2 mx-1" href="#">درباره ما</a><a class="nav-link-light px-2 mx-1" href="#">مقالات</a><a class="nav-link-light px-2 mx-1" href="#">پشتیبانی</a><a class="nav-link-light px-2 mx-1" href="#">تماس با ما</a></div>
+            <div class="d-flex align-items-center">
+              <!-- Language switcher-->
+              <div class="dropdown"><a class="nav-link nav-link-light dropdown-toggle fs-sm align-items-center p-0 fw-normal" href="#" id="langSwitcher" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="fi-globe mt-n1 me-2 align-middle"></i>انتخاب زبان</a>
+                <ul class="dropdown-menu dropdown-menu-dark my-1" aria-labelledby="langSwitcher">
+                  <li><a class="dropdown-item text-nowrap py-1" href="#"><img class="me-2" src="img/flags/de.png" width="20" alt="Deutsch">آلمانی</a></li>
+                  <li><a class="dropdown-item text-nowrap py-1" href="#"><img class="me-2" src="img/flags/fr.png" width="20" alt="Français">فرانسوی</a></li>
+                  <li><a class="dropdown-item text-nowrap py-1" href="#"><img class="me-2" src="img/flags/es.png" width="20" alt="Español">اسپانیول</a></li>
+                </ul>
+              </div>
+              <!-- Socials-->
+              <div class="ms-4 pe-lg-2 text-nowrap"><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle ms-2" href="#"><i class="fi-facebook"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle ms-2" href="#"><i class="fi-twitter"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle ms-2" href="#"><i class="fi-telegram"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle ms-2" href="#"><i class="fi-messenger"></i></a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- Back to top button--><a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm ms-2">بالا</span><i class="btn-scroll-top-icon fi-chevron-up">   </i></a>
+    <!-- Vendor scrits: js libraries and plugins-->
+    <script src="vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/simplebar/dist/simplebar.min.js"></script>
+    <script src="vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+    <script src="vendor/leaflet/dist/leaflet.js"></script>
+    <script src="vendor/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.min.js"></script>
+    <script src="vendor/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.min.js"></script>
+    <script src="vendor/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
+    <script src="vendor/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.min.js"></script>
+    <script src="vendor/filepond-plugin-image-resize/dist/filepond-plugin-image-resize.min.js"></script>
+    <script src="vendor/filepond-plugin-image-transform/dist/filepond-plugin-image-transform.min.js"></script>
+    <script src="vendor/filepond/dist/filepond.min.js"></script>
+    <script src="vendor/cleave.js/dist/cleave.min.js"></script>
+    <!-- Main theme script-->
+    <script src="js/theme.min.js"></script>
+  </body>
+</html>

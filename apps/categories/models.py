@@ -14,6 +14,12 @@ class Category(BaseSEO, models.Model):
     Slug is globally unique to keep URL paths unambiguous.
     """
 
+    class CategoryType(models.TextChoices):
+        PROPERTY = "property", "نوع ملک"
+        PROJECT = "project", "پروژه"
+        SERVICE = "service", "سرویس"
+        CONTENT_TAG = "content_tag", "تگ محتوایی"
+
     parent = models.ForeignKey(
         "self",
         null=True,
@@ -22,6 +28,14 @@ class Category(BaseSEO, models.Model):
         related_name="children",
         verbose_name="دسته والد",
         help_text="دسته والد (ساختار درختی)",
+    )
+
+    category_type = models.CharField(
+        max_length=24,
+        choices=CategoryType.choices,
+        default=CategoryType.PROPERTY,
+        db_index=True,
+        verbose_name="نوع دسته‌بندی",
     )
 
     fa_name = models.CharField(max_length=120, verbose_name="نام فارسی")
@@ -60,6 +74,30 @@ class Category(BaseSEO, models.Model):
     def is_root(self):
         return self.parent_id is None
 
+    @classmethod
+    def property_queryset(cls):
+        return cls.objects.filter(category_type=cls.CategoryType.PROPERTY)
+
+    @classmethod
+    def listing_type_values(cls):
+        return (
+            cls.CategoryType.PROPERTY,
+            cls.CategoryType.PROJECT,
+            cls.CategoryType.SERVICE,
+        )
+
+    @classmethod
+    def landing_type_values(cls):
+        return cls.listing_type_values()
+
+    @classmethod
+    def listing_queryset(cls):
+        return cls.objects.filter(category_type__in=cls.listing_type_values())
+
+    @classmethod
+    def landing_queryset(cls):
+        return cls.objects.filter(category_type__in=cls.landing_type_values())
+
     def clean(self):
         # --- 1) Prevent Category.slug collision with City slugs ---
         City = apps.get_model("locations", "City")
@@ -72,6 +110,27 @@ class Category(BaseSEO, models.Model):
             if self.pk and ancestor.pk == self.pk:
                 raise ValidationError({"parent": "Invalid parent: cyclic category hierarchy."})
             ancestor = ancestor.parent
+
+        # Keep trees type-consistent.
+        if self.parent and self.parent.category_type != self.category_type:
+            raise ValidationError({"parent": "Parent category must have the same type."})
+
+        # Prevent breaking listing/search landings by switching an in-use category to a non-supported type.
+        if self.pk and self.listings.exists() and self.category_type not in self.listing_type_values():
+            raise ValidationError({
+                "category_type": "This category is used by listings and must stay as property/project/service."
+            })
+        if self.pk and (self.seo_city_categories.exists() or self.seo_area_categories.exists()):
+            if self.category_type not in self.landing_type_values():
+                raise ValidationError({
+                    "category_type": "This category is used by city/area landings and must stay as property/project/service."
+                })
+
+        # Prevent parent/child type mismatch when changing current category type.
+        if self.pk and self.children.exclude(category_type=self.category_type).exists():
+            raise ValidationError({
+                "category_type": "All child categories must have the same type as parent."
+            })
 
     def save(self, *args, **kwargs):
         if not self.slug:

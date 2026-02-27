@@ -68,7 +68,7 @@ class ListingForm(forms.ModelForm):
         if cid:
             self.fields["area"].queryset = Area.objects.filter(city_id=cid).order_by("sort_order", "id")
         self.fields["city"].queryset = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
-        self.fields["category"].queryset = Category.objects.filter(is_active=True).order_by("sort_order", "fa_name")
+        self.fields["category"].queryset = Category.listing_queryset().filter(is_active=True).order_by("sort_order", "fa_name")
         # ثبت جدید: همه کاربران فقط «درخواست تأیید و انتشار». ویرایش: کاربر عادی همین گزینه.
         is_new = not self.instance or not self.instance.pk
         is_restricted = is_new or not (self.user.is_superuser or (self.user and self.user.groups.filter(name="site_admin").exists()))
@@ -255,7 +255,7 @@ class AttributeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["categories"].required = False
-        self.fields["categories"].queryset = Category.objects.filter(is_active=True).order_by("sort_order", "fa_name")
+        self.fields["categories"].queryset = Category.listing_queryset().filter(is_active=True).order_by("sort_order", "fa_name")
         self.fields["categories"].error_messages = {
             "invalid_choice": "دسته‌بندی انتخاب‌شده معتبر نیست. صفحه را رفرش کرده و دوباره امتحان کنید.",
             "invalid_list": "مقدار دسته‌بندی نامعتبر است.",

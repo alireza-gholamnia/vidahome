@@ -1,49 +1,63 @@
-{% load static %}
+{% load static seo_tags %}
 <meta charset="utf-8" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta http-equiv="content-language" content="fa-IR" />
 
-<!-- css stylesheet -->
-<!-- Vendor Styles-->
-<link
-  rel="stylesheet"
-  media="screen"
-  href="{% static 'vendor/simplebar/dist/simplebar.min.css' %}"
-/>
-<link
-  rel="stylesheet"
-  media="screen"
-  href="{% static 'vendor/nouislider/dist/nouislider.min.css' %}"
-/>
-<link
-  rel="stylesheet"
-  media="screen"
-  href="{% static 'vendor/tiny-slider/dist/tiny-slider.css' %}"
-/>
+{% firstof seo_title seo_h1 site_name as seo_title_value %}
+{% firstof seo_meta_description default_meta_description as seo_desc_value %}
+{% firstof seo_canonical current_url as seo_canonical_value %}
+<title>{{ seo_title_value|striptags|truncatechars:60 }}</title>
+<meta name="description" content="{{ seo_desc_value|striptags|truncatechars:160 }}" />
+<meta name="robots" content="{{ seo_robots|default:'index, follow' }}" />
+<link rel="canonical" href="{{ seo_canonical_value }}" />
+<link rel="alternate" hreflang="fa-IR" href="{{ seo_canonical_value }}" />
+<link rel="alternate" hreflang="x-default" href="{{ seo_canonical_value }}" />
 
-<!-- Main Theme Styles + Bootstrap-->
+<meta property="og:locale" content="fa_IR" />
+<meta property="og:site_name" content="{{ site_name }}" />
+<meta property="og:type" content="{{ seo_og_type|default:'website' }}" />
+<meta property="og:title" content="{{ seo_title_value|striptags|truncatechars:95 }}" />
+<meta property="og:description" content="{{ seo_desc_value|striptags|truncatechars:200 }}" />
+<meta property="og:url" content="{{ seo_canonical_value }}" />
+{% with seo_og_image_value=seo_og_image|default:default_og_image %}
+<meta property="og:image" content="{% absolute_url seo_og_image_value %}" />
+{% endwith %}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{ seo_title_value|striptags|truncatechars:95 }}" />
+<meta name="twitter:description" content="{{ seo_desc_value|striptags|truncatechars:200 }}" />
+{% with seo_og_image_value=seo_og_image|default:default_og_image %}
+<meta name="twitter:image" content="{% absolute_url seo_og_image_value %}" />
+{% endwith %}
+
+{% if page_obj %}
+  {% if page_obj.has_previous %}
+<link rel="prev" href="{% pagination_url page_obj.previous_page_number %}" />
+  {% endif %}
+  {% if page_obj.has_next %}
+<link rel="next" href="{% pagination_url page_obj.next_page_number %}" />
+  {% endif %}
+{% elif listings and listings.paginator %}
+  {% if listings.has_previous %}
+<link rel="prev" href="{% pagination_url listings.previous_page_number %}" />
+  {% endif %}
+  {% if listings.has_next %}
+<link rel="next" href="{% pagination_url listings.next_page_number %}" />
+  {% endif %}
+{% endif %}
+
+{% build_seo_graph as seo_graph_json %}
+{% if seo_graph_json %}
+<script type="application/ld+json">{{ seo_graph_json|safe }}</script>
+{% endif %}
+
+<!-- Vendor Styles -->
+<link rel="stylesheet" media="screen" href="{% static 'vendor/simplebar/dist/simplebar.min.css' %}" />
+<link rel="stylesheet" media="screen" href="{% static 'vendor/nouislider/dist/nouislider.min.css' %}" />
+<link rel="stylesheet" media="screen" href="{% static 'vendor/tiny-slider/dist/tiny-slider.css' %}" />
+
+<!-- Main Theme Styles -->
 <link rel="stylesheet" media="screen" href="{% static 'css/theme.min.css' %}" />
 <link rel="stylesheet" media="screen" href="{% static 'css/loading.css' %}" />
 <link rel="stylesheet" media="screen" href="{% static 'css/mobile-app.css' %}" />
-
-<!-- end css -->
-
-<title>{{ seo_title|default:"VidaHome" }}</title>
-
-{% if seo_meta_description %}
-<meta name="description" content="{{ seo_meta_description }}" />
-{% endif %} {% if seo_canonical %}
-<link rel="canonical" href="{{ seo_canonical }}" />
-{% endif %}
-
-<meta name="robots" content="{{ seo_robots|default:'index, follow' }}" />
-
-{# --- Open Graph (base) --- #}
-<meta property="og:title" content="{{ seo_title|default:'VidaHome' }}" />
-
-{% if seo_meta_description %}
-<meta property="og:description" content="{{ seo_meta_description }}" />
-{% endif %} {% if seo_canonical %}
-<meta property="og:url" content="{{ seo_canonical }}" />
-{% endif %}
-
-<meta property="og:type" content="website" />

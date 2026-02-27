@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fa">
+  
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<head>
+    <meta charset="utf-8">
+    <title>Finder | قالب چند منظوره فایندر</title>
+    <!-- SEO Meta Tags-->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <!-- Viewport-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon and Touch Icons-->
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" color="#5bbad5" href="safari-pinned-tab.svg">
+    <meta name="msapplication-TileColor" content="#766df4">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Page loading styles-->
+    <style>
+      .page-loading {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-transition: all .4s .2s ease-in-out;
+        transition: all .4s .2s ease-in-out;
+        background-color: #fff;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 9999;
+      }
+      .page-loading.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .page-loading-inner {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+        -webkit-transition: opacity .2s ease-in-out;
+        transition: opacity .2s ease-in-out;
+        opacity: 0;
+      }
+      .page-loading.active > .page-loading-inner {
+        opacity: 1;
+      }
+      .page-loading-inner > span {
+        display: block;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #666276;;
+      }
+      .page-spinner {
+        display: inline-block;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: .75rem;
+        vertical-align: text-bottom;
+        border: .15em solid #bbb7c5;
+        border-right-color: transparent;
+        border-radius: 50%;
+        -webkit-animation: spinner .75s linear infinite;
+        animation: spinner .75s linear infinite;
+      }
+      @-webkit-keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      
+    </style>
+    <!-- Page loading scripts-->
+    <script>
+      (function () {
+        window.onload = function () {
+          var preloader = document.querySelector('.page-loading');
+          preloader.classList.remove('active');
+          setTimeout(function () {
+            preloader.remove();
+          }, 2000);
+        };
+      })();
+      
+    </script>
+    <!-- Vendor Styles-->
+    <link rel="stylesheet" media="screen" href="vendor/simplebar/dist/simplebar.min.css"/>
+    <!-- Main Theme Styles + Bootstrap-->
+    <link rel="stylesheet" media="screen" href="css/theme.min.css">
+  </head>
+  <!-- Body-->
+  <body dir="rtl">
+    <!-- Page loading spinner-->
+    <div class="page-loading active">
+      <div class="page-loading-inner">
+        <div class="page-spinner"></div><span>لطفا منتظر باشید...</span>
+      </div>
+    </div>
+    <main class="page-wrapper">
+      <!-- Page content-->
+      <!-- Navbar (Header)-->
+      <header class="navbar navbar-expand-md navbar-light fixed-top">
+        <div class="container"><a class="navbar-brand me-2 me-xl-4" href="#"><img class="d-block" src="img/logo/logo-dark.svg" width="116" alt="Finder"></a>
+          <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><a class="btn btn-primary btn-sm rounded-pill ms-2 order-md-3" href="https://www.rtl-theme.com" target="_blank" rel="noopener"><i class="fi-cart fs-base me-2"></i>خرید از راست چین</a>
+          <div class="collapse navbar-collapse order-md-2" id="navbarNav">
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">دموها</a>
+                <ul class="dropdown-menu">
+                  <li><a class="dropdown-item" href="real-estate-home-v1.html"><i class="fi-building fs-base opacity-50 me-2"></i>دمو املاک </a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="car-finder-home.html"><i class="fi-car fs-base opacity-50 me-2"></i>دمو خرید خودرو</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="job-board-home-v1.html"> <i class="fi-briefcase fs-base opacity-50 me-2"></i>دمو کاریابی</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="city-guide-home-v1.html"><i class="fi-map-pin fs-base opacity-50 me-2"></i>دمو راهنمای سفر </a></li>
+                </ul>
+              </li>
+              <li class="nav-item"><a class="nav-link" href="components/typography.html">ابزارهای بوت استرپ</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <!-- Hero (Demos)-->
+      <section class="position-relative overflow-hidden py-5 mb-5">
+        <div class="d-none d-xl-block position-absolute top-0 start-0 h-100 bg-secondary" style="width: 67%; border-bottom-right-radius: .75rem;"></div>
+        <div class="d-xl-none position-absolute top-0 start-0 w-100 h-100 bg-secondary"></div>
+        <div class="container content-overlay mt-4 mb-2 mt-lg-5 mb-lg-4 pt-5 pb-md-2">
+          <h1 class="text-right text-md-start font-vazir">ایده آل خود را انتخاب کنید</h1>
+          <div class="row">
+            <div class="d-none d-md-block col-md-2 pt-4 mt-4"><img src="img/intro/swirly-arrow.svg" style="transform:rotate3d(1, 250, 0, 180deg)" width="120" alt="Arrow"></div>
+            <div class="col-md-10 d-md-flex mt-md-n4">
+              <!-- Real Estate-->
+              <div class="d-block hover-img-scale position-relative zindex-5 mt-md-5 mx-auto me-md-n5 mb-4" style="max-width: 633px;">
+                <div class="pt-md-5 mt-4 me-md-n5">
+                  <h2 class="h4 mb-2 pb-1 ms-md-3"><a class="nav-link stretched-link d-flex align-items-center justify-content-center justify-content-md-start" href="real-estate-home-v1.html"><i class="fi-building text-primary me-2 pe-1"></i><span>املاک</span></a></h2>
+                  <div class="position-relative zindex-0"><img class="position-relative zindex-5 border-radius-20" src="img/intro/demos/real-estate.jpg" alt="Real Estate Demo">
+                    <div class="d-none d-md-block position-absolute zindex-1" style="top: 15px; left: 20px; width: calc(100% - 40px); height: calc(100% - 50px); box-shadow: 33px 26px 85px rgba(0, 0, 0, .14);"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- Job Board-->
+              <div class="d-block hover-img-scale position-relative mt-md-n5 mx-auto me-md-n3" style="max-width: 550px;">
+                <h2 class="h4 ms-md-3"><a class="nav-link stretched-link d-flex align-items-center justify-content-center justify-content-md-start" href="job-board-home-v1.html"><i class="fi-briefcase text-primary me-2 pe-1"></i><span>کاریابی</span></a></h2><img src="img/intro/demos/job-board.jpg" alt="Job Board Demo" class="border-radius-20">
+              </div>
+            </div>
+            <div class="col-md-12 d-md-flex pt-2 pt-md-0 mt-md-n5">
+              <!-- City Guide-->
+              <div class="d-block hover-img-scale position-relative my-4 mt-md-5 mb-md-0 mx-auto ms-md-0 me-md-3" style="max-width: 550px;">
+                <h2 class="h4 ms-md-3"><a class="nav-link stretched-link d-flex align-items-center justify-content-center justify-content-md-start" href="city-guide-home-v1.html"><i class="fi-map-pin text-primary me-2 pe-1"></i><span>راهنمای سفر</span></a></h2><img src="img/intro/demos/city-guide.jpg" alt="City Guide Demo" class="border-radius-20">
+              </div>
+              <!-- Car Finder-->
+              <div class="d-block hover-img-scale position-relative mt-md-n5 mx-auto ms-md-n3" style="max-width: 636px;">
+                <div class="d-flex flex-column">
+                  <h2 class="h4 order-md-2 mb-4 mb-md-0 mt-md-4"><a class="nav-link stretched-link d-flex align-items-center justify-content-center justify-content-md-start" href="car-finder-home.html"><i class="fi-car text-primary me-2 pe-1"></i><span>خرید و فروش خودرو</span></a></h2><img class="d-block order-md-1 mt-md-n2 border-radius-20" src="img/intro/demos/car-finder.jpg" alt="Car Finder Demo">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Features-->
+      <section class="container pt-md-4 pt-xl-5 pb-lg-3 pb-xl-5">
+        <div class="row mb-5">
+          <div class="col-lg-3">
+            <h2 class="py-2 pb-md-3 pb-lg-4">ویژگی های مهم قالب</h2><img class="d-none d-lg-block" src="img/intro/turn-right-arrow.svg" width="80" alt="Arrow" style="transform: rotate3d(1, 250, 0, 180deg)">
+          </div>
+          <div class="col-lg-9">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 gy-1 gy-md-3 gx-3 gx-md-4">
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/bootstrap.png" width="56" alt="Bootstrap logo">
+                  <h3 class="h6">طراحی با بوت استرپ</h3>
+                  <p class="fs-sm mb-0">قالب Finder  طراحی شده مبتنی بر Bootstrap 5 است که محبوب‌ترین کتابخانه فرانت و ریسپانسیو در جهان است.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/components.png" width="56" alt="Components icon">
+                  <h3 class="h6">50+ کامپوننت پرکاربرد</h3>
+                  <p class="fs-sm mb-0">علاوه بر استایل های پیش‌فرض Bootstrap 5 بسیاری از کامپوننت های جدید انعطاف‌پذیر، سفارشی سازی و قابل استفاده مجدد را قالب Finder معرفی می‌کند که می‌توانید در سرتاسر وب‌سایت استفاده کنید.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/mobile.png" width="56" alt="Mobile icon">
+                  <h3 class="h6">رابط کاربری ریسپانسیو</h3>
+                  <p class="fs-sm mb-0">جای تعجب نیست که امروزه بیش از 60 درصد از کاربران با استفاده از دستگاه های تلفن همراه خود در اینترنت سرچ می کنند. سایت فایندر 100% پاسخگو است و برای صفحات لمسی کوچک بهینه شده است.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/touch.png" width="56" alt="Touch icon">
+                  <h3 class="h6">قابلیت Touch-enabled</h3>
+                  <p class="fs-sm mb-0">در عصر صفحه نمایش های لمسی، اطمینان از تجربه کاربری عالی در سیستم های قابل حمل، به ویژه هنگامی که صحبت از اجزای پرکاربرد مانند اسلایدرهای Touch-enabled باشد، مهم است.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/google-fonts.png" width="56" alt="Google Fonts logo">
+                  <h3 class="h6">فونت های ایرانی</h3>
+                  <p class="fs-sm mb-0">قالب Finder از فونت (ایران سنس ، وزیر) استفاده می کند که رایگان و زیبا است. فونت vazir-bold برای عنوان ها و برای متون از فونت ایران سنس استفاده شده است.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/vector.png" width="56" alt="Vector icon">
+                  <h3 class="h6">آیکون های آماده مبتنی بر Vector</h3>
+                  <p class="fs-sm mb-0">قالب Finder مجهز به بسته آیکون مبتنی بر فونت است تا اطمینان حاصل کند که اینفوگرافیک ها و نمادهای رابط در هر دستگاهی با وضوح صفحه نمایش و تراکم پیکسلی واضح به نظر می رسند.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/html.png" width="56" alt="HTML5 logo">
+                  <h3 class="h6">دارای استاندارد W3C</h3>
+                  <p class="fs-sm mb-0">همه فایل‌های HTML از طریق اعتبارسنجی W3C بررسی می‌شوند تا از 100٪ کد معتبر اطمینان حاصل شود. قالب Finder  دارای استاندارد W3C می باشد.</p>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card card-body card-hover h-100 border-0"><img class="d-block mb-3" src="img/intro/features/docs.png" width="56" alt="Docs icon">
+                  <h3 class="h6">مستندات دقیق</h3>
+                  <p class="fs-sm mb-0">بسته دانلودی شامل آفلاین و لینک به مستندات آنلاین است. تمام اطلاعات مهم در مورد نحوه شروع، سفارشی کردن ، استفاده از کامپوننت ها را پوشش می دهد.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- CTA-->
+      <section class="container position-relative zindex-1">
+        <div class="bg-secondary rounded-3 px-3 py-5">
+          <div class="text-center py-sm-3 py-md-5">
+            <h3 class="h5 fw-normal font-vazir">خرید قالب</h3>
+            <h2 class="pb-4 font-nonBold">قالب Finder را خریداری کنید و به راحتی آن را سفارشی سازی کنید.</h2><a class="btn btn-primary btn-lg rounded-pill" href="https://www.rtl-theme.com/finder-html-template/" target="_blank" rel="noopener"><i class="fi-cart fs-lg me-2"></i>خرید از راست چین</a>
+          </div>
+        </div>
+      </section>
+      <!-- Footer-->
+      <footer class="position-relative pb-5" style="margin-top: -5.75rem; padding-top: 9rem;">
+        <div class="d-none d-xxl-block position-absolute top-0 start-0 w-100 h-100 bg-dark" style="border-top-left-radius: 1.875rem; border-top-right-radius: 1.875rem;"></div>
+        <div class="d-xxl-none position-absolute top-0 start-0 w-100 h-100 bg-dark"></div>
+        <div class="container content-overlay text-center py-md-3 py-lg-5">
+          <h2 class="h3 text-light pb-3">عضویت در خبرنامه</h2>
+          <div class="row justify-content-center mb-5 pb-lg-3">
+            <div class="col-lg-6 col-md-7 col-sm-9">
+              <form class="subscription-form validate" action="" method="post" name="mc-embedded-subscribe-form" target="_blank" novalidate>
+                <div class="form-group form-group-light rounded-pill">
+                  <div class="input-group flex-nowrap"><span class="input-group-text text-muted"><i class="fi-mail"></i></span>
+                    <input class="form-control" type="email" name="EMAIL" placeholder="ایمیل شما" required>
+                  </div>
+                  <button class="btn btn-primary rounded-pill" type="submit" name="subscribe">عضویت *</button>
+                </div>
+                <div style="position: absolute; right: -5000px;" aria-hidden="true">
+                  <input class="subscription-form-antispam" type="text" name="b_c7103e2c981361a6639545bd5_29ca296126" tabindex="-1">
+                </div>
+                <div class="subscription-status mx-auto"></div>
+                <div class="form-text text-light fs-xs opacity-70 mt-3">*برای دریافت پیشنهادات تخفیف زودهنگام، به روز رسانی ها و اطلاعات محصولات جدید، در خبرنامه ما عضو شوید.</div>
+              </form>
+            </div>
+          </div>
+          <p class="fs-sm mb-0"><span class="text-light">&copy; تمام حقوق این سایت محفوظ است. </span><a href="#" target="_blank" rel="noopener">توسعه پردازان</a></p>
+        </div>
+      </footer>
+    </main>
+    <!-- Back to top button--><a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm ms-2">بالا</span><i class="btn-scroll-top-icon fi-chevron-up">   </i></a>
+    <!-- Vendor scrits: js libraries and plugins-->
+    <script src="vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/simplebar/dist/simplebar.min.js"></script>
+    <script src="vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+    <!-- Main theme script-->
+    <script src="js/theme.min.js"></script>
+  </body>
+
+</html>

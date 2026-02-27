@@ -141,7 +141,7 @@
                 <a class="d-block rounded-3 overflow-hidden" href="{{ listing.get_absolute_url }}">
                   {% for img in listing.images.all %}
                     {% if forloop.first %}
-                  <img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="lazy" style="height: 200px; object-fit: cover;">
+                  <img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="lazy" width="800" height="533" style="height: 200px; object-fit: cover;">
                     {% endif %}
                   {% empty %}
                   <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">

@@ -27,44 +27,129 @@
     <div class="mb-4">
       <h1 class="mb-2">دسته‌بندی‌ها</h1>
       <p class="text-muted mb-0">
-        دسته‌بندی‌های اصلی املاک را انتخاب کنید و وارد صفحات جستجو شوید.
+        دسته‌بندی‌های نوع ملک، پروژه و سرویس را جداگانه ببینید و وارد صفحات مرتبط شوید.
       </p>
     </div>
 
-    <div class="row g-4">
-      {% for category in categories %}
-      <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-          {% with cover=category.get_cover_image %}
-          {% if cover %}
-          <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" style="height: 180px; object-fit: cover;">
-          {% endif %}
-          {% endwith %}
-          <div class="card-body">
-            <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
-            {% if category.children.all %}
-            <ul class="mb-3 list-unstyled">
-              {% for child in category.children.all %}
-              <li class="mb-1">
-                <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
-              </li>
-              {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+    <section class="mb-5">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 mb-0">نوع ملک</h2>
+      </div>
+      <div class="row g-4">
+        {% for category in property_categories %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            {% with cover=category.get_cover_image %}
+            {% if cover %}
+            <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" style="height: 180px; object-fit: cover;">
             {% endif %}
-            <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
-              مشاهده صفحه جستجو
-            </a>
+            {% endwith %}
+            <div class="card-body">
+              <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
+              {% if category.children.all %}
+              <ul class="mb-3 list-unstyled">
+                {% for child in category.children.all %}
+                <li class="mb-1">
+                  <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
+                مشاهده صفحه
+              </a>
+            </div>
           </div>
         </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-warning">دسته‌بندی نوع ملک فعالی وجود ندارد.</div>
+        </div>
+        {% endfor %}
       </div>
-      {% empty %}
-      <div class="col-12">
-        <div class="alert alert-warning">هیچ دسته‌بندی فعالی وجود ندارد.</div>
+    </section>
+
+    <section class="mb-5">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 mb-0">پروژه‌ها</h2>
       </div>
-      {% endfor %}
-    </div>
+      <div class="row g-4">
+        {% for category in project_categories %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            {% with cover=category.get_cover_image %}
+            {% if cover %}
+            <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+            {% endif %}
+            {% endwith %}
+            <div class="card-body">
+              <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
+              {% if category.children.all %}
+              <ul class="mb-3 list-unstyled">
+                {% for child in category.children.all %}
+                <li class="mb-1">
+                  <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
+                مشاهده صفحه
+              </a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info">هنوز پروژه‌ای ثبت نشده است.</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 mb-0">سرویس‌ها</h2>
+      </div>
+      <div class="row g-4">
+        {% for category in service_categories %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            {% with cover=category.get_cover_image %}
+            {% if cover %}
+            <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+            {% endif %}
+            {% endwith %}
+            <div class="card-body">
+              <h5 class="card-title mb-3">{{ category.fa_name }}</h5>
+              {% if category.children.all %}
+              <ul class="mb-3 list-unstyled">
+                {% for child in category.children.all %}
+                <li class="mb-1">
+                  <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
+                مشاهده صفحه
+              </a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info">هنوز سرویسی ثبت نشده است.</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 
   {% include "partials/footer.html" %}

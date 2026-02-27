@@ -103,6 +103,24 @@ CATEGORIES_CHILD = {
     ],
 }
 
+SERVICE_CATEGORIES = [
+    ("renovation", "بازسازی", "Renovation"),
+    ("interior-design", "طراحی داخلی", "Interior Design"),
+    ("legal-consulting", "مشاوره حقوقی", "Legal Consulting"),
+]
+
+PROJECT_CATEGORIES = [
+    ("project-presale", "پیش‌فروش پروژه", "Project Presale"),
+    ("project-tower", "پروژه برج", "Tower Project"),
+    ("project-town", "پروژه شهرک", "Town Project"),
+]
+
+CONTENT_TAG_CATEGORIES = [
+    ("pre-sale", "پیش‌فروش", "Pre Sale"),
+    ("luxury", "لوکس", "Luxury"),
+    ("sea-view", "ساحلی", "Sea View"),
+]
+
 LISTING_TITLES_BUY = [
     "آپارتمان نوساز در {area} با بالکن و پارکینگ",
     "ویلا کلاسیک با حیاط و باغچه در {area}",
@@ -326,11 +344,35 @@ class Command(BaseCommand):
         from apps.categories.models import Category
 
         root_map = {}
-        for slug, fa, en in CATEGORIES_ROOT:
-            c, _ = Category.objects.get_or_create(
+        for idx, (slug, fa, en) in enumerate(CATEGORIES_ROOT):
+            c, created = Category.objects.get_or_create(
                 slug=slug,
-                defaults={"fa_name": fa, "en_name": en, "sort_order": len(root_map)},
+                defaults={
+                    "fa_name": fa,
+                    "en_name": en,
+                    "sort_order": idx,
+                    "category_type": Category.CategoryType.PROPERTY,
+                },
             )
+            if not created:
+                update_fields = []
+                if c.category_type != Category.CategoryType.PROPERTY:
+                    c.category_type = Category.CategoryType.PROPERTY
+                    update_fields.append("category_type")
+                if c.parent_id is not None:
+                    c.parent = None
+                    update_fields.append("parent")
+                if c.fa_name != fa:
+                    c.fa_name = fa
+                    update_fields.append("fa_name")
+                if c.en_name != en:
+                    c.en_name = en
+                    update_fields.append("en_name")
+                if c.sort_order != idx:
+                    c.sort_order = idx
+                    update_fields.append("sort_order")
+                if update_fields:
+                    c.save(update_fields=update_fields)
             root_map[slug] = c
 
         all_cats = list(root_map.values())
@@ -339,18 +381,75 @@ class Command(BaseCommand):
             if not parent:
                 continue
             for slug, fa, en in children:
-                c, _ = Category.objects.get_or_create(
+                c, created = Category.objects.get_or_create(
                     slug=slug,
                     defaults={
                         "parent": parent,
                         "fa_name": fa,
                         "en_name": en,
+                        "category_type": Category.CategoryType.PROPERTY,
                         "sort_order": len(all_cats),
                     },
                 )
+                if not created:
+                    update_fields = []
+                    if c.category_type != Category.CategoryType.PROPERTY:
+                        c.category_type = Category.CategoryType.PROPERTY
+                        update_fields.append("category_type")
+                    if c.parent_id != parent.id:
+                        c.parent = parent
+                        update_fields.append("parent")
+                    if c.fa_name != fa:
+                        c.fa_name = fa
+                        update_fields.append("fa_name")
+                    if c.en_name != en:
+                        c.en_name = en
+                        update_fields.append("en_name")
+                    if update_fields:
+                        c.save(update_fields=update_fields)
                 all_cats.append(c)
 
-        self.stdout.write(f"  Categories: {len(all_cats)}")
+        for data, ctype in (
+            (SERVICE_CATEGORIES, Category.CategoryType.SERVICE),
+            (PROJECT_CATEGORIES, Category.CategoryType.PROJECT),
+            (CONTENT_TAG_CATEGORIES, Category.CategoryType.CONTENT_TAG),
+        ):
+            for slug, fa, en in data:
+                c, created = Category.objects.get_or_create(
+                    slug=slug,
+                    defaults={
+                        "parent": None,
+                        "fa_name": fa,
+                        "en_name": en,
+                        "category_type": ctype,
+                        "sort_order": len(all_cats),
+                    },
+                )
+                if not created:
+                    update_fields = []
+                    if c.category_type != ctype:
+                        c.category_type = ctype
+                        update_fields.append("category_type")
+                    if c.parent_id is not None:
+                        c.parent = None
+                        update_fields.append("parent")
+                    if c.fa_name != fa:
+                        c.fa_name = fa
+                        update_fields.append("fa_name")
+                    if c.en_name != en:
+                        c.en_name = en
+                        update_fields.append("en_name")
+                    if update_fields:
+                        c.save(update_fields=update_fields)
+                all_cats.append(c)
+
+        self.stdout.write(
+            f"  Categories: {len(all_cats)} "
+            f"(property={Category.property_queryset().count()}, "
+            f"project={Category.objects.filter(category_type=Category.CategoryType.PROJECT).count()}, "
+            f"service={Category.objects.filter(category_type=Category.CategoryType.SERVICE).count()}, "
+            f"content_tag={Category.objects.filter(category_type=Category.CategoryType.CONTENT_TAG).count()})"
+        )
         return all_cats
 
     def _seed_users(self):
@@ -463,12 +562,22 @@ class Command(BaseCommand):
         from apps.categories.models import Category
 
         cities = list(City.objects.all())
-        categories = list(Category.objects.filter(parent__isnull=False)) or list(Category.objects.all())
+        property_leaf_categories = list(Category.property_queryset().filter(parent__isnull=False))
+        service_categories = list(
+            Category.objects.filter(category_type=Category.CategoryType.SERVICE, is_active=True)
+        )
+        project_categories = list(
+            Category.objects.filter(category_type=Category.CategoryType.PROJECT, is_active=True)
+        )
+        categories = property_leaf_categories + project_categories + service_categories
+        if not categories:
+            categories = list(Category.listing_queryset())
         if not cities or not categories:
             self.stdout.write(self.style.WARNING("  Listings: Skipped (need City and Category)"))
             return
 
         deals = [Listing.Deal.BUY, Listing.Deal.RENT]
+
         count = 0
         for _ in range(60):
             city = random.choice(cities)
@@ -528,7 +637,7 @@ class Command(BaseCommand):
         from apps.categories.models import Category
 
         cities = list(City.objects.all()[:3])
-        categories = list(Category.objects.filter(parent__isnull=True)[:2])
+        categories = list(Category.property_queryset().filter(parent__isnull=True)[:2])
         count = 0
         for city in cities:
             for cat in categories:
@@ -570,7 +679,7 @@ class Command(BaseCommand):
         count = 0
         for city in cities:
             areas = list(Area.objects.filter(city=city)[:2])
-            categories = list(Category.objects.filter(parent__isnull=False)[:2])
+            categories = list(Category.property_queryset().filter(parent__isnull=False)[:2])
             for area in areas:
                 for cat in categories:
                     try:
@@ -618,7 +727,7 @@ class Command(BaseCommand):
             BlogCategory.objects.get_or_create(slug=slug, defaults={"fa_name": fa, "sort_order": len(cats_data)})
 
         cities = list(City.objects.all())
-        categories = list(Category.objects.filter(parent__isnull=False)[:5]) or list(Category.objects.all())
+        categories = list(Category.property_queryset().filter(parent__isnull=False)[:5]) or list(Category.property_queryset())
         blog_cats = list(BlogCategory.objects.all())
         owners = users_data.get("owners", [])
         author = owners[0] if owners else User.objects.filter(is_staff=True).first()

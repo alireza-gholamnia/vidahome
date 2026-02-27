@@ -42,3 +42,39 @@ class AdminLocaleMiddleware:
         if request.path.startswith("/admin/"):
             translation.deactivate()
         return response
+
+
+class ResponseCacheControlMiddleware:
+    """
+    Set pragmatic cache headers for HTML responses.
+    - Authenticated or panel/admin/account pages: private/no-store
+    - Public HTML pages: short public cache
+    - sitemap/robots: longer cache
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        if request.method not in ("GET", "HEAD"):
+            return response
+        if response.status_code != 200:
+            return response
+
+        path = (request.path or "").lower()
+        content_type = (response.get("Content-Type") or "").lower()
+
+        if path.endswith("/sitemap.xml") or path.endswith("/robots.txt"):
+            response["Cache-Control"] = "public, max-age=3600"
+            return response
+
+        if request.user.is_authenticated or path.startswith(("/panel/", "/accounts/", "/admin/", "/ckeditor/")):
+            response["Cache-Control"] = "private, no-store"
+            return response
+
+        if "text/html" in content_type:
+            response["Cache-Control"] = "public, max-age=300, s-maxage=600, stale-while-revalidate=30"
+
+        return response

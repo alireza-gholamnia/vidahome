@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
+from apps.categories.models import Category
 from .models import BlogCategory, BlogPost
 
 
@@ -25,6 +26,11 @@ class BlogPostAdmin(admin.ModelAdmin):
     raw_id_fields = ("author",)
     autocomplete_fields = ("blog_category", "city", "area", "listing_category")
     date_hierarchy = "published_at"
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "listing_category":
+            kwargs["queryset"] = Category.landing_queryset().filter(is_active=True).order_by("sort_order", "fa_name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     fieldsets = (
         (None, {"fields": ("title", "slug", "excerpt", "content", "cover_image", "status", "published_at", "author")}),

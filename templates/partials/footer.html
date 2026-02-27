@@ -1,7 +1,7 @@
 {% load static %}
 
 <!-- Footer-->
-<footer class="footer bg-secondary pt-5">
+<footer class="footer bg-secondary pt-5" role="contentinfo">
   <div class="container pt-lg-4 pb-4">
     <!-- Links-->
     <div class="row mb-5 pb-md-3 pb-lg-4">
@@ -11,7 +11,7 @@
         >
           <div class="mb-sm-0 mb-4 px-2">
             <a class="d-inline-block mb-4" href="{% url 'home' %}"
-              ><img src="{% static 'img/logo/logo-dark.svg' %}" width="116" alt="logo"
+              ><img src="{% static 'img/logo/logo-dark.svg' %}" width="116" height="32" alt="logo"
             /></a>
             <ul class="nav flex-column mb-sm-4 mb-2">
               <li class="nav-item mb-2">
@@ -35,18 +35,22 @@
               <a
                 class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
                 href="#"
+                rel="nofollow"
                 ><i class="fi-facebook"></i></a
               ><a
                 class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
                 href="#"
+                rel="nofollow"
                 ><i class="fi-twitter"></i></a
               ><a
                 class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
                 href="#"
+                rel="nofollow"
                 ><i class="fi-viber"></i></a
               ><a
                 class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
                 href="#"
+                rel="nofollow"
                 ><i class="fi-telegram"></i
               ></a>
             </div>
@@ -106,6 +110,7 @@
               class="rounded-3"
               src="{% static 'img/real-estate/blog/th01.jpg' %}"
               width="100"
+              height="100"
               alt="Blog post"
           /></a>
           <div>
@@ -147,6 +152,7 @@
               class="rounded-3"
               src="{% static 'img/real-estate/blog/th02.jpg' %}"
               width="100"
+              height="100"
               alt="Blog post"
           /></a>
           <div>
@@ -190,6 +196,7 @@
           class="flex-shrink-0 mt-md-n5 me-md-5"
           src="{% static 'img/real-estate/illustrations/mobile.svg' %}"
           width="240"
+          height="340"
           alt="اپلیکیشن"
         />
         <div

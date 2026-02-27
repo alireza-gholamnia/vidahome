@@ -46,13 +46,13 @@
               </div>
               <div class="tns-carousel-inner" data-carousel-options='{"navAsThumbnails": true, "navContainer": "#listing-thumbnails", "gutter": 12, "responsive": {"0":{"controls": false},"500":{"controls": true}}}'>
                 {% for img in listing.images.all %}
-                <div><img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="{{ forloop.first|yesno:'eager,lazy' }}" style="height: 400px; object-fit: cover;"></div>
+                <div><img class="rounded-3 w-100" src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" loading="{{ forloop.first|yesno:'eager,lazy' }}" width="1200" height="800" style="height: 400px; object-fit: cover;"></div>
                 {% endfor %}
               </div>
             </div>
             <ul class="tns-thumbnails mb-4" id="listing-thumbnails">
               {% for img in listing.images.all %}
-              <li class="tns-thumbnail"><img src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}"></li>
+              <li class="tns-thumbnail"><img src="{{ img.image.url }}" alt="{{ img.alt|default:listing.title }}" width="160" height="100"></li>
               {% endfor %}
             </ul>
             {% else %}
@@ -71,7 +71,7 @@
               {% for av in attrs %}
                 {% if av.value_int is not None or av.value_bool is not None or av.value_option_id or av.value_str %}
               <li class="me-3 pe-3 border-end d-flex align-items-center">
-                {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2" style="width:24px;height:24px;object-fit:contain">{% endif %}
+                {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2" width="24" height="24" style="width:24px;height:24px;object-fit:contain">{% endif %}
                 <b>{{ av.display_value }}</b>
               </li>
                 {% endif %}
@@ -175,7 +175,7 @@
                 {% for av in attrs_with_value %}
                   {% if av.value_int is not None or av.value_bool is not None or av.value_str or av.value_option_id %}
                 <li class="mt-2 mb-0 d-flex align-items-center">
-                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" style="width:24px;height:24px;object-fit:contain">{% endif %}
+                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" width="24" height="24" style="width:24px;height:24px;object-fit:contain">{% endif %}
                   <span><b>{{ av.attribute.name }}: </b>{{ av.display_value }}</span>
                 </li>
                   {% endif %}
@@ -250,7 +250,7 @@
               <ul class="list-unstyled row row-cols-md-2 row-cols-1 gy-2 mb-0 text-nowrap">
                 {% for av in amenity_attrs %}
                 <li class="col d-flex align-items-center">
-                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" style="width:24px;height:24px;object-fit:contain">{% else %}<i class="fi-check-circle mt-n1 me-2 fs-lg align-middle text-primary"></i>{% endif %}
+                  {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-2 flex-shrink-0" width="24" height="24" style="width:24px;height:24px;object-fit:contain">{% else %}<i class="fi-check-circle mt-n1 me-2 fs-lg align-middle text-primary"></i>{% endif %}
                   {{ av.attribute.name }}
                 </li>
                 {% endfor %}
@@ -286,7 +286,7 @@
                 <a class="img-overlay" href="{{ item.get_absolute_url }}"></a>
                 {% for img in item.images.all %}
                   {% if forloop.first %}
-                <img src="{{ img.image.url }}" alt="{{ img.alt|default:item.title }}">
+                <img src="{{ img.image.url }}" alt="{{ img.alt|default:item.title }}" width="600" height="400">
                   {% endif %}
                 {% empty %}
                 <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
@@ -303,7 +303,7 @@
               <div class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap">
                 {% for av in item.attribute_values.all %}
                   <span class="d-inline-flex align-items-center mx-1 px-2 fs-sm">
-                    {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-1" style="width:18px;height:18px;object-fit:contain">{% endif %}
+                    {% if av.attribute.icon %}<img src="{{ av.attribute.icon.url }}" alt="{{ av.attribute.name }}" class="me-1" width="18" height="18" style="width:18px;height:18px;object-fit:contain">{% endif %}
                     {{ av.display_value }}
                   </span>
                 {% endfor %}

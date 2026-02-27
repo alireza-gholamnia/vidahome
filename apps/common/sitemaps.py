@@ -53,7 +53,7 @@ class CategorySitemap(Sitemap):
 
     def items(self):
         Category = apps.get_model("categories", "Category")
-        return Category.objects.filter(parent__isnull=True, is_active=True).order_by("sort_order")
+        return Category.landing_queryset().filter(parent__isnull=True, is_active=True).order_by("sort_order")
 
     def location(self, obj):
         return obj.get_absolute_url()

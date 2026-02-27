@@ -6,6 +6,7 @@ from django.utils.html import format_html
 
 from apps.agencies.models import Agency
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
+from apps.categories.models import Category
 
 from .models import Listing, ListingImage
 
@@ -95,6 +96,11 @@ class ListingAdmin(admin.ModelAdmin):
                 if agency:
                     form.base_fields["agency"].initial = agency
         return form
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            kwargs["queryset"] = Category.listing_queryset().order_by("sort_order", "fa_name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:

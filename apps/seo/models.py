@@ -65,6 +65,12 @@ class CityCategory(BaseSEO):
             )
         ]
 
+    def clean(self):
+        if self.category and self.category.category_type not in Category.landing_type_values():
+            raise ValidationError({
+                "category": "Only property/project/service categories are allowed for city-category landings."
+            })
+
     def __str__(self):
         return f"{self.category.fa_name} در {self.city.fa_name}"
 
@@ -182,6 +188,10 @@ class CityAreaCategory(BaseSEO):
         if self.area.city_id != self.city_id:
             raise ValidationError({
                 "area": "Selected area does not belong to the selected city."
+            })
+        if self.category and self.category.category_type not in Category.landing_type_values():
+            raise ValidationError({
+                "category": "Only property/project/service categories are allowed for area-category landings."
             })
 
     def __str__(self):

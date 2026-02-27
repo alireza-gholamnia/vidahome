@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     'apps.common.middleware.AdminLocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'apps.common.middleware.ResponseCacheControlMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'apps.common.middleware.AdminAccessMiddleware',
@@ -75,6 +76,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.common.context_processors.header_cities',
+                'apps.common.context_processors.seo_defaults',
                 'apps.panel.context_processors.panel_neshan_api_key',
                 'apps.panel.context_processors.panel_pending_count',
             ],
@@ -161,3 +163,17 @@ NESHAN_SERVICE_API_KEY = os.environ.get("NESHAN_SERVICE_API_KEY", "") or os.envi
 KAVENEGAR_API_KEY = (os.environ.get("KAVENEGAR_API_KEY", "") or "").strip()
 KAVENEGAR_SENDER = (os.environ.get("KAVENEGAR_SENDER", "9982002624") or "9982002624").strip()
 KAVENEGAR_OTP_TEMPLATE = os.environ.get("KAVENEGAR_OTP_TEMPLATE", "login")
+
+# SEO defaults
+SITE_NAME = os.environ.get("SITE_NAME", "VidaHome")
+SITE_URL = (os.environ.get("SITE_URL", "") or "").strip().rstrip("/")
+SEO_DEFAULT_DESCRIPTION = (
+    os.environ.get(
+        "SEO_DEFAULT_DESCRIPTION",
+        "پلتفرم آگهی املاک، پروژه و خدمات در سطح شهر و محله با جستجوی هوشمند و صفحات لندینگ سئو شده.",
+    )
+    or ""
+).strip()
+SEO_DEFAULT_OG_IMAGE_PATH = os.environ.get("SEO_DEFAULT_OG_IMAGE_PATH", "img/real-estate/illustrations/find.jpg")
+SEO_ORGANIZATION_NAME = os.environ.get("SEO_ORGANIZATION_NAME", SITE_NAME)
+SEO_ORGANIZATION_LOGO_PATH = os.environ.get("SEO_ORGANIZATION_LOGO_PATH", "/static/img/logo/logo-dark.svg")

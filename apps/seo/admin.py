@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
+from apps.categories.models import Category
 from apps.seo.models import CityCategory, CityCategoryImage, CityAreaCategory, CityAreaCategoryImage
 
 
@@ -43,6 +44,11 @@ class CityCategoryAdmin(admin.ModelAdmin):
     ordering = ("city", "sort_order", "id")
     autocomplete_fields = ("city", "category")
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            kwargs["queryset"] = Category.landing_queryset().filter(is_active=True).order_by("sort_order", "fa_name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class CityAreaCategoryImageInline(admin.TabularInline):
     model = CityAreaCategoryImage
@@ -78,3 +84,8 @@ class CityAreaCategoryAdmin(admin.ModelAdmin):
     )
     ordering = ("city", "area", "sort_order", "id")
     autocomplete_fields = ("city", "area", "category")
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            kwargs["queryset"] = Category.landing_queryset().filter(is_active=True).order_by("sort_order", "fa_name")
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

@@ -53,6 +53,7 @@ urlpatterns = [
     path("blog/", include("apps.blog.urls")),
     path("", common_views.home, name="home"),
     path("contact/", common_views.contact, name="contact"),
+    path("robots.txt", common_views.robots_txt, name="robots_txt"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

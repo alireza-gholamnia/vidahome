@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="fa">
+  
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<head>
+    <meta charset="utf-8">
+    <title>قالب Finder | قالب چند منظوره فایندر خرید خودرو | لیست خودرو - نمایش باکسی</title>
+    <!-- SEO Meta Tags-->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <!-- Viewport-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Favicon and Touch Icons-->
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="mask-icon" color="#5bbad5" href="safari-pinned-tab.svg">
+    <meta name="msapplication-TileColor" content="#766df4">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Page loading styles-->
+    <style>
+      .page-loading {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-transition: all .4s .2s ease-in-out;
+        transition: all .4s .2s ease-in-out;
+        background-color: #1f1b2d;
+        opacity: 0;
+        visibility: hidden;
+        z-index: 9999;
+      }
+      .page-loading.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .page-loading-inner {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        -webkit-transform: translateY(-50%);
+        transform: translateY(-50%);
+        -webkit-transition: opacity .2s ease-in-out;
+        transition: opacity .2s ease-in-out;
+        opacity: 0;
+      }
+      .page-loading.active > .page-loading-inner {
+        opacity: 1;
+      }
+      .page-loading-inner > span {
+        display: block;
+        font-size: 1rem;
+        font-weight: normal;
+        color: #fff;;
+      }
+      .page-spinner {
+        display: inline-block;
+        width: 2.75rem;
+        height: 2.75rem;
+        margin-bottom: .75rem;
+        vertical-align: text-bottom;
+        border: .15em solid #9691a4;
+        border-right-color: transparent;
+        border-radius: 50%;
+        -webkit-animation: spinner .75s linear infinite;
+        animation: spinner .75s linear infinite;
+      }
+      @-webkit-keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes spinner {
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      
+    </style>
+    <!-- Page loading scripts-->
+    <script>
+      (function () {
+        window.onload = function () {
+          var preloader = document.querySelector('.page-loading');
+          preloader.classList.remove('active');
+          setTimeout(function () {
+            preloader.remove();
+          }, 2000);
+        };
+      })();
+      
+    </script>
+    <!-- Vendor Styles-->
+    <link rel="stylesheet" media="screen" href="vendor/simplebar/dist/simplebar.min.css"/>
+    <link rel="stylesheet" media="screen" href="vendor/tiny-slider/dist/tiny-slider.css"/>
+    <link rel="stylesheet" media="screen" href="vendor/nouislider/dist/nouislider.min.css"/>
+    <!-- Main Theme Styles + Bootstrap-->
+    <link rel="stylesheet" media="screen" href="css/theme.min.css">
+  </head>
+  <!-- Body-->
+  <body class="bg-dark fixed-bottom-btn" dir="rtl">
+    <!-- Demo switcher (offcanvas)-->
+     <button class="btn btn-icon btn-light rounded-circle shadow position-fixed top-50 start-0 translate-middle-y ms-3" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="تغییر دمو" style="z-index: 1035;">
+      <div class="d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100 rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#demo-switcher"><i class="fi-layers"></i></div>
+    </button>
+    <div class="offcanvas offcanvas-end" id="demo-switcher">
+      <div class="offcanvas-header d-block border-bottom">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <h2 class="h5 mb-0">انتخاب دمو</h2>
+          <button class="btn-close" type="button" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="d-flex"><a class="btn btn-outline-secondary btn-sm w-100 me-2" href="index.html"><i class="fi-home me-2"></i>خانه</a><a class="btn btn-outline-secondary btn-sm w-100" href="components/typography.html"><i class="fi-file me-2"></i>ابزارهای بوت استرپ</a></div>
+      </div>
+      <div class="offcanvas-body">
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/car-finder.jpg" alt="Car Finder Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="car-finder-home.html">دمو ماشین</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/real-estate.jpg" alt="Real Estate Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="real-estate-home-v1.html">دمو املاک</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/job-board.jpg" alt="Job Board Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="job-board-home-v1.html">دمو کاریابی</a></h3>
+          </div>
+        </div>
+        <div class="card card-hover shadow-sm mb-4"><img class="card-img-top" src="img/intro/demos/offcanvas/city-guide.jpg" alt="City Guide Demo">
+          <div class="card-body p-3">
+            <h3 class="fs-base card-title text-center"><a class="nav-link stretched-link" href="city-guide-home-v1.html">دمو راهنمای سفر</a></h3>
+          </div>
+        </div>
+      </div>
+      <div class="offcanvas-footer border-top"><a class="btn btn-primary btn-lg w-100" href="https://www.rtl-theme.com/finder-html-template/" target="_blank" rel="noopener"><i class="fi-cart fs-lg me-2"></i>مشاهده و خرید</a></div>
+    </div>
+    <!-- Page loading spinner-->
+    <div class="page-loading active">
+      <div class="page-loading-inner">
+        <div class="page-spinner"></div><span>لطفا منتظر باشید</span>
+      </div>
+    </div>
+    <main class="page-wrapper">
+      <!-- Sign In Modal-->
+      <div class="modal fade modal-login" id="signin-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered p-2 my-0 mx-auto" style="max-width: 950px;">
+          <div class="modal-content bg-dark border-light">
+            <div class="modal-body px-0 py-2 py-sm-0">
+              <button class="btn-close btn-close-white position-absolute top-0 end-0 mt-3 me-3" type="button" data-bs-dismiss="modal"></button>
+              <div class="row mx-0 align-items-center">
+                <div class="col-md-6 border-end-md border-light p-4 p-sm-5">
+                  <h2 class="h4 text-light mb-4 mb-sm-5">سلام!<br> به سایت ما خوش آمدید.</h2><img class="d-block mx-auto" src="img/signin-modal/signin-dark.svg" width="344" alt="Illustartion">
+                  <div class="text-light mt-4 mt-sm-5"><span class="opacity-60">هنوز ثبت نام نکرده اید؟ </span><a class="text-light" href="#signup-modal" data-bs-toggle="modal" data-bs-dismiss="modal">ثبت نام</a></div>
+                </div>
+                <div class="col-md-6 px-4 pt-2 pb-4 px-sm-5 pb-sm-5 pt-md-5"><a class="btn btn-outline-info w-100 mb-3" href="#"><i class="fi-google fs-lg me-1"></i>ورود با اکانت گوگل</a><a class="btn btn-outline-info w-100 mb-3" href="#"><i class="fi-facebook fs-lg me-1"></i>ورود با اکانت فیسبوک</a>
+                  <div class="d-flex align-items-center py-3 mb-3">
+                    <hr class="hr-light w-100">
+                    <div class="text-light opacity-70 px-3">یـا</div>
+                    <hr class="hr-light w-100">
+                  </div>
+                  <form class="needs-validation" novalidate>
+                    <div class="mb-4">
+                      <label class="form-label text-light mb-2" for="signin-email">پست الکترونیکی</label>
+                      <input class="form-control form-control-light" type="email" id="signin-email" placeholder="پست الکترونیکی" required>
+                    </div>
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label text-light mb-0" for="signin-password">رمزعبور</label><a class="fs-sm text-light" href="#">رمز عبور را فراموش کرده اید؟</a>
+                      </div>
+                      <div class="password-toggle">
+                        <input class="form-control form-control-light" type="password" id="signin-password" placeholder="رمز عبور" required>
+                        <label class="password-toggle-btn" aria-label="Show/hide password">
+                          <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100" type="submit">ورود به حساب کاربری</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Sign Up Modal-->
+      <div class="modal fade modal-register" id="signup-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered p-2 my-0 mx-auto" style="max-width: 950px;">
+          <div class="modal-content bg-dark border-light">
+            <div class="modal-body px-0 py-2 py-sm-0">
+              <button class="btn-close btn-close-white position-absolute top-0 end-0 mt-3 me-3" type="button" data-bs-dismiss="modal"></button>
+              <div class="row mx-0 align-items-center">
+                <div class="col-md-6 border-end-md border-light p-4 p-sm-5">
+                  <h2 class="h4 text-light mb-4 mb-sm-5">درسایت ما با اطمینان ثبت نام کنید.</h2>
+                  <ul class="list-unstyled mb-4 mb-sm-5">
+                    <li class="d-flex mb-2"><i class="fi-check-circle text-primary mt-1 me-2"></i><span class="text-light">ثبت و بروزرسانی آگهی</span></li>
+                    <li class="d-flex mb-2"><i class="fi-check-circle text-primary mt-1 me-2"></i><span class="text-light">مدیریت لیست علاقه مندی ها</span></li>
+                    <li class="d-flex mb-0"><i class="fi-check-circle text-primary mt-1 me-2"></i><span class="text-light">ثبت نظر</span></li>
+                  </ul><img class="d-block mx-auto rotate-img" src="img/signin-modal/signup-dark.svg" width="344" alt="Illustartion">
+                  <div class="text-light mt-sm-4 pt-md-3"><span class="opacity-60">ثبت نام کرده اید؟ </span><a class="text-light" href="#signin-modal" data-bs-toggle="modal" data-bs-dismiss="modal">ورود به حساب کاربری</a></div>
+                </div>
+                <div class="col-md-6 px-4 pt-2 pb-4 px-sm-5 pb-sm-5 pt-md-5"><a class="btn btn-outline-info w-100 mb-3" href="#"><i class="fi-google fs-lg me-1"></i>ورود با اکانت گوگل</a><a class="btn btn-outline-info w-100 mb-3" href="#"><i class="fi-facebook fs-lg me-1"></i>ورود با اکانت فیسبوک</a>
+                  <div class="d-flex align-items-center py-3 mb-3">
+                    <hr class="hr-light w-100">
+                    <div class="text-light opacity-70 px-3">یـا</div>
+                    <hr class="hr-light w-100">
+                  </div>
+                  <form class="needs-validation" novalidate>
+                    <div class="mb-4">
+                      <label class="form-label text-light" for="signup-name">نام و نام خانوادگی</label>
+                      <input class="form-control form-control-light" type="text" id="signup-name" placeholder="نام و نام خانوادگی" required>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label text-light" for="signup-email">پست الکترونیکی</label>
+                      <input class="form-control form-control-light" type="email" id="signup-email" placeholder="ایمیل" required>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label text-light" for="signup-password">رمز عبور <span class='fs-sm opacity-50'>حداقل 8 کاراکتر</span></label>
+                      <div class="password-toggle">
+                        <input class="form-control form-control-light" type="password" id="signup-password" minlength="8" required>
+                        <label class="password-toggle-btn" aria-label="Show/hide password">
+                          <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label text-light" for="signup-password-confirm">تایید رمز عبور</label>
+                      <div class="password-toggle">
+                        <input class="form-control form-control-light" type="password" id="signup-password-confirm" minlength="8" required>
+                        <label class="password-toggle-btn" aria-label="Show/hide password">
+                          <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="form-check form-check-light mb-4">
+                      <input class="form-check-input" type="checkbox" id="agree-to-terms" required>
+                      <label class="form-check-label" for="agree-to-terms"><span class='opacity-70'>با ثبت نام در این سایت </span> <a href='#' class='text-light'>شرایط </a> <span class='opacity-70'> و </span> <a href='#' class='text-light'>قوانین </a> سایت را میپذیرم.</label>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100" type="submit">ثبت نام</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Navbar-->
+      <header class="navbar navbar-expand-lg navbar-dark fixed-top" data-scroll-header>
+        <div class="container"><a class="navbar-brand me-3 me-xl-4" href="car-finder-home.html"><img class="d-block" src="img/logo/logo-light.svg" width="116" alt="Finder"></a>
+          <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button><a class="btn btn-link btn-light btn-sm d-none d-lg-block order-lg-3" href="#signin-modal" data-bs-toggle="modal"><i class="fi-user me-2"></i>ورود به حساب کاربری</a><a class="btn btn-primary btn-sm ms-2 order-lg-3" href="car-finder-sell-car.html"><i class="fi-plus me-2"></i>ثبت خودرو</a>
+          <div class="collapse navbar-collapse order-lg-2" id="navbarNav">
+                       <ul class="navbar-nav navbar-nav-scroll" style="max-height: 35rem;">
+              <!-- Demos switcher-->
+              <li class="nav-item dropdown py-2 me-lg-2"><a class="nav-link dropdown-toggle align-items-center border-end-lg py-1 pe-lg-4" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="fi-layers me-2"></i>دموها</a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="real-estate-home-v1.html"><i class="fi-building fs-base opacity-50 me-2"></i>دمو املاک</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="car-finder-home.html"> <i class="fi-car fs-base opacity-50 me-2"></i>دمو خرید خودرو</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="job-board-home-v1.html"> <i class="fi-briefcase fs-base opacity-50 me-2"></i>دمو کاریابی</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="city-guide-home-v1.html"><i class="fi-map-pin fs-base opacity-50 me-2"></i>دمو راهنمای سفر</a></li>
+                  <li class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="index.html"><i class="fi-home fs-base opacity-50 me-2"></i>صفحه اصلی</a></li>
+                  <li><a class="dropdown-item" href="components/typography.html"><i class="fi-list fs-base opacity-50 me-2"></i>ابزارهای بوت استرپ</a></li>
+                </ul>
+              </li>
+              <!-- Menu items-->
+              <li class="nav-item"><a class="nav-link" href="car-finder-home.html">خانه</a></li>
+              <li class="nav-item dropdown active"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">لیست خودرو</a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="car-finder-catalog-list.html">نمایش لیستی</a></li>
+                  <li><a class="dropdown-item" href="car-finder-catalog-grid.html">نمایش باکسی</a></li>
+                  <li><a class="dropdown-item" href="car-finder-single.html">جزئیات خودرو</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">اکانت من</a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="car-finder-account-info.html">اطلاعات فردی</a></li>
+                  <li><a class="dropdown-item" href="car-finder-account-security.html">گذرواژه و امنیتی</a></li>
+                  <li><a class="dropdown-item" href="car-finder-account-cars.html">خودروهای من</a></li>
+                  <li><a class="dropdown-item" href="car-finder-account-wishlist.html">لیست موردعلاقه ها</a></li>
+                  <li><a class="dropdown-item" href="car-finder-account-reviews.html">لیست نظرات</a></li>
+                  <li><a class="dropdown-item" href="car-finder-account-notifications.html">ایمیل اطلاع رسانی</a></li>
+				  <li><a class="dropdown-item" href="signin-light.html">ورود به اکانت</a></li>
+                  <li><a class="dropdown-item" href="signup-light.html">ثبت نام</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">فروشنده</a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="car-finder-sell-car.html">فروش خودرو</a></li>
+                  <li><a class="dropdown-item" href="car-finder-promotion.html">بروزرسانی آگهی</a></li>
+                  <li><a class="dropdown-item" href="car-finder-vendor.html">فروشنده</a></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">صفحات</a>
+                <ul class="dropdown-menu dropdown-menu-dark">
+                  <li><a class="dropdown-item" href="car-finder-about.html">درباره ما</a></li>
+                  <li class="dropdown"><a class="dropdown-item dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">صفحات وبلاگ</a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                      <li><a class="dropdown-item" href="car-finder-blog.html">لیست</a></li>
+                      <li><a class="dropdown-item" href="car-finder-blog-single.html">جزئیات</a></li>
+                    </ul>
+                  </li>
+                  <li><a class="dropdown-item" href="car-finder-contacts.html">تماس با ما</a></li>
+                  <li><a class="dropdown-item" href="car-finder-help-center.html">سوالات متداول</a></li>
+                  <li><a class="dropdown-item" href="car-finder-404.html">صفحه 404</a></li>
+                </ul>
+              </li>
+              <li class="nav-item d-lg-none"><a class="nav-link" href="#signin-modal" data-bs-toggle="modal"><i class="fi-user me-2"></i>ورود به حساب کاربری</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <!-- Page content-->
+      <!-- Page container-->
+      <div class="container mt-5 mb-md-4 py-5">
+        <div class="row py-md-1">
+          <!-- Filers sidebar (Offcanvas on mobile)-->
+          <div class="col-lg-3 pe-xl-4">
+            <div class="offcanvas-lg offcanvas-end bg-dark" id="filters-sidebar">
+              <div class="offcanvas-header bg-transparent d-flex d-lg-none align-items-center">
+                <h2 class="h5 text-light mb-0">فیلترها</h2>
+                <button class="btn-close btn-close-white" type="button" data-bs-dismiss="offcanvas" data-bs-target="#filters-sidebar"></button>
+              </div>
+              <div class="offcanvas-header bg-transparent d-block border-bottom border-light pt-0 pt-lg-4 px-lg-0">
+                <ul class="nav nav-tabs nav-tabs-light mb-0">
+                  <li class="nav-item"><a class="nav-link" href="#">جدید</a></li>
+                  <li class="nav-item"><a class="nav-link active" href="#">دست دوم</a></li>
+                </ul>
+              </div>
+              <div class="offcanvas-body py-lg-4">
+                <div class="pb-3 mb-4 border-bottom border-light">
+                  <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h3 class="fs-base font-vazir text-light mb-0">انتخابی ها</h3>
+                    <button class="btn btn-link btn-light fw-normal fs-sm p-0" type="button">حذف همه</button>
+                  </div>
+                  <ul class="nav nav-pills nav-pills-light flex-row fs-sm mx-0">
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>سال ساخت 1390</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3"><i class="fi-x fs-xxs me-2"></i>کراس‌اوور</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>سدان</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>لیموزین</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>دیزلی</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>بنزین</button>
+                    </li>
+                    <li class="nav-item mb-2 me-2">
+                      <button class="nav-link px-3" type="button"><i class="fi-x fs-xxs me-2"></i>هایبرید</button>
+                    </li>
+                  </ul>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">موقعیت مکانی</h3>
+                  <select class="form-select form-select-light mb-2">
+                    <option value="" disabled selected>انتخاب موقعیت</option>
+                    <option value="Chicago">شیکاگو</option>
+                    <option value="Dallas">پاریس</option>
+                    <option value="Los Angeles">لوس آنجلس</option>
+                    <option value="New York">نیویورک</option>
+                    <option value="San Diego">سن فرانسیسکو</option>
+                  </select>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">نوع بدنه</h3>
+                  <div class="overflow-auto" data-simplebar data-simplebar-auto-hide="false" data-simplebar-direction="rtl" data-simplebar-inverse style="height: 11rem;">
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="sedan" checked>
+                      <label class="form-check-label fs-sm" for="sedan">سدان</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="suv" checked>
+                      <label class="form-check-label fs-sm" for="suv">شاسی بلند</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="wagon">
+                      <label class="form-check-label fs-sm" for="wagon">ون</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="crossover" checked>
+                      <label class="form-check-label fs-sm" for="crossover">کراس‌اوور</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="coupe">
+                      <label class="form-check-label fs-sm" for="coupe">کوپه</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="pickup">
+                      <label class="form-check-label fs-sm" for="pickup">پیکاپ</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="sport">
+                      <label class="form-check-label fs-sm" for="sport">مینی ون</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="compact">
+                      <label class="form-check-label fs-sm" for="compact">لیموزین</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="convertible">
+                      <label class="form-check-label fs-sm" for="convertible">اس پی وی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="mpv">
+                      <label class="form-check-label fs-sm" for="mpv">کانورتیبل</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light pt-1">سال</h3>
+                  <div class="d-flex align-items-center">
+                    <select class="form-select form-select-light w-100">
+                      <option value="" disabled selected>از</option>
+                      <option value="2021">2021</option>
+                      <option value="2020">2020</option>
+                      <option value="2019">2019</option>
+                      <option value="2018">2018</option>
+                      <option value="2017">2017</option>
+                      <option value="2016">2016</option>
+                      <option value="2015">2015</option>
+                      <option value="2014">2014</option>
+                      <option value="2013">2013</option>
+                      <option value="2012">2012</option>
+                      <option value="2011">2011</option>
+                      <option value="2010">2010</option>
+                    </select>
+                    <div class="mx-2">&mdash;</div>
+                    <select class="form-select form-select-light w-100">
+                      <option value="" disabled>تا</option>
+                      <option value="2021">2021</option>
+                      <option value="2020">2020</option>
+                      <option value="2019" selected>2019</option>
+                      <option value="2018">2018</option>
+                      <option value="2017">2017</option>
+                      <option value="2016">2016</option>
+                      <option value="2015">2015</option>
+                      <option value="2014">2014</option>
+                      <option value="2013">2013</option>
+                      <option value="2012">2012</option>
+                      <option value="2011">2011</option>
+                      <option value="2010">2010</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">مدل و برند</h3>
+                  <select class="form-select form-select-light mb-2">
+                    <option value="" disabled selected>همه مدل</option>
+                    <option value="Audi">آئودی</option>
+                    <option value="Infiniti">سمند</option>
+                    <option value="Honda">هوندا</option>
+                    <option value="Hyundai">هیوندا</option>
+                    <option value="Lexus">پورشه</option>
+                    <option value="Mazda">مزدا</option>
+                    <option value="Mitsubishi">ماکسیما</option>
+                    <option value="Mercedes-Benz">مرسدس بنز</option>
+                    <option value="Nissan">نیسان</option>
+                    <option value="Opel">ام جی</option>
+                    <option value="Renault">پاترول</option>
+                    <option value="Toyota">بی ام و</option>
+                  </select>
+                  <select class="form-select form-select-light mb-1">
+                    <option value="" disabled selected>همه برندها</option>
+                    <option value="Altima">اسمارت</option>
+                    <option value="Juke">پراید</option>
+                    <option value="Leaf">دوو</option>
+                    <option value="Maxima">ماکسیما</option>
+                    <option value="Micra">جیپ</option>
+                    <option value="Murano">بنز</option>
+                    <option value="Note">تویوتا</option>
+                    <option value="Pathfinder">برلیانس</option>
+                    <option value="Patrol">رانا</option>
+                  </select>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">قیمت</h3>
+                  <div class="range-slider range-slider-light mb-3" data-start-min="25000" data-start-max="65000" data-min="4000" data-max="100000" data-step="1000">
+                    <div class="range-slider-ui"></div>
+                    <div class="d-flex align-items-center">
+                      <div class="w-50 pe-2">
+                        <input class="form-control form-control-light range-slider-value-min" type="text">
+                      </div>
+                      <div class="text-muted">&mdash;</div>
+                      <div class="w-50 ps-2">
+                        <input class="form-control form-control-light range-slider-value-max" type="text">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch form-switch-light">
+                    <input class="form-check-input" type="checkbox" id="negotiated-price">
+                    <label class="form-check-label fs-sm" for="negotiated-price">قیمت توافقی</label>
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">مهلت بیمه</h3>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="awd">
+                    <label class="form-check-label fs-sm" for="awd">12 ماه</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="front-wheel">
+                    <label class="form-check-label fs-sm" for="front-wheel">13 ماه</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="rear-wheel">
+                    <label class="form-check-label fs-sm" for="rear-wheel">2 ماه</label>
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">نوع سوخت</h3>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="diesel" checked>
+                    <label class="form-check-label fs-sm" for="diesel">دیزل</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="electric">
+                    <label class="form-check-label fs-sm" for="electric">برق</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="gasoline" checked>
+                    <label class="form-check-label fs-sm" for="gasoline">بنزین</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="hybrid" checked>
+                    <label class="form-check-label fs-sm" for="hybrid">هایبرید</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="hydrogen">
+                    <label class="form-check-label fs-sm" for="hydrogen">هیدروژن</label>
+                  </div>
+                </div>
+                <div class="pb-4 mb-1">
+                  <h3 class="fs-base text-light font-vazir">گیربکس</h3>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="auto">
+                    <label class="form-check-label fs-sm" for="auto">اتوماتیک</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="manual">
+                    <label class="form-check-label fs-sm" for="manual">هیدرولیک</label>
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base text-light pt-1 font-vazir">کارکرد</h3>
+                  <div class="d-flex align-items-center">
+                    <input class="form-control form-control-light w-100" type="number" min="0" step="500" placeholder="از">
+                    <div class="mx-2">&mdash;</div>
+                    <input class="form-control form-control-light w-100" type="number" min="0" step="500" placeholder="تا">
+                  </div>
+                </div>
+                <div class="pb-4 mb-2">
+                  <h3 class="fs-base font-vazir text-light">رنگ</h3>
+                  <div class="overflow-auto" data-simplebar data-simplebar-auto-hide="false" data-simplebar-direction="rtl" data-simplebar-inverse style="height: 11rem;">
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="amber">
+                      <label class="form-check-label fs-sm" for="amber">نوک مدادی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="azure">
+                      <label class="form-check-label fs-sm" for="azure">آبی آسمانی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="beige">
+                      <label class="form-check-label fs-sm" for="beige">بژ</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="black">
+                      <label class="form-check-label fs-sm" for="black">مشکی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="blue">
+                      <label class="form-check-label fs-sm" for="blue">آبی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="brown">
+                      <label class="form-check-label fs-sm" for="brown">قهوه ای</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="camouflage">
+                      <label class="form-check-label fs-sm" for="camouflage">سبز</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="charcoal">
+                      <label class="form-check-label fs-sm" for="charcoal">نارنجی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="gray">
+                      <label class="form-check-label fs-sm" for="gray">طوسی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="green">
+                      <label class="form-check-label fs-sm" for="green">سبز</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="gold">
+                      <label class="form-check-label fs-sm" for="gold">طلایی</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="purple">
+                      <label class="form-check-label fs-sm" for="purple">بنفش</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="red">
+                      <label class="form-check-label fs-sm" for="red">قرمز</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="white">
+                      <label class="form-check-label fs-sm" for="white">سفید</label>
+                    </div>
+                    <div class="form-check form-check-light">
+                      <input class="form-check-input" type="checkbox" id="yellow">
+                      <label class="form-check-label fs-sm" for="yellow">زرد</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="pb-2">
+                  <h3 class="fs-base font-vazir text-light">فروشندگان</h3>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="dealers">
+                    <label class="form-check-label fs-sm" for="dealers">فقط نمایندگی ها</label>
+                  </div>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="private-sellers">
+                    <label class="form-check-label fs-sm" for="private-sellers">فقط فروشندگان خصوصی</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-9">
+            <!-- Breadcrumb-->
+            <nav class="mb-3 pt-md-2 pt-lg-4" aria-label="Breadcrumb">
+              <ol class="breadcrumb breadcrumb-light">
+                <li class="breadcrumb-item"><a href="car-finder-home.html">خانه</a></li>
+                <li class="breadcrumb-item active" aria-current="page">نمایش لیستی</li>
+              </ol>
+            </nav>
+            <!-- Page title-->
+            <div class="d-flex align-items-center justify-content-between pb-4 mb-2">
+              <h1 class="text-light me-3 mb-0 font-vazir h4">لیست خودروها</h1>
+              <div class="text-light"><i class="fi-car fs-lg me-2"></i><span class="align-middle">249 نتیجه</span></div>
+            </div>
+            <!-- Sorting + View-->
+            <div class="d-sm-flex align-items-center justify-content-between pb-4 mb-2">
+              <div class="d-flex align-items-center me-sm-4">
+                <label class="fs-sm text-light me-2 pe-1 text-nowrap" for="sorting1"><i class="fi-arrows-sort mt-n1 me-2"></i>مرتب سازی براساس: </label>
+                <select class="form-select form-select-light form-select-sm me-sm-4" id="sorting1">
+                  <option>جدیدترین</option>
+                  <option>پربازدید</option>
+                  <option>قیمت: پایین - بالا</option>
+                  <option>قیمت: بالا - پایین</option>
+                </select>
+                <div class="d-none d-md-block border-end border-light" style="height: 1.25rem;"></div>
+                <div class="d-none d-sm-block text-light opacity-70 text-nowrap pe-md-4"><i class="fi-switch-horizontal me-2"></i><span class="align-middle fs-sm">مقایسه (0)</span></div>
+              </div>
+              <div class="d-none d-sm-flex"><a class="nav-link nav-link-light px-2" href="car-finder-catalog-list.html" data-bs-toggle="tooltip" title="لیست"><i class="fi-list"></i></a><a class="nav-link nav-link-light px-2 active" href="car-finder-catalog-grid.html" data-bs-toggle="tooltip" title="باک"><i class="fi-grid"></i></a></div>
+            </div>
+            <div class="row">
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info">دست دوم</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/01.jpg" alt="Image"><img src="img/car-finder/catalog/01.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1385</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare1">
+                    <label class="form-check-label fs-sm" for="compare1">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">هیوندای ولستر</a></h3>
+                <div class="text-primary fw-bold mb-1">250000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>شیکاگو</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                   <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info mb-1">دست دوم</span><span class="d-table badge bg-success" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover" data-bs-html="true" data-bs-content="&lt;div class=&quot;d-flex&quot;&gt;&lt;i class=&quot;fi-award mt-1 me-2&quot;&gt;&lt;/i&gt;&lt;div&gt;This car is checked and&lt;br&gt;certified by Finder.&lt;/div&gt;&lt;/div&gt;">کارشناسی شده با کارنامه</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/02.jpg" alt="Image"><img src="img/car-finder/catalog/02.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1385</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare2">
+                    <label class="form-check-label fs-sm" for="compare2">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">مرسدس بنز کانورتیبل کوپه</a></h3>
+                <div class="text-primary fw-bold mb-1">534000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>سن فرانسیسکو</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                   <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info">دست دوم</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/03.jpg" alt="Image"><img src="img/car-finder/catalog/03.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1395</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare3">
+                    <label class="form-check-label fs-sm" for="compare3">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">مرسدس بنز C300 اسپرت</a></h3>
+                <div class="text-primary fw-bold mb-1">365000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>لوس آنجلس</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                    <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info">دست دوم</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/04.jpg" alt="Image"><img src="img/car-finder/catalog/04.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1375</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare4">
+                    <label class="form-check-label fs-sm" for="compare4">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">نیسان 370Z نیسمو</a></h3>
+                <div class="text-primary fw-bold mb-1">370000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>نیویورک</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                    <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info mb-1">دست دوم</span><span class="d-table badge bg-success" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover" data-bs-html="true" data-bs-content="&lt;div class=&quot;d-flex&quot;&gt;&lt;i class=&quot;fi-award mt-1 me-2&quot;&gt;&lt;/i&gt;&lt;div&gt;This car is checked and&lt;br&gt;certified by Finder.&lt;/div&gt;&lt;/div&gt;">کارشناسی شده با کارنامه</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/05.jpg" alt="Image"><img src="img/car-finder/catalog/05.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1385</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare5">
+                    <label class="form-check-label fs-sm" for="compare5">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">بی‌ام‌و سری 5 سدان 520i</a></h3>
+                <div class="text-primary fw-bold mb-1">453000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>فرانسه</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                    <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info">دست دوم</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/06.jpg" alt="Image"><img src="img/car-finder/catalog/06.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1390</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare6">
+                    <label class="form-check-label fs-sm" for="compare6">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">برلیانس کراس اتوماتیک</a></h3>
+                <div class="text-primary fw-bold mb-1">1650000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>استانبول</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                   <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info mb-1">دست دوم</span><span class="d-table badge bg-success" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-trigger="hover" data-bs-html="true" data-bs-content="&lt;div class=&quot;d-flex&quot;&gt;&lt;i class=&quot;fi-award mt-1 me-2&quot;&gt;&lt;/i&gt;&lt;div&gt;This car is checked and&lt;br&gt;certified by Finder.&lt;/div&gt;&lt;/div&gt;">کارشناسی شده</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/07.jpg" alt="Image"><img src="img/car-finder/catalog/07.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1400</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare7">
+                    <label class="form-check-label fs-sm" for="compare7">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">۲۰۶ تیپ ۲ سفید</a></h3>
+                <div class="text-primary fw-bold mb-1">290000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>پاریس</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                    <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Item-->
+              <div class="col-sm-6 mb-4">
+                <div class="card card-light card-hover h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover"><a class="img-overlay" href="car-finder-single.html"></a>
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3"><span class="d-table badge bg-info">دست دوم</span></div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button class="btn btn-icon btn-light btn-xs text-primary rounded-circle" type="button" data-bs-toggle="tooltip" data-bs-placement="right" title="افزودن به موردعلاقه ها"><i class="fi-heart"></i></button>
+                    </div>
+                    <div class="tns-carousel-inner"><img src="img/car-finder/catalog/08.jpg" alt="Image"><img src="img/car-finder/catalog/08.jpg" alt="Image"></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between pb-1"><span class="fs-sm text-light me-3">سال ساخت 1396</span>
+                  <div class="form-check form-check-light">
+                    <input class="form-check-input" type="checkbox" id="compare8">
+                    <label class="form-check-label fs-sm" for="compare8">مقایسه</label>
+                  </div>
+                </div>
+                <h3 class="fs-base mb-1 fw-500"><a class="nav-link-light" href="car-finder-single.html">پراید 132 SX</a></h3>
+                <div class="text-primary fw-bold mb-1">265000 تومان</div>
+                <div class="fs-sm text-light opacity-70"><i class="fi-map-pin me-1"></i>آمستردام</div>
+                  </div>
+                  <div class="card-footer border-0 pt-0">
+                    <div class="border-top border-light pt-3">
+                    <div class="row g-2">
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-dashboard d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">48 کیلومتر کارکرد</span></div>
+                    </div>
+                    <div class="col me-sm-1">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-gearbox d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">اتوماتیک</span></div>
+                    </div>
+                    <div class="col">
+                      <div class="bg-dark rounded text-center w-100 h-100 p-2"><i class="fi-petrol d-block h4 text-light mb-0 mx-center"></i><span class="fs-xs text-light">بنزین</span></div>
+                    </div>
+                  </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Sorting + Pagination-->
+            <div class="d-flex align-items-center justify-content-between py-2">
+              <div class="d-flex align-items-center me-sm-4">
+                <label class="fs-sm text-light me-2 pe-1 text-nowrap" for="sorting2"><i class="fi-arrows-sort mt-n1 me-2"></i>مرتب سازی براساس: </label>
+                <select class="form-select form-select-light form-select-sm me-2 me-sm-4" id="sorting2">
+                  <option>جدیدترین</option>
+                  <option>پربازدید</option>
+                  <option>قیمت: پایین - بالا</option>
+                  <option>قیمت: بالا - پایین</option>
+                </select>
+                <div class="d-none d-md-block border-end border-light" style="height: 1.25rem;"></div>
+                <div class="d-none d-md-block text-light opacity-70 text-nowrap pe-md-4"><i class="fi-switch-horizontal me-2"></i><span class="align-middle fs-sm">مقایسه (0)</span></div>
+              </div>
+              <nav aria-label="Pagination">
+                <ul class="pagination pagination-light mb-0">
+                  <li class="page-item d-sm-none text-nowrap"><span class="page-link page-link-static">1 / 5</span></li>
+                  <li class="page-item active d-none d-sm-block" aria-current="page"><span class="page-link">1<span class="visually-hidden">(صفحه جاری)</span></span></li>
+                  <li class="page-item d-none d-sm-block"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item d-none d-sm-block"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item d-none d-sm-block">...</li>
+                  <li class="page-item d-none d-sm-block"><a class="page-link" href="#">8</a></li>
+                  <li class="page-item"><a class="page-link" href="#" aria-label="Next"><i class="fi-chevron-right"></i></a></li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+     <!-- Footer-->
+    <footer class="footer bg-faded-light">
+      <div class="border-bottom border-light py-4">
+        <div class="container d-sm-flex align-items-center justify-content-between"><a class="d-inline-block" href="real-estate-home-v1.html"><img src="img/logo/logo-light.svg" width="116" alt="logo"></a>
+          <div class="d-flex pt-3 pt-sm-0">
+            <div class="dropdown me-n3">
+              <button class="btn btn-light btn-link btn-sm dropdown-toggle fw-normal py-2" type="button" data-bs-toggle="dropdown"><i class="fi-globe me-2"></i>انتخاب زبان</button>
+              <div class="dropdown-menu dropdown-menu-dark w-100"><a class="dropdown-item" href="#">ایتالیایی</a><a class="dropdown-item" href="#">فرانسوی</a><a class="dropdown-item" href="#">اسپانیولی</a></div>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-light btn-link btn-sm dropdown-toggle fw-normal py-2" type="button" data-bs-toggle="dropdown"><i class="fi-map-pin me-2"></i>نیویورک</button>
+              <div class="dropdown-menu dropdown-menu-dark dropdown-menu-sm-end" style="min-width: 7.5rem;"><a class="dropdown-item" href="#">شیکاگو</a><a class="dropdown-item" href="#">پاریس</a><a class="dropdown-item" href="#">لوس آنجلس</a><a class="dropdown-item" href="#">استانبول</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="container pt-4 pb-3 pt-lg-5 pb-lg-4">
+        <div class="row pt-2 pt-lg-0">
+          <div class="col-lg-3 pb-2 mb-4">
+            <h3 class="h5 text-light mb-2 fw-500">عضویت در خبرنامه</h3>
+            <p class="fs-sm text-light opacity-70">پیشنهادات خوب ما را از دست ندهیذ!</p>
+            <form class="form-group form-group-light w-100">
+              <div class="input-group input-group-sm"><span class="input-group-text"> <i class="fi-mail"></i></span>
+                <input class="form-control" type="text" placeholder="ایمیل شما">
+              </div>
+              <button class="btn btn-primary btn-icon btn-sm" type="button"><i class="fi-send"></i></button>
+            </form>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-6 offset-xl-1 mb-2 mb-sm-4">
+            <h3 class="fs-base text-light fw-500">خرید و فروش ماشین</h3>
+            <ul class="list-unstyled fs-sm">
+              <li><a class="nav-link-light" href="#">جستجو خودرو</a></li>
+              <li><a class="nav-link-light" href="#">فروش خودرو</a></li>
+              <li><a class="nav-link-light" href="#">معاملات ماشین</a></li>
+              <li><a class="nav-link-light" href="#">مقایسه خودروها</a></li>
+              <li><a class="nav-link-light" href="#">ارزیابی آنلاین خودرو</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-6 mb-2 mb-sm-4">
+            <h3 class="fs-base text-light fw-500">لینک های سریع</h3>
+            <ul class="list-unstyled fs-sm">
+              <li><a class="nav-link-light" href="#">درباره ما</a></li>
+              <li><a class="nav-link-light" href="#">تماس با ما</a></li>
+              <li><a class="nav-link-light" href="#">سوالات متداول</a></li>
+              <li><a class="nav-link-light" href="#">دانلود اپلیکیشن</a></li>
+              <li><a class="nav-link-light" href="#">مقالات</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-md-3 col-sm-6 mb-2 mb-sm-4">
+            <h3 class="fs-base text-light fw-500">حساب کاربری</h3>
+            <ul class="list-unstyled fs-sm">
+              <li><a class="nav-link-light" href="#">اکانت من</a></li>
+              <li><a class="nav-link-light" href="#">لیست موردعلاقه ها</a></li>
+              <li><a class="nav-link-light" href="#">لیست آگهی های من</a></li>
+              <li><a class="nav-link-light" href="#">ثبت آگهی</a></li>
+            </ul>
+          </div>
+          <div class="col-xl-2 col-lg-3 col-sm-6 col-md-3 mb-2 mb-sm-4"><a class="d-flex align-items-center text-decoration-none mb-2" href="tel:4065550120"><i class="fi-device-mobile me-2"></i><span class="text-light">(406) 555-0120</span></a><a class="d-flex align-items-center text-decoration-none mb-2" href="mailto:example@email.com"><i class="fi-mail me-2"></i><span class="text-light">example@email.com</span></a>
+            <div class="d-flex flex-wrap pt-4"><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle mb-2 me-2" href="#"><i class="fi-facebook"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle mb-2 me-2" href="#"><i class="fi-twitter"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle mb-2 me-2" href="#"><i class="fi-telegram"></i></a><a class="btn btn-icon btn-translucent-light btn-xs rounded-circle mb-2" href="#"><i class="fi-messenger"></i></a></div>
+          </div>
+        </div>
+      </div>
+      <div class="container d-lg-flex align-items-center justify-content-between fs-sm pb-3">
+        <div class="d-flex flex-wrap justify-content-center order-lg-2 mb-3"><a class="nav-link nav-link-light fw-normal" href="#">قوانین سایت</a><a class="nav-link nav-link-light fw-normal" href="#">شرایط</a><a class="nav-link nav-link-light fw-normal" href="#">بیانیه دسترسی</a><a class="nav-link nav-link-light fw-normal pe-0" href="#">تبلیغات مبتنی بر علاقه</a></div>
+        <p class="text-center text-lg-start order-lg-1 mb-lg-0"><span class="text-light opacity-50">© تمام حقوق این سایت محفوظ است . ارائه شده در سایت </span><a class="nav-link-light fw-bold" href="https://createx.studio/" target="_blank" rel="noopener"></a></p>
+      </div>
+    </footer>
+    <!-- Filters sidebar toggle button (mobile)-->
+    <button class="btn btn-primary btn-sm w-100 rounded-0 fixed-bottom d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filters-sidebar"><i class="fi-filter me-2"></i>فیلتر</button>
+    <!-- Back to top button--><a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm ms-2">بالا</span><i class="btn-scroll-top-icon fi-chevron-up">   </i></a>
+    <!-- Vendor scrits: js libraries and plugins-->
+    <script src="vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/simplebar/dist/simplebar.min.js"></script>
+    <script src="vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+    <script src="vendor/tiny-slider/dist/min/tiny-slider.js"></script>
+    <script src="vendor/nouislider/dist/nouislider.min.js"></script>
+    <!-- Main theme script-->
+    <script src="js/theme.min.js"></script>
+  </body>
+
+</html>

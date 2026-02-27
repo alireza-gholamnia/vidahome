@@ -12,7 +12,7 @@ class CategoryImageInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("fa_name", "en_name", "slug", "parent", "is_active", "sort_order", "_view_link")
+    list_display = ("fa_name", "category_type", "en_name", "slug", "parent", "is_active", "sort_order", "_view_link")
     inlines = (CategoryImageInline,)
 
     def _view_link(self, obj):
@@ -25,7 +25,7 @@ class CategoryAdmin(admin.ModelAdmin):
         return "-"
 
     _view_link.short_description = "مشاهده"
-    list_filter = ("is_active", "parent")
+    list_filter = ("category_type", "is_active", "parent")
     search_fields = ("fa_name", "en_name", "slug")
     ordering = ("parent_id", "sort_order", "id")
     prepopulated_fields = {"slug": ("en_name",)}

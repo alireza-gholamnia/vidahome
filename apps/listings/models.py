@@ -85,7 +85,6 @@ class Listing(BaseSEO, models.Model):
         db_index=True,
         verbose_name="نوع معامله",
     )
-
     status = models.CharField(
         max_length=12,
         choices=Status.choices,

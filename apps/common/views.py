@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import HttpResponse
+from django.conf import settings
 from django.apps import apps
 from django_ratelimit.decorators import ratelimit
 
@@ -13,7 +15,7 @@ def home(request):
     Listing = apps.get_model("listings", "Listing")
 
     top_cities = City.objects.filter(is_active=True).order_by("sort_order")[:12]
-    top_categories = Category.objects.filter(is_active=True, parent__isnull=True).order_by("sort_order")[:12]
+    top_categories = Category.landing_queryset().filter(is_active=True, parent__isnull=True).order_by("sort_order")[:12]
     recent_listings = (
         Listing.objects.filter(status=Listing.Status.PUBLISHED)
         .select_related("city", "area", "category")
@@ -70,3 +72,22 @@ def contact(request):
             "seo_meta_description": "با VidaHome تماس بگیرید. سوالات و پیشنهادات خود را با ما در میان بگذارید.",
         },
     )
+
+
+def robots_txt(request):
+    """Dynamic robots.txt with sitemap location."""
+    site_url = (getattr(settings, "SITE_URL", "") or "").strip().rstrip("/")
+    if not site_url:
+        site_url = request.build_absolute_uri("/").rstrip("/")
+
+    content = "\n".join(
+        [
+            "User-agent: *",
+            "Allow: /",
+            "Disallow: /admin/",
+            "Disallow: /panel/",
+            f"Sitemap: {site_url}/sitemap.xml",
+            "",
+        ]
+    )
+    return HttpResponse(content, content_type="text/plain; charset=utf-8")

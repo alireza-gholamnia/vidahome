@@ -8,6 +8,7 @@ from django_ratelimit.decorators import ratelimit
 from django.views.generic import RedirectView
 from django.db.models import Q
 from django.urls import reverse
+from django.utils.html import strip_tags
 
 from apps.locations.models import City, Area
 from apps.categories.models import Category
@@ -87,10 +88,10 @@ def listing_catalog(request):
     # فیلترهای ویژگی (EAV)
     filterable_attrs = []
     if category_slug:
-        cat = Category.objects.filter(slug=category_slug).first()
+        cat = Category.listing_queryset().filter(slug=category_slug).first()
         if cat:
             cat_ids = list(
-                Category.objects.filter(Q(pk=cat.pk) | Q(parent=cat)).values_list("id", flat=True)
+                Category.listing_queryset().filter(Q(pk=cat.pk) | Q(parent=cat)).values_list("id", flat=True)
             )
             filterable_attrs = list(
                 Attribute.objects.filter(
@@ -157,7 +158,7 @@ def listing_catalog(request):
     listings = paginator.get_page(page_num)
 
     cities = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
-    categories = Category.objects.filter(parent__isnull=True, is_active=True).order_by("sort_order", "fa_name")
+    categories = Category.listing_queryset().filter(parent__isnull=True, is_active=True).order_by("sort_order", "fa_name")
     areas = []
     if city_slug:
         city = City.objects.filter(slug=city_slug, is_active=True).first()
@@ -700,7 +701,11 @@ def city_context(request, city_slug, context_slug):
 def area_category(request, city_slug, area_slug, category_slug):
     city = get_object_or_404(City, slug=city_slug, is_active=True)
     area = get_object_or_404(Area, city=city, slug=area_slug, is_active=True)
-    category = get_object_or_404(Category.objects.prefetch_related("images"), slug=category_slug, is_active=True)
+    category = get_object_or_404(
+        Category.objects.prefetch_related("images"),
+        slug=category_slug,
+        is_active=True,
+    )
 
     landing = CityAreaCategory.objects.filter(
         city=city,
@@ -913,8 +918,54 @@ def _listing_detail_render(request, listing, **extra):
 
     amenity_attrs = [av for av in listing.attribute_values.all() if av.value_bool]
     seo = _build_seo_for_listing(request, listing)
+    seo["seo_og_type"] = "product"
+    cover = listing.images.filter(is_cover=True).first() or listing.images.first()
+    if cover:
+        seo["seo_og_image"] = request.build_absolute_uri(cover.image.url)
     breadcrumbs = _listing_breadcrumbs(listing)
     neshan_api_key = getattr(settings, "NESHAN_API_KEY", "") or ""
+
+    description_text = strip_tags(listing.short_description or listing.description or "").strip()
+    product_schema = {
+        "@type": "Product",
+        "name": listing.title,
+        "description": description_text[:2000] if description_text else listing.title,
+        "sku": str(listing.id),
+        "category": listing.category.fa_name if listing.category_id else "",
+        "url": request.build_absolute_uri(listing.get_absolute_url()),
+    }
+    if listing.images.exists():
+        product_schema["image"] = [request.build_absolute_uri(img.image.url) for img in listing.images.all()[:5]]
+    if listing.has_price_display():
+        offer = {
+            "@type": "Offer",
+            "url": request.build_absolute_uri(listing.get_absolute_url()),
+            "priceCurrency": "IRR",
+            "availability": "https://schema.org/InStock",
+        }
+        if listing.deal == Listing.Deal.MORTGAGE_RENT:
+            offer["price"] = str(listing.price or listing.price_mortgage or 0)
+            offer["name"] = "رهن و اجاره"
+        else:
+            offer["price"] = str(listing.price or 0)
+            offer["name"] = listing.get_deal_display_fa()
+        product_schema["offers"] = offer
+    if listing.agency_id:
+        product_schema["brand"] = {"@type": "Organization", "name": listing.agency.name}
+
+    review_items = []
+    for lead in ListingLead.objects.filter(listing=listing).exclude(message="").order_by("-created_at")[:3]:
+        review_items.append(
+            {
+                "@type": "Review",
+                "author": {"@type": "Person", "name": f"{lead.first_name} {lead.last_name}".strip() or "کاربر"},
+                "reviewBody": lead.message[:500],
+            }
+        )
+    if review_items:
+        product_schema["review"] = review_items
+    extra_schema = [product_schema]
+
     return render(
         request,
         "pages/listing_detail.html",
@@ -925,6 +976,7 @@ def _listing_detail_render(request, listing, **extra):
             "amenity_attrs": amenity_attrs,
             "neshan_api_key": neshan_api_key,
             "inquiry_form": form,
+            "extra_schema_json_ld": extra_schema,
             **seo,
             **extra,
         },

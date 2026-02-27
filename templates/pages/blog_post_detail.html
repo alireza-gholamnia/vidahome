@@ -20,7 +20,7 @@
 
     <h1 class="h4 pb-3 font-vazir">{{ seo_h1 }}</h1>
     {% if post.cover_image %}
-    <img class="rounded-3 w-100" src="{{ post.cover_image.url }}" alt="{{ post.title }}" style="max-height: 400px; object-fit: cover;">
+    <img class="rounded-3 w-100" src="{{ post.cover_image.url }}" alt="{{ post.title }}" width="1200" height="630" style="max-height: 400px; object-fit: cover;">
     {% else %}
     <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center mb-3" style="height: 280px;"><i class="fi-file-text display-4 text-muted opacity-50"></i></div>
     {% endif %}
@@ -43,7 +43,7 @@
             <div class="card card-flush py-2 py-lg-0 mb-4">
               <div class="card-body d-flex align-items-start">
                 {% if post.author.avatar %}
-                <img class="me-3 rounded-circle" src="{{ post.author.avatar.url }}" width="80" alt="{{ post.author.get_full_name|default:post.author.username }}">
+                <img class="me-3 rounded-circle" src="{{ post.author.avatar.url }}" width="80" height="80" alt="{{ post.author.get_full_name|default:post.author.username }}">
                 {% else %}
                 <div class="me-3 rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;"><i class="fi-user fs-2 text-muted"></i></div>
                 {% endif %}
@@ -129,7 +129,7 @@
           <article>
             <a class="d-block mb-3" href="{{ r.get_absolute_url }}">
               {% if r.cover_image %}
-              <img class="rounded-3 w-100" src="{{ r.cover_image.url }}" alt="{{ r.title }}" style="height: 200px; object-fit: cover;">
+              <img class="rounded-3 w-100" src="{{ r.cover_image.url }}" alt="{{ r.title }}" width="800" height="450" style="height: 200px; object-fit: cover;">
               {% else %}
               <div class="rounded-3 bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fi-file-text fs-1 text-muted opacity-50"></i></div>
               {% endif %}
@@ -140,7 +140,7 @@
             <h3 class="fs-lg pt-1"><a class="nav-link" href="{{ r.get_absolute_url }}">{{ r.title }}</a></h3>
             <a class="d-flex align-items-center text-decoration-none" href="{{ r.get_absolute_url }}">
               {% if r.author.avatar %}
-              <img class="rounded-circle" src="{{ r.author.avatar.url }}" width="44" alt="">
+              <img class="rounded-circle" src="{{ r.author.avatar.url }}" width="44" height="44" alt="{{ r.author.get_full_name|default:r.author.username|default:'نویسنده' }}">
               {% else %}
               <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;"><i class="fi-user text-muted"></i></div>
               {% endif %}
