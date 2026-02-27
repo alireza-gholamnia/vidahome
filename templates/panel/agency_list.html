@@ -3,11 +3,12 @@
 {% block panel_content %}
 <div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0">مشاوره‌های املاک</h2>
+  <h2 class="h5 mb-0">املاک‌های من</h2>
   <a class="btn btn-primary btn-sm" href="{% url 'panel:agency_add' %}">
-    <i class="fi-plus me-1"></i>افزودن مشاوره املاک
+    <i class="fi-plus me-1"></i>افزودن املاک
   </a>
 </div>
+{% if agencies %}
 <div class="card shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover mb-0">
@@ -45,4 +46,14 @@
     </table>
   </div>
 </div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-5">
+    <p class="text-muted mb-3">هنوز هیچ املاکی ثبت نکرده‌اید.</p>
+    <a class="btn btn-primary" href="{% url 'panel:agency_add' %}">
+      <i class="fi-plus me-1"></i>ثبت اولین املاک
+    </a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

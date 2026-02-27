@@ -192,16 +192,13 @@
           <a class="btn btn-lg btn-primary w-100 mb-3" href="{{ listing.created_by.get_absolute_url }}">تماس با {{ listing.created_by.get_full_name|default:listing.created_by.username }}<i class="fi-chevron-left ms-2 fs-sm"></i></a>
           {% endif %}
 
-          <!-- فرم استعلام: قبل از لاگین فقط دکمه ورود، بعد از لاگین فرم با فیلدها -->
+          <!-- فرم استعلام: همیشه نمایش داده می‌شود؛ برای مهمان‌ها غیرفعال است -->
           <div class="card border-0 bg-secondary mb-4">
             <div class="card-body">
               <h5 class="mb-3">استعلام درباره این آگهی</h5>
               {% if not user.is_authenticated %}
-              <p class="text-muted mb-3">برای ارسال استعلام ابتدا وارد شوید. پس از ورود، فرم با اطلاعات شما نمایش داده می‌شود.</p>
-              <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#inquiry-login-modal">
-                <i class="fi-user me-2"></i>ورود برای ارسال استعلام
-              </button>
-              {% else %}
+              <p class="text-muted mb-3">برای ارسال استعلام ابتدا وارد شوید. فرم زیر تا زمان ورود غیرفعال است.</p>
+              {% endif %}
               {% if inquiry_form.first_name.field.disabled %}
               <p class="text-muted small mb-2">نام و نام خانوادگی از پروفایل شما استفاده می‌شود و فقط از <a href="{% url 'panel:profile_edit' %}">پنل کاربری</a> قابل تغییر است.</p>
               {% endif %}
@@ -211,6 +208,7 @@
               <form method="post" action="">
                 {% csrf_token %}
                 <input type="hidden" name="inquiry" value="1">
+                <fieldset {% if not user.is_authenticated %}disabled{% endif %}>
                 <div class="mb-2">
                   <label class="form-label small" for="id_first_name">نام</label>
                   {{ inquiry_form.first_name }}
@@ -231,7 +229,12 @@
                   {{ inquiry_form.message }}
                 </div>
                 <button type="submit" class="btn btn-primary w-100">ارسال استعلام</button>
+                </fieldset>
               </form>
+              {% if not user.is_authenticated %}
+              <button type="button" class="btn btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#inquiry-login-modal">
+                <i class="fi-user me-2"></i>ورود برای ارسال استعلام
+              </button>
               {% endif %}
             </div>
           </div>

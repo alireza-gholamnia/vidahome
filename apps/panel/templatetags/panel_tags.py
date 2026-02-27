@@ -7,27 +7,37 @@ register = template.Library()
 
 @register.filter
 def has_agency(user):
-    """آیا کاربر صاحب یک مشاوره املاک است؟"""
+    """آیا کاربر حداقل یک املاک فعال و تاییدشده دارد؟"""
     if not user or not user.is_authenticated:
         return False
     from apps.agencies.models import Agency
-    return Agency.objects.filter(owner=user).exists()
+    return Agency.objects.filter(
+        owner=user,
+        is_active=True,
+        approval_status=Agency.ApprovalStatus.APPROVED,
+    ).exists()
 
 
 @register.filter
 def is_agency_owner(user):
-    """آیا کاربر در گروه صاحب مشاوره است؟"""
+    """آیا کاربر مالک حداقل یک املاک است؟"""
     if not user or not user.is_authenticated:
         return False
-    return user.groups.filter(name="agency_owner").exists()
+    from apps.agencies.models import Agency
+
+    return Agency.objects.filter(
+        owner=user,
+        is_active=True,
+        approval_status=Agency.ApprovalStatus.APPROVED,
+    ).exists()
 
 
 @register.filter
 def is_agency_employee(user):
-    """آیا کاربر در گروه کارمند مشاوره است؟"""
+    """آیا کاربر در حال حاضر عضو یک املاک است؟"""
     if not user or not user.is_authenticated:
         return False
-    return user.groups.filter(name="agency_employee").exists()
+    return bool(getattr(user, "agency_id", None))
 
 
 @register.filter
@@ -53,12 +63,20 @@ def _can_edit(user, listing):
         return False
     if user.is_superuser:
         return True
-    if listing.created_by_id == user.id:
-        return True
     from apps.agencies.models import Agency
-    if listing.agency_id and Agency.objects.filter(owner=user, id=listing.agency_id).exists():
+    if not listing.agency_id:
+        return False
+
+    approved_active = {
+        "approval_status": Agency.ApprovalStatus.APPROVED,
+        "is_active": True,
+    }
+    if Agency.objects.filter(owner=user, id=listing.agency_id, **approved_active).exists():
         return True
-    return False
+    return Agency.objects.filter(
+        id=listing.agency_id,
+        **approved_active,
+    ).exists() and bool(getattr(user, "agency_id", None) == listing.agency_id)
 
 
 def _can_delete(user, listing):

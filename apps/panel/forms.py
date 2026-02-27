@@ -80,18 +80,26 @@ class ListingForm(forms.ModelForm):
                 self.fields["status"].initial = Listing.Status.PENDING
         # فیلد مشاوره برای صاحب مشاوره با چند آژانس
         if self.user:
-            agencies = Agency.objects.filter(owner=self.user)
+            approved_active = Agency.objects.filter(
+                approval_status=Agency.ApprovalStatus.APPROVED,
+                is_active=True,
+            )
+            if self.user.is_superuser or self.user.groups.filter(name="site_admin").exists():
+                agencies = approved_active.order_by("name", "id")
+            else:
+                agencies = approved_active.filter(owner=self.user).order_by("name", "id")
+
             if agencies.count() > 1:
                 self.fields["agency"] = forms.ModelChoiceField(
                     queryset=agencies,
-                    required=False,
-                    label="مشاوره املاک",
+                    required=True,
+                    label="املاک",
                     widget=forms.Select(attrs={"class": "form-select"}),
                 )
 
 
 class UserProfileForm(forms.ModelForm):
-    """فرم ویرایش اطلاعات شخصی کاربر."""
+    """فرم ویرایش پروفایل کاربری."""
 
     class Meta:
         model = User
@@ -103,6 +111,18 @@ class UserProfileForm(forms.ModelForm):
             "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "example@email.com"}),
             "avatar": forms.FileInput(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # شماره موبایل حساب کاربری فقط از مسیر OTP مدیریت می‌شود و در پنل قابل تغییر نیست.
+        self.fields["phone"].disabled = True
+        self.fields["phone"].required = False
+        self.fields["phone"].widget.attrs.update(
+            {
+                "readonly": "readonly",
+                "style": "pointer-events:none; background-color:var(--bs-secondary-bg);",
+            }
+        )
 
 
 class AgencyCreateForm(forms.ModelForm):

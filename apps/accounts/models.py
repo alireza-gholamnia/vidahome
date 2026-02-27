@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
+from apps.common.sms import normalize_phone
 from apps.common.upload_utils import avatar_upload_to
 
 # مدت اعتبار OTP به ثانیه (۲ دقیقه)
@@ -26,6 +27,13 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "کاربر"
         verbose_name_plural = "کاربران"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("phone",),
+                condition=~models.Q(phone=""),
+                name="uniq_accounts_user_phone_nonempty",
+            ),
+        ]
 
     phone = models.CharField(max_length=20, blank=True, verbose_name="تلفن")
     slug = models.SlugField(
@@ -71,6 +79,11 @@ class User(AbstractUser):
         if self.slug:
             return f"/agent/{self.id}-{self.slug}/"
         return f"/agent/{self.id}/"
+
+    def save(self, *args, **kwargs):
+        if self.phone:
+            self.phone = normalize_phone(self.phone)
+        super().save(*args, **kwargs)
 
 
 class OTPRequest(models.Model):
@@ -131,6 +144,13 @@ class RoleChangeRequest(models.Model):
         verbose_name = "درخواست تغییر نقش"
         verbose_name_plural = "درخواست‌های تغییر نقش"
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "requested_role"),
+                condition=models.Q(status="pending"),
+                name="uniq_pending_rolechange_user_role",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user} → {self.get_requested_role_display()}"

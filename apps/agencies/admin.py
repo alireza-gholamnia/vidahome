@@ -1,6 +1,12 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Agency, AgencyImage, AgencyJoinRequest, EmployeeRemoveRequest
+from .models import (
+    Agency,
+    AgencyImage,
+    AgencyJoinRequest,
+    AgencyEmployeeInvite,
+    EmployeeRemoveRequest,
+)
 
 
 def _view_link(url):
@@ -44,6 +50,14 @@ class AgencyJoinRequestAdmin(admin.ModelAdmin):
     list_filter = ("status",)
     search_fields = ("user__username", "agency__name")
     readonly_fields = ("created_at", "reviewed_at")
+
+
+@admin.register(AgencyEmployeeInvite)
+class AgencyEmployeeInviteAdmin(admin.ModelAdmin):
+    list_display = ("invited_user", "agency", "invited_by", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("invited_user__username", "agency__name", "invited_by__username")
+    readonly_fields = ("created_at", "responded_at")
 
 
 @admin.register(EmployeeRemoveRequest)

@@ -40,7 +40,7 @@
 {% endif %}
 <div class="card shadow-sm">
   <div class="card-body p-4">
-    <h2 class="h5 mb-4">{% if object %}ویرایش آگهی{% else %}ثبت ملک جدید{% endif %}</h2>
+    <h2 class="h5 mb-4">{% if object %}ویرایش آگهی{% else %}ثبت آگهی{% endif %}</h2>
     <form method="post" enctype="multipart/form-data" id="listing-form" data-rejected="{% if object and object.rejection_reason %}true{% else %}false{% endif %}">
       {% csrf_token %}
       {% if form.non_field_errors %}

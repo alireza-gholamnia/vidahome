@@ -11,23 +11,35 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
-from apps.agencies.models import Agency, AgencyJoinRequest, EmployeeRemoveRequest
+from apps.agencies.models import (
+    Agency,
+    AgencyJoinRequest,
+    AgencyEmployeeInvite,
+    EmployeeRemoveRequest,
+)
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
 from apps.accounts.models import RoleChangeRequest, GROUP_ROLE_LABELS
+from apps.accounts.roles import (
+    assign_user_to_agency,
+    clear_user_agency_membership,
+    promote_user_to_owner,
+    set_exclusive_business_role,
+    user_owns_any_agency,
+)
 from apps.listings.models import Listing
 from apps.lead.models import ListingLead, LandingLead
 from apps.locations.models import Area, City
+from apps.common.sms import normalize_phone
 
 from .forms import (
     AgencyCreateForm,
-    AgencyJoinRequestForm,
     AgencyProfileForm,
     AttributeForm,
     AttributeOptionFormSet,
     ListingForm,
-    RoleChangeRequestForm,
     UserProfileForm,
 )
 
@@ -42,6 +54,43 @@ def _get_user_agency(user):
     return _get_user_agencies(user).first()
 
 
+def _get_user_active_listing_agencies(user):
+    """Active/approved agencies that user can attach listings to."""
+    approved_active = {
+        "approval_status": Agency.ApprovalStatus.APPROVED,
+        "is_active": True,
+    }
+    if user.is_superuser or _is_site_admin(user):
+        return Agency.objects.filter(**approved_active).order_by("name", "id")
+
+    owner_agencies = _get_user_agencies(user).filter(**approved_active).order_by("name", "id")
+    if owner_agencies.exists():
+        return owner_agencies
+
+    if getattr(user, "agency_id", None):
+        return Agency.objects.filter(id=user.agency_id, **approved_active)
+
+    return Agency.objects.none()
+
+
+def _resolve_listing_agency_for_user(user, selected_agency=None):
+    """Resolve target agency for a listing based on user access and optional form selection."""
+    agencies = _get_user_active_listing_agencies(user)
+
+    if selected_agency is not None:
+        return agencies.filter(id=selected_agency.id).first()
+
+    if getattr(user, "agency_id", None):
+        current = agencies.filter(id=user.agency_id).first()
+        if current:
+            return current
+
+    if agencies.count() == 1:
+        return agencies.first()
+
+    return None
+
+
 def _get_user_listings_queryset(user):
     """آگهی‌های قابل دسترسی برای کاربر (صاحب مشاوره، کارمند، یا شخصی)."""
     qs = Listing.objects.select_related(
@@ -49,21 +98,17 @@ def _get_user_listings_queryset(user):
     ).prefetch_related("images")
     if user.is_superuser or _is_site_admin(user):
         return qs
-    agencies = _get_user_agencies(user)
-    if agencies.exists():
-        return qs.filter(agency__owner=user)
-    return qs.filter(created_by=user)
+    agency_ids = _get_user_active_listing_agencies(user).values_list("id", flat=True)
+    return qs.filter(agency_id__in=agency_ids)
 
 
 def _can_edit_listing(user, listing):
     """آیا کاربر مجاز به ویرایش این آگهی است؟"""
     if user.is_superuser or _is_site_admin(user):
         return True
-    if listing.created_by_id == user.id:
-        return True
-    if listing.agency_id and Agency.objects.filter(owner=user, id=listing.agency_id).exists():
-        return True
-    return False
+    if not listing.agency_id:
+        return False
+    return _get_user_active_listing_agencies(user).filter(id=listing.agency_id).exists()
 
 
 def _is_site_admin(user):
@@ -269,7 +314,7 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
             {"title": "صفحه اصلی", "url": "/"},
             {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
             {"title": "آگهی‌های من", "url": reverse("panel:listing_list")},
-            {"title": "ثبت ملک جدید", "url": None},
+            {"title": "ثبت آگهی", "url": None},
         ]
         context["initial_listing_id"] = None
         context["neshan_api_key"] = getattr(settings, "NESHAN_API_KEY", "") or ""
@@ -284,11 +329,16 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         obj = form.save(commit=False)
         obj.created_by = self.request.user
-        agency = form.cleaned_data.get("agency")
+        selected_agency = form.cleaned_data.get("agency")
+        agency = _resolve_listing_agency_for_user(self.request.user, selected_agency=selected_agency)
         if not agency:
-            agency = getattr(self.request.user, "agency", None) or _get_user_agency(self.request.user)
-        if agency:
-            obj.agency = agency
+            err = "برای ثبت آگهی باید یک املاک فعال/تأییدشده داشته باشید."
+            if "agency" in form.fields:
+                form.add_error("agency", err)
+            else:
+                form.add_error(None, err)
+            return self.form_invalid(form)
+        obj.agency = agency
         # هر آگهی جدید از پنل همیشه در صف تأیید (حتی ادمین)
         obj.status = Listing.Status.PENDING
         obj.save()
@@ -342,10 +392,22 @@ class ListingUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         obj = form.save(commit=False)
-        agency = form.cleaned_data.get("agency")
-        if agency:
-            obj.agency = agency
-        was_published = self.object.status == Listing.Status.PUBLISHED
+        selected_agency = form.cleaned_data.get("agency")
+        if selected_agency is not None:
+            resolved = _resolve_listing_agency_for_user(
+                self.request.user,
+                selected_agency=selected_agency,
+            )
+            if not resolved:
+                form.add_error("agency", "املاک انتخاب‌شده معتبر نیست.")
+                return self.form_invalid(form)
+            obj.agency = resolved
+        elif not obj.agency_id:
+            resolved = _resolve_listing_agency_for_user(self.request.user)
+            if not resolved:
+                form.add_error(None, "این آگهی باید به یک املاک فعال/تأییدشده متصل باشد.")
+                return self.form_invalid(form)
+            obj.agency = resolved
         if not _is_site_admin(self.request.user):
             # ویرایش آگهی منتشرشده یا ردشده → همیشه در صف تأیید
             obj.status = Listing.Status.PENDING
@@ -389,7 +451,7 @@ class ListingDeleteView(LoginRequiredMixin, DeleteView):
 
 @login_required(login_url="/accounts/login/")
 def profile_edit(request):
-    """ویرایش اطلاعات شخصی کاربر."""
+    """ویرایش پروفایل کاربری."""
     if request.method == "POST":
         form = UserProfileForm(
             request.POST, request.FILES, instance=request.user
@@ -407,7 +469,7 @@ def profile_edit(request):
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
                 {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-                {"title": "ویرایش پروفایل", "url": None},
+                {"title": "پروفایل کاربری", "url": None},
             ],
         },
     )
@@ -415,14 +477,8 @@ def profile_edit(request):
 
 @login_required(login_url="/accounts/login/")
 def agency_list(request):
-    """لیست مشاوره‌های املاک کاربر (صاحب مشاوره) — فقط با نقش agency_owner."""
-    if not request.user.groups.filter(name="agency_owner").exists():
-        return redirect("panel:dashboard")
-    agencies = _get_user_agencies(request.user)
-    if not agencies.exists():
-        if request.user.groups.filter(name="agency_owner").exists():
-            return redirect("panel:agency_add")
-        return redirect("panel:dashboard")
+    """لیست املاک‌های مالک (مدل عضو/مالک ساده و بدون تغییر نقش دستی)."""
+    agencies = _get_user_agencies(request.user).order_by("name", "id")
     return render(
         request,
         "panel/agency_list.html",
@@ -439,9 +495,7 @@ def agency_list(request):
 
 @login_required(login_url="/accounts/login/")
 def agency_add(request):
-    """افزودن مشاوره املاک جدید (فقط برای صاحب مشاوره)."""
-    if not request.user.groups.filter(name="agency_owner").exists():
-        return redirect("panel:dashboard")
+    """افزودن ملک/املاک جدید توسط هر کاربر سایت."""
     if request.method == "POST":
         form = AgencyCreateForm(request.POST, request.FILES)
         if form.is_valid():
@@ -450,6 +504,7 @@ def agency_add(request):
             agency.approval_status = Agency.ApprovalStatus.PENDING
             agency.save()
             form.save_m2m()
+            messages.success(request, "املاک شما ثبت شد و پس از تأیید مدیر سایت فعال می‌شود.")
             return redirect("panel:agency_list")
     else:
         form = AgencyCreateForm()
@@ -470,9 +525,7 @@ def agency_add(request):
 
 @login_required(login_url="/accounts/login/")
 def agency_edit(request, pk):
-    """ویرایش پروفایل مشاوره املاک — فقط با نقش agency_owner."""
-    if not request.user.groups.filter(name="agency_owner").exists():
-        return redirect("panel:dashboard")
+    """ویرایش پروفایل املاک — فقط برای مالک همان املاک."""
     agency = get_object_or_404(Agency, pk=pk, owner=request.user)
     if request.method == "POST":
         form = AgencyProfileForm(
@@ -501,57 +554,118 @@ def agency_edit(request, pk):
 
 @login_required(login_url="/accounts/login/")
 def agency_employees(request):
-    """لیست کارمندان مشاوره‌های مالک و امکان درخواست حذف — فقط صاحب مشاوره (دارای نقش)."""
-    if not request.user.groups.filter(name="agency_owner").exists():
-        return redirect("panel:dashboard")
+    """مدیریت همکاران املاک توسط مالک: ارسال دعوت، لغو دعوت، حذف همکار."""
     agencies = _get_user_agencies(request.user).filter(
         approval_status=Agency.ApprovalStatus.APPROVED,
         is_active=True,
     )
     if not agencies.exists():
-        return redirect("panel:dashboard")
+        messages.info(request, "برای مدیریت همکاران، ابتدا حداقل یک املاک فعال/تأییدشده داشته باشید.")
+        return redirect("panel:agency_list")
 
     from apps.accounts.models import User
 
-    employee_ids = User.objects.filter(
-        agency__in=agencies
-    ).values_list("id", flat=True)
+    employee_ids = User.objects.filter(agency__in=agencies).values_list("id", flat=True)
     employees = list(
         User.objects.filter(id__in=employee_ids)
         .select_related("agency")
         .order_by("agency__name", "first_name", "username")
     )
-
-    # درخواست‌های حذف در انتظار برای هر کارمند
-    pending_removes = set(
-        EmployeeRemoveRequest.objects.filter(
-            user_id__in=employee_ids,
-            status=EmployeeRemoveRequest.Status.PENDING,
-            requested_by=request.user,
-        ).values_list("user_id", flat=True)
+    pending_invites = list(
+        AgencyEmployeeInvite.objects.filter(
+            agency__in=agencies,
+            status=AgencyEmployeeInvite.Status.PENDING,
+        )
+        .select_related("agency", "invited_user")
+        .order_by("-created_at")
     )
 
     if request.method == "POST":
-        user_id = request.POST.get("user_id")
-        if user_id:
+        action = (request.POST.get("action") or "").strip()
+        if action == "remove_employee":
+            user_id = request.POST.get("user_id")
             try:
                 emp = User.objects.get(pk=int(user_id), agency__in=agencies)
-                if EmployeeRemoveRequest.objects.filter(
-                    user=emp,
-                    agency=emp.agency,
-                    status=EmployeeRemoveRequest.Status.PENDING,
-                ).exists():
-                    pass  # قبلاً درخواست داده
-                else:
-                    EmployeeRemoveRequest.objects.create(
-                        user=emp,
-                        agency=emp.agency,
-                        requested_by=request.user,
-                        status=EmployeeRemoveRequest.Status.PENDING,
-                    )
-                    pending_removes.add(emp.id)
+                clear_user_agency_membership(emp)
+                messages.success(request, "همکار از املاک حذف شد.")
             except (ValueError, User.DoesNotExist):
-                pass
+                messages.error(request, "کارمند انتخاب‌شده معتبر نیست.")
+            return redirect("panel:agency_employees")
+
+        if action == "cancel_invite":
+            invite_id = request.POST.get("invite_id")
+            try:
+                invite = AgencyEmployeeInvite.objects.get(
+                    pk=int(invite_id),
+                    agency__in=agencies,
+                    status=AgencyEmployeeInvite.Status.PENDING,
+                )
+                invite.status = AgencyEmployeeInvite.Status.CANCELED
+                invite.responded_at = timezone.now()
+                invite.save(update_fields=["status", "responded_at"])
+                messages.success(request, "دعوت همکاری لغو شد.")
+            except (ValueError, AgencyEmployeeInvite.DoesNotExist):
+                messages.error(request, "دعوت انتخاب‌شده معتبر نیست.")
+            return redirect("panel:agency_employees")
+
+        if action == "add_employee":
+            agency_id = request.POST.get("agency_id")
+            identifier = (request.POST.get("identifier") or "").strip()
+            if not agency_id or not identifier:
+                messages.error(request, "املاک و شناسه کاربر الزامی است.")
+                return redirect("panel:agency_employees")
+
+            try:
+                agency = agencies.get(pk=int(agency_id))
+            except (ValueError, Agency.DoesNotExist):
+                messages.error(request, "املاک انتخاب‌شده معتبر نیست.")
+                return redirect("panel:agency_employees")
+
+            normalized_phone = normalize_phone(identifier)
+            # جستجو بر اساس username یا phone
+            target = User.objects.filter(
+                Q(username__iexact=identifier)
+                | Q(phone__iexact=identifier)
+                | Q(phone__iexact=normalized_phone)
+            ).first()
+            if not target:
+                messages.error(request, "کاربری با این نام کاربری/شماره پیدا نشد.")
+                return redirect("panel:agency_employees")
+
+            if target.pk == request.user.pk:
+                messages.error(request, "نمی‌توانید خودتان را به عنوان همکار اضافه کنید.")
+                return redirect("panel:agency_employees")
+
+            if target.is_superuser or target.groups.filter(name="site_admin").exists():
+                messages.error(request, "امکان افزودن مدیر سایت به عنوان همکار وجود ندارد.")
+                return redirect("panel:agency_employees")
+
+            if user_owns_any_agency(target, approved_only=False):
+                messages.error(request, "این کاربر مالک املاک است و نمی‌تواند به عنوان همکار ثبت شود.")
+                return redirect("panel:agency_employees")
+
+            if target.agency_id == agency.id:
+                messages.info(request, "این کاربر هم‌اکنون همکار همین املاک است.")
+                return redirect("panel:agency_employees")
+
+            if AgencyEmployeeInvite.objects.filter(
+                invited_user=target,
+                agency=agency,
+                status=AgencyEmployeeInvite.Status.PENDING,
+            ).exists():
+                messages.info(request, "برای این کاربر قبلا دعوت همکاری ارسال شده و در انتظار تایید است.")
+                return redirect("panel:agency_employees")
+
+            AgencyEmployeeInvite.objects.create(
+                invited_user=target,
+                agency=agency,
+                invited_by=request.user,
+                status=AgencyEmployeeInvite.Status.PENDING,
+            )
+            messages.success(request, "دعوت همکاری ارسال شد. کاربر باید آن را در پنل خود تایید کند.")
+            return redirect("panel:agency_employees")
+
+        messages.error(request, "درخواست نامعتبر است.")
         return redirect("panel:agency_employees")
 
     return render(
@@ -559,7 +673,7 @@ def agency_employees(request):
         "panel/agency_employees.html",
         {
             "employees": employees,
-            "pending_removes": pending_removes,
+            "pending_invites": pending_invites,
             "agencies": agencies,
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
@@ -572,64 +686,11 @@ def agency_employees(request):
 
 @login_required(login_url="/accounts/login/")
 def role_change_request(request):
-    """درخواست تغییر نقش به صاحب مشاوره یا کارمند مشاوره — برای تمام کاربران."""
-    if request.method == "POST":
-        form = RoleChangeRequestForm(request.POST, user=request.user)
-        if form.is_valid():
-            role = form.cleaned_data.get("requested_role")
-            if not role:
-                form.add_error(
-                    "requested_role",
-                    "شما هم‌اکنون هر دو نقش صاحب مشاوره و کارمند مشاوره را دارید.",
-                )
-            else:
-                # جلوگیری از درخواست نقش‌ای که کاربر هم‌اکنون دارد
-                if request.user.groups.filter(name=role).exists():
-                    form.add_error(
-                        "requested_role",
-                        "شما هم‌اکنون این نقش را دارید.",
-                    )
-                elif RoleChangeRequest.objects.filter(
-                    user=request.user,
-                    requested_role=role,
-                    status=RoleChangeRequest.Status.PENDING,
-                ).exists():
-                    form.add_error(
-                        "requested_role",
-                        "درخواست مشابه برای این نقش در انتظار تأیید دارید.",
-                    )
-                else:
-                    RoleChangeRequest.objects.create(
-                        user=request.user,
-                        requested_role=role,
-                        message=form.cleaned_data.get("message", ""),
-                        status=RoleChangeRequest.Status.PENDING,
-                    )
-                    return redirect("panel:role_change_request")
-    else:
-        form = RoleChangeRequestForm(user=request.user)
-    requests_qs = RoleChangeRequest.objects.filter(user=request.user).order_by("-created_at")[:20]
-    # کاربر فقط وقتی می‌تواند درخواست نقش دهد که هیچ‌کدام از agency_owner و agency_employee را نداشته باشد
-    existing = set(request.user.groups.values_list("name", flat=True))
-    can_request_role = "agency_owner" not in existing and "agency_employee" not in existing
-    current_role_label = request.user.get_role_display()
-    if current_role_label in ("-", "کاربر معمولی"):
-        current_role_label = "کاربر سایت"
-    return render(
+    messages.info(
         request,
-        "panel/role_change_request.html",
-        {
-            "form": form,
-            "requests": list(requests_qs),
-            "can_request_role": can_request_role,
-            "current_role_label": current_role_label,
-            "breadcrumbs": [
-                {"title": "صفحه اصلی", "url": "/"},
-                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-                {"title": "درخواست تغییر نقش", "url": None},
-            ],
-        },
+        "این بخش غیرفعال شده است. برای مدیریت املاک از «املاک‌های من» و برای همکاری از «همکاران املاک» استفاده کنید.",
     )
+    return redirect("panel:dashboard")
 
 
 def _get_pending_listings_queryset():
@@ -641,65 +702,86 @@ def _get_pending_listings_queryset():
 
 @login_required(login_url="/accounts/login/")
 def employee_request_join(request):
-    """درخواست عضویت در مشاوره املاک — کاربران بدون نقش کارمند به صفحه راهنما هدایت می‌شوند."""
-    needs_role = not request.user.groups.filter(name="agency_employee").exists()
-    if needs_role:
-        return render(
-            request,
-            "panel/employee_request_join.html",
-            {
-                "needs_role_first": True,
-                "breadcrumbs": [
-                    {"title": "صفحه اصلی", "url": "/"},
-                    {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-                    {"title": "درخواست عضویت در مشاوره", "url": None},
-                ],
-            },
-        )
-    if request.user.agency_id:
-        return render(
-            request,
-            "panel/employee_request_join.html",
-            {
-                "already_member": True,
-                "agency": request.user.agency,
-                "breadcrumbs": [
-                    {"title": "صفحه اصلی", "url": "/"},
-                    {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-                    {"title": "درخواست عضویت در مشاوره", "url": None},
-                ],
-            },
-        )
+    """لیست دعوت‌های همکاری کاربر و امکان تایید/رد دعوت."""
+    pending_invites_qs = AgencyEmployeeInvite.objects.filter(
+        invited_user=request.user,
+        status=AgencyEmployeeInvite.Status.PENDING,
+    ).select_related("agency", "invited_by").order_by("-created_at")
+
     if request.method == "POST":
-        form = AgencyJoinRequestForm(request.POST, user=request.user)
-        if form.is_valid():
-            agency = form.cleaned_data["agency"]
-            if AgencyJoinRequest.objects.filter(
-                user=request.user, agency=agency, status=AgencyJoinRequest.Status.PENDING
-            ).exists():
-                form.add_error("agency", "درخواست مشابه در انتظار تأیید دارید.")
-            else:
-                AgencyJoinRequest.objects.create(
-                    user=request.user,
-                    agency=agency,
-                    status=AgencyJoinRequest.Status.PENDING,
-                )
+        action = (request.POST.get("action") or "").strip()
+        invite_id = request.POST.get("invite_id")
+        try:
+            invite = AgencyEmployeeInvite.objects.select_related("agency").get(
+                pk=int(invite_id),
+                invited_user=request.user,
+                status=AgencyEmployeeInvite.Status.PENDING,
+            )
+        except (TypeError, ValueError, AgencyEmployeeInvite.DoesNotExist):
+            messages.error(request, "دعوت انتخاب‌شده معتبر نیست.")
+            return redirect("panel:employee_request_join")
+
+        if action == "accept_invite":
+            agency = invite.agency
+            if (
+                agency.approval_status != Agency.ApprovalStatus.APPROVED
+                or not agency.is_active
+            ):
+                invite.status = AgencyEmployeeInvite.Status.REJECTED
+                invite.responded_at = timezone.now()
+                invite.save(update_fields=["status", "responded_at"])
+                messages.error(request, "این دعوت معتبر نیست (املاک فعال/تأییدشده نیست) و رد شد.")
                 return redirect("panel:employee_request_join")
-    else:
-        form = AgencyJoinRequestForm(user=request.user)
-    requests = AgencyJoinRequest.objects.filter(user=request.user).select_related(
-        "agency"
-    ).order_by("-created_at")[:20]
+
+            if user_owns_any_agency(request.user, approved_only=False):
+                invite.status = AgencyEmployeeInvite.Status.REJECTED
+                invite.responded_at = timezone.now()
+                invite.save(update_fields=["status", "responded_at"])
+                messages.error(request, "شما مالک املاک هستید و امکان پذیرش دعوت همکاری ندارید.")
+                return redirect("panel:employee_request_join")
+
+            assign_user_to_agency(request.user, agency)
+            invite.status = AgencyEmployeeInvite.Status.ACCEPTED
+            invite.responded_at = timezone.now()
+            invite.save(update_fields=["status", "responded_at"])
+
+            AgencyEmployeeInvite.objects.filter(
+                invited_user=request.user,
+                status=AgencyEmployeeInvite.Status.PENDING,
+            ).exclude(pk=invite.pk).update(
+                status=AgencyEmployeeInvite.Status.REJECTED,
+                responded_at=timezone.now(),
+            )
+
+            messages.success(request, "دعوت همکاری تایید شد و عضویت شما فعال گردید.")
+            return redirect("panel:employee_my_agency")
+
+        if action == "reject_invite":
+            invite.status = AgencyEmployeeInvite.Status.REJECTED
+            invite.responded_at = timezone.now()
+            invite.save(update_fields=["status", "responded_at"])
+            messages.info(request, "دعوت همکاری رد شد.")
+            return redirect("panel:employee_request_join")
+
+        messages.error(request, "درخواست نامعتبر است.")
+        return redirect("panel:employee_request_join")
+
+    invite_history = AgencyEmployeeInvite.objects.filter(
+        invited_user=request.user,
+    ).exclude(status=AgencyEmployeeInvite.Status.PENDING).select_related(
+        "agency", "invited_by"
+    ).order_by("-created_at")[:30]
+
     return render(
         request,
         "panel/employee_request_join.html",
         {
-            "form": form,
-            "requests": requests,
+            "pending_invites": list(pending_invites_qs),
+            "invite_history": list(invite_history),
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
                 {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-                {"title": "درخواست عضویت در مشاوره", "url": None},
+                {"title": "دعوت‌های همکاری", "url": None},
             ],
         },
     )
@@ -709,7 +791,7 @@ def employee_request_join(request):
 def employee_my_agency(request):
     """نمایش اطلاعات مشاوره‌ای که کاربر عضو آن است — فقط برای کارمندان با user.agency."""
     if not request.user.agency_id:
-        return redirect("panel:employee_request_join")
+        return redirect("panel:dashboard")
     agency = request.user.agency
     return render(
         request,
@@ -732,7 +814,7 @@ def approve_dashboard(request):
         return redirect("panel:dashboard")
 
     tab = request.GET.get("tab", "pending")
-    if tab not in ("pending", "rejected", "approved", "join_requests", "employees", "remove_requests", "role_change"):
+    if tab not in ("pending", "rejected", "approved", "employees"):
         tab = "pending"
 
     pending_listings_qs = _get_pending_listings_queryset().order_by("-updated_at")
@@ -759,13 +841,6 @@ def approve_dashboard(request):
     approved_listings_count = approved_listings_qs.count()
     approved_listings = list(approved_listings_qs[:50])
 
-    # درخواست‌های عضویت کارمند
-    join_requests_qs = AgencyJoinRequest.objects.filter(
-        status=AgencyJoinRequest.Status.PENDING
-    ).select_related("user", "agency").order_by("-created_at")
-    join_requests_count = join_requests_qs.count()
-    join_requests = list(join_requests_qs[:50])
-
     # کارمندان (کاربران با agency)
     from apps.accounts.models import User
 
@@ -774,19 +849,6 @@ def approve_dashboard(request):
     ).order_by("agency__name", "first_name", "username")
     employees_count = employees_qs.count()
     employees = list(employees_qs[:100])
-
-    # درخواست‌های حذف کارمند (توسط صاحب مشاوره)
-    remove_requests_qs = EmployeeRemoveRequest.objects.filter(
-        status=EmployeeRemoveRequest.Status.PENDING
-    ).select_related("user", "agency", "requested_by").order_by("-created_at")
-    remove_requests_count = remove_requests_qs.count()
-    remove_requests = list(remove_requests_qs[:50])
-
-    role_change_qs = RoleChangeRequest.objects.filter(
-        status=RoleChangeRequest.Status.PENDING
-    ).select_related("user").order_by("-created_at")
-    role_change_count = role_change_qs.count()
-    role_change_requests = list(role_change_qs[:50])
 
     return render(
         request,
@@ -801,14 +863,8 @@ def approve_dashboard(request):
             "rejected_listings_count": rejected_listings_count,
             "approved_listings": approved_listings,
             "approved_listings_count": approved_listings_count,
-            "join_requests": join_requests,
-            "join_requests_count": join_requests_count,
             "employees": employees,
             "employees_count": employees_count,
-            "remove_requests": remove_requests,
-            "remove_requests_count": remove_requests_count,
-            "role_change_requests": role_change_requests,
-            "role_change_count": role_change_count,
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
                 {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
@@ -856,29 +912,51 @@ def approve_join_request(request, pk):
     )
     action = request.POST.get("action")
     if action == "approve":
-        from django.contrib.auth.models import Group
+        if (
+            join_req.agency.approval_status != Agency.ApprovalStatus.APPROVED
+            or not join_req.agency.is_active
+        ):
+            join_req.status = AgencyJoinRequest.Status.REJECTED
+            from django.utils import timezone
 
-        # اگر کاربر از قبل عضو این مشاوره است، فقط وضعیت را تأیید می‌کنیم
-        if join_req.user.agency_id != join_req.agency_id:
-            join_req.user.agency = join_req.agency
-            join_req.user.save()
-        emp_group = Group.objects.filter(name="agency_employee").first()
-        if emp_group and not join_req.user.groups.filter(name="agency_employee").exists():
-            join_req.user.groups.add(emp_group)
+            join_req.reviewed_at = timezone.now()
+            join_req.save(update_fields=["status", "reviewed_at"])
+            messages.error(request, "این مشاوره فعال/تأیید شده نیست و درخواست عضویت رد شد.")
+            return redirect("panel:approve_dashboard")
+
+        # نقش‌ها انحصاری هستند؛ کاربری که مالک مشاوره است نباید کارمند شود.
+        if user_owns_any_agency(join_req.user, approved_only=False):
+            join_req.status = AgencyJoinRequest.Status.REJECTED
+            from django.utils import timezone
+
+            join_req.reviewed_at = timezone.now()
+            join_req.save(update_fields=["status", "reviewed_at"])
+            messages.error(request, "این کاربر مالک مشاوره است و امکان تأیید به عنوان کارمند ندارد.")
+            return redirect("panel:approve_dashboard")
+
+        assign_user_to_agency(join_req.user, join_req.agency)
         join_req.status = AgencyJoinRequest.Status.APPROVED
         from django.utils import timezone
 
         join_req.reviewed_at = timezone.now()
         join_req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=join_requests")
+        # با تأیید یک درخواست، بقیه درخواست‌های باز کاربر بسته می‌شوند.
+        AgencyJoinRequest.objects.filter(
+            user=join_req.user,
+            status=AgencyJoinRequest.Status.PENDING,
+        ).exclude(pk=join_req.pk).update(
+            status=AgencyJoinRequest.Status.REJECTED,
+            reviewed_at=timezone.now(),
+        )
+        return redirect("panel:approve_dashboard")
     elif action == "reject":
         join_req.status = AgencyJoinRequest.Status.REJECTED
         from django.utils import timezone
 
         join_req.reviewed_at = timezone.now()
         join_req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=join_requests")
-    return redirect(reverse("panel:approve_dashboard") + "?tab=join_requests")
+        return redirect("panel:approve_dashboard")
+    return redirect("panel:approve_dashboard")
 
 
 @login_required(login_url="/accounts/login/")
@@ -893,22 +971,21 @@ def approve_remove_request(request, pk):
     if action == "approve":
         # فقط در صورتی که کارمند هنوز در همان مشاوره است
         if req.user.agency_id == req.agency_id:
-            req.user.agency = None
-            req.user.save()
+            clear_user_agency_membership(req.user)
         req.status = EmployeeRemoveRequest.Status.APPROVED
         from django.utils import timezone
 
         req.reviewed_at = timezone.now()
         req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=remove_requests")
+        return redirect("panel:approve_dashboard")
     elif action == "reject":
         req.status = EmployeeRemoveRequest.Status.REJECTED
         from django.utils import timezone
 
         req.reviewed_at = timezone.now()
         req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=remove_requests")
-    return redirect(reverse("panel:approve_dashboard") + "?tab=remove_requests")
+        return redirect("panel:approve_dashboard")
+    return redirect("panel:approve_dashboard")
 
 
 @login_required(login_url="/accounts/login/")
@@ -921,31 +998,38 @@ def approve_role_change_request(request, pk):
     )
     action = request.POST.get("action")
     if action == "approve":
-        from django.contrib.auth.models import Group
+        # اگر کاربر مالک مشاوره باشد، نباید به نقش کارمند تغییر کند.
+        if (
+            req.requested_role == RoleChangeRequest.RequestedRole.AGENCY_EMPLOYEE
+            and user_owns_any_agency(req.user, approved_only=False)
+        ):
+            req.status = RoleChangeRequest.Status.REJECTED
+            from django.utils import timezone
 
-        # حذف نقش‌های قبلی (member, agency_owner, agency_employee) و افزودن نقش جدید — انحصار نقش‌ها
-        main_roles = ("member", "agency_owner", "agency_employee")
-        for gname in main_roles:
-            g = Group.objects.filter(name=gname).first()
-            if g and req.user.groups.filter(pk=g.pk).exists():
-                req.user.groups.remove(g)
-        new_group = Group.objects.filter(name=req.requested_role).first()
-        if new_group:
-            req.user.groups.add(new_group)
+            req.reviewed_at = timezone.now()
+            req.save(update_fields=["status", "reviewed_at"])
+            messages.error(request, "این کاربر مالک مشاوره است و نمی‌تواند نقش کارمند بگیرد.")
+            return redirect("panel:approve_dashboard")
+
+        if req.requested_role == RoleChangeRequest.RequestedRole.AGENCY_OWNER:
+            promote_user_to_owner(req.user)
+        else:
+            set_exclusive_business_role(req.user, RoleChangeRequest.RequestedRole.AGENCY_EMPLOYEE)
+
         req.status = RoleChangeRequest.Status.APPROVED
         from django.utils import timezone
 
         req.reviewed_at = timezone.now()
         req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=role_change")
+        return redirect("panel:approve_dashboard")
     elif action == "reject":
         req.status = RoleChangeRequest.Status.REJECTED
         from django.utils import timezone
 
         req.reviewed_at = timezone.now()
         req.save()
-        return redirect(reverse("panel:approve_dashboard") + "?tab=role_change")
-    return redirect(reverse("panel:approve_dashboard") + "?tab=role_change")
+        return redirect("panel:approve_dashboard")
+    return redirect("panel:approve_dashboard")
 
 
 @login_required(login_url="/accounts/login/")
@@ -961,16 +1045,15 @@ def employee_manage_agency(request, user_id):
     if request.method == "POST":
         new_agency_id = request.POST.get("agency")
         if new_agency_id == "" or new_agency_id == "remove":
-            emp.agency = None
-            emp.save()
+            clear_user_agency_membership(emp)
         else:
             try:
                 agency = Agency.objects.get(
                     pk=int(new_agency_id),
                     approval_status=Agency.ApprovalStatus.APPROVED,
+                    is_active=True,
                 )
-                emp.agency = agency
-                emp.save()
+                assign_user_to_agency(emp, agency)
             except (ValueError, Agency.DoesNotExist):
                 pass
         return redirect(reverse("panel:approve_dashboard") + "?tab=employees")
@@ -1005,6 +1088,7 @@ def approve_agency(request, pk):
         agency.approval_status = Agency.ApprovalStatus.APPROVED
         agency.is_active = True
         agency.save()
+        promote_user_to_owner(agency.owner)
         return redirect("panel:approve_dashboard")
     elif action == "reject":
         agency.approval_status = Agency.ApprovalStatus.REJECTED
@@ -1251,18 +1335,19 @@ def attributes_json(request):
     if listing_id:
         try:
             lid = int(listing_id)
-            for lav in ListingAttribute.objects.filter(
-                listing_id=lid
-            ).select_related("attribute", "value_option"):
-                # استخراج مقدار از هر فیلدی که پر شده (مستقل از value_type)
-                if lav.value_int is not None:
-                    current_values[lav.attribute_id] = lav.value_int
-                elif lav.value_bool is not None:
-                    current_values[lav.attribute_id] = lav.value_bool
-                elif lav.value_str:
-                    current_values[lav.attribute_id] = lav.value_str
-                elif lav.value_option_id is not None:
-                    current_values[lav.attribute_id] = lav.value_option_id
+            if _get_user_listings_queryset(request.user).filter(id=lid).exists():
+                for lav in ListingAttribute.objects.filter(
+                    listing_id=lid
+                ).select_related("attribute", "value_option"):
+                    # استخراج مقدار از هر فیلدی که پر شده (مستقل از value_type)
+                    if lav.value_int is not None:
+                        current_values[lav.attribute_id] = lav.value_int
+                    elif lav.value_bool is not None:
+                        current_values[lav.attribute_id] = lav.value_bool
+                    elif lav.value_str:
+                        current_values[lav.attribute_id] = lav.value_str
+                    elif lav.value_option_id is not None:
+                        current_values[lav.attribute_id] = lav.value_option_id
         except ValueError:
             pass
     result = []
@@ -1285,3 +1370,5 @@ def attributes_json(request):
             item["current_value"] = current_values.get(attr.id)
         result.append(item)
     return JsonResponse(result, safe=False)
+
+

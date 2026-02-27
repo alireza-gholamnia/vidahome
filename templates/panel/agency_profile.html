@@ -6,7 +6,7 @@
 </div>
 <div class="card shadow-sm">
   <div class="card-body p-4">
-    <h2 class="h5 mb-4">پروفایل مشاوره املاک</h2>
+    <h2 class="h5 mb-4">پروفایل املاک</h2>
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {% if form.non_field_errors %}
@@ -14,7 +14,7 @@
       {% endif %}
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label" for="id_name">نام مشاوره املاک</label>
+          <label class="form-label" for="id_name">نام املاک</label>
           {{ form.name }}
           {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
         </div>
@@ -47,7 +47,7 @@
       </div>
       <div class="mt-4">
         <button type="submit" class="btn btn-primary">ذخیره</button>
-        <a class="btn btn-outline-secondary me-2" href="{{ agency.get_absolute_url }}" target="_blank">مشاهده صفحه مشاوره</a>
+        <a class="btn btn-outline-secondary me-2" href="{{ agency.get_absolute_url }}" target="_blank">مشاهده صفحه املاک</a>
       </div>
     </form>
   </div>

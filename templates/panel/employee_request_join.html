@@ -1,79 +1,102 @@
 {% extends "panel/base.html" %}
-{% load panel_tags %}
 {% block panel_content %}
 <div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
 
-{% if needs_role_first %}
-<div class="card shadow-sm">
-  <div class="card-body py-5">
-    <p class="text-warning mb-3"><i class="fi-info-circle fs-4"></i></p>
-    <h3 class="h6 mb-3">درخواست عضویت در مشاوره املاک</h3>
-    <p class="mb-4">برای عضویت در یک مشاوره املاک، ابتدا باید نقش «کارمند مشاوره» را درخواست کنید.</p>
-    <p class="mb-0">از بخش <a href="{% url 'panel:role_change_request' %}">درخواست تغییر نقش</a>، نقش «کارمند مشاوره املاک» را انتخاب و درخواست خود را ارسال کنید. پس از تأیید ادمین سایت، می‌توانید مشاوره مورد نظر خود را انتخاب کنید.</p>
+<div class="card shadow-sm mb-4">
+  <div class="card-body p-4">
+    <h2 class="h5 mb-3">دعوت‌های همکاری من</h2>
+    <p class="text-muted mb-0">
+      برای عضویت در املاک، دعوت همکاری را تایید کنید. تا قبل از تایید شما، عضویت فعال نمی‌شود.
+    </p>
   </div>
 </div>
-{% elif already_member %}
+
+<h3 class="h6 mb-3">دعوت‌های در انتظار پاسخ</h3>
+{% if pending_invites %}
+<div class="card shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>املاک</th>
+          <th>دعوت‌کننده</th>
+          <th>تاریخ دعوت</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in pending_invites %}
+        <tr>
+          <td>{{ inv.agency.name }}</td>
+          <td>{{ inv.invited_by.get_full_name|default:inv.invited_by.username }}</td>
+          <td>{{ inv.created_at|date:"Y/m/d H:i" }}</td>
+          <td class="text-nowrap">
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="accept_invite" />
+              <input type="hidden" name="invite_id" value="{{ inv.id }}" />
+              <button type="submit" class="btn btn-sm btn-success">تایید</button>
+            </form>
+            <form method="post" class="d-inline" onsubmit="return confirm('این دعوت رد شود؟');">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="reject_invite" />
+              <input type="hidden" name="invite_id" value="{{ inv.id }}" />
+              <button type="submit" class="btn btn-sm btn-outline-danger">رد</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm mb-4">
+  <div class="card-body text-center py-4">
+    <p class="text-muted mb-0">دعوت همکاری فعالی برای شما وجود ندارد.</p>
+  </div>
+</div>
+{% endif %}
+
+<h3 class="h6 mb-3">سوابق دعوت‌ها</h3>
+{% if invite_history %}
 <div class="card shadow-sm">
-  <div class="card-body text-center py-5">
-    <p class="text-success mb-2"><i class="fi-check-circle fs-4"></i></p>
-    <p class="mb-0">شما عضو مشاوره املاک <strong>{{ agency.name }}</strong> هستید.</p>
-    <p class="text-muted small mt-2 mb-0">برای تغییر مشاوره با ادمین سایت تماس بگیرید.</p>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>املاک</th>
+          <th>دعوت‌کننده</th>
+          <th>وضعیت</th>
+          <th>تاریخ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invite_history %}
+        <tr>
+          <td>{{ inv.agency.name }}</td>
+          <td>{{ inv.invited_by.get_full_name|default:inv.invited_by.username }}</td>
+          <td>
+            {% if inv.status == 'accepted' %}
+            <span class="badge bg-success">تایید شده</span>
+            {% elif inv.status == 'rejected' %}
+            <span class="badge bg-danger">رد شده</span>
+            {% else %}
+            <span class="badge bg-secondary">لغو شده</span>
+            {% endif %}
+          </td>
+          <td>{{ inv.created_at|date:"Y/m/d H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% else %}
 <div class="card shadow-sm">
-  <div class="card-body p-4">
-    <h2 class="h5 mb-4">درخواست عضویت در مشاوره املاک</h2>
-    <p class="text-muted mb-4">مشاوره املاکی را انتخاب کنید. درخواست شما پس از تأیید ادمین سایت، فعال می‌شود.</p>
-    <form method="post">
-      {% csrf_token %}
-      {% if form.non_field_errors %}
-      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-      {% endif %}
-      <div class="mb-3">
-        <label class="form-label" for="id_agency">مشاوره املاک</label>
-        {{ form.agency }}
-        {% if form.agency.errors %}<div class="text-danger small mt-1">{{ form.agency.errors }}</div>{% endif %}
-      </div>
-      <button type="submit" class="btn btn-primary">ارسال درخواست</button>
-    </form>
+  <div class="card-body text-center py-4">
+    <p class="text-muted mb-0">سابقه‌ای برای دعوت‌های همکاری ثبت نشده است.</p>
   </div>
 </div>
-
-{% if requests %}
-<div class="card shadow-sm mt-4">
-  <div class="card-body p-4">
-    <h3 class="h6 mb-3">درخواست‌های من</h3>
-    <div class="table-responsive">
-      <table class="table table-sm mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>مشاوره املاک</th>
-            <th>وضعیت</th>
-            <th>تاریخ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in requests %}
-          <tr>
-            <td>{{ r.agency.name }}</td>
-            <td>
-              {% if r.status == 'pending' %}
-              <span class="badge bg-warning">در انتظار تأیید</span>
-              {% elif r.status == 'approved' %}
-              <span class="badge bg-success">تأیید شده</span>
-              {% else %}
-              <span class="badge bg-danger">رد شده</span>
-              {% endif %}
-            </td>
-            <td>{{ r.created_at|date:"Y/m/d" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-{% endif %}
 {% endif %}
 {% endblock %}

@@ -481,9 +481,6 @@ def _process_landing_lead_post(request, source_type: str, source_path: str, redi
             if last_name and (user.last_name or "").strip() != last_name:
                 user.last_name = last_name
                 updated_fields.append("last_name")
-            if phone and (getattr(user, "phone", "") or "").strip() != phone:
-                user.phone = phone
-                updated_fields.append("phone")
             if email and (getattr(user, "email", "") or "").strip() != email:
                 user.email = email
                 updated_fields.append("email")
@@ -851,20 +848,17 @@ def _listing_detail_render(request, listing, **extra):
                     phone=phone,
                     message=message,
                 )
-                # تکمیل پروفایل وقتی نام/تلفن قفل نباشند
-                if user.is_authenticated and (not lock_name or not lock_phone):
-                    updated = False
-                    if not lock_name and first_name and (user.first_name or "").strip() != first_name:
+                # تکمیل پروفایل فقط برای نام/نام خانوادگی
+                if user.is_authenticated and not lock_name:
+                    updated_fields = []
+                    if first_name and (user.first_name or "").strip() != first_name:
                         user.first_name = first_name
-                        updated = True
-                    if not lock_name and last_name and (user.last_name or "").strip() != last_name:
+                        updated_fields.append("first_name")
+                    if last_name and (user.last_name or "").strip() != last_name:
                         user.last_name = last_name
-                        updated = True
-                    if not lock_phone and phone and (getattr(user, "phone", "") or "").strip() != phone:
-                        user.phone = phone
-                        updated = True
-                    if updated:
-                        user.save(update_fields=["first_name", "last_name", "phone"])
+                        updated_fields.append("last_name")
+                    if updated_fields:
+                        user.save(update_fields=updated_fields)
                 messages.success(request, "استعلام شما با موفقیت ارسال شد. به زودی با شما تماس گرفته می‌شود.")
                 return redirect(listing.get_absolute_url())
     else:

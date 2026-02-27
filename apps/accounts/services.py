@@ -1,6 +1,8 @@
 """
 سرویس‌های مرتبط با احراز هویت
 """
+import logging
+
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
@@ -9,6 +11,7 @@ from apps.common.sms import send_otp, generate_otp_code, normalize_phone
 from .models import OTPRequest, OTP_EXPIRE_SECONDS, OTP_COOLDOWN_SECONDS
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def request_otp(phone: str) -> tuple[bool, str]:
@@ -47,7 +50,18 @@ def verify_otp(phone: str, code: str) -> User | None:
     if not otp or otp.is_expired():
         return None
 
-    user = User.objects.filter(phone=phone).first() or User.objects.filter(username=phone).first()
+    phone_users = User.objects.filter(phone=phone).order_by("id")
+    username_users = User.objects.filter(username=phone).order_by("id")
+
+    if phone_users.count() > 1:
+        logger.error("OTP verify blocked: duplicate users with same phone=%s", phone)
+        return None
+
+    if username_users.count() > 1:
+        logger.error("OTP verify blocked: duplicate users with same username=%s", phone)
+        return None
+
+    user = phone_users.first() or username_users.first()
     if not user:
         user = User(username=phone, phone=phone, is_active=True)
         user.set_unusable_password()
@@ -55,4 +69,7 @@ def verify_otp(phone: str, code: str) -> User | None:
     elif not user.phone:
         user.phone = phone
         user.save(update_fields=["phone"])
+
+    # OTP is strictly single-use.
+    OTPRequest.objects.filter(phone=phone).delete()
     return user

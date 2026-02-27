@@ -55,7 +55,14 @@ class Agency(BaseSEO, models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify_from_title(self.name, max_length=200)
+            base_slug = slugify_from_title(self.name, max_length=200)
+            candidate = base_slug
+            suffix = 2
+            while Agency.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                suffix_text = f"-{suffix}"
+                candidate = f"{base_slug[: 200 - len(suffix_text)]}{suffix_text}"
+                suffix += 1
+            self.slug = candidate
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -128,9 +135,73 @@ class AgencyJoinRequest(models.Model):
         verbose_name = "درخواست عضویت کارمند"
         verbose_name_plural = "درخواست‌های عضویت کارمند"
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "agency"),
+                condition=models.Q(status="pending"),
+                name="uniq_pending_join_user_agency",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.user} → {self.agency}"
+
+
+class AgencyEmployeeInvite(models.Model):
+    """دعوت کاربر به همکاری در یک املاک توسط مالک همان املاک."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "در انتظار تایید"
+        ACCEPTED = "accepted", "پذیرفته شده"
+        REJECTED = "rejected", "رد شده"
+        CANCELED = "canceled", "لغو شده"
+
+    invited_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="agency_invites",
+        verbose_name="کاربر دعوت‌شده",
+    )
+    agency = models.ForeignKey(
+        Agency,
+        on_delete=models.CASCADE,
+        related_name="employee_invites",
+        verbose_name="املاک",
+    )
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="agency_invites_sent",
+        verbose_name="دعوت‌کننده",
+    )
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+        verbose_name="وضعیت",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    responded_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="تاریخ پاسخ",
+    )
+
+    class Meta:
+        verbose_name = "دعوت همکاری در املاک"
+        verbose_name_plural = "دعوت‌های همکاری در املاک"
+        ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("invited_user", "agency"),
+                condition=models.Q(status="pending"),
+                name="uniq_pending_invite_user_agency",
+            ),
+        ]
+
+    def __str__(self):
+        return f"دعوت {self.invited_user} برای {self.agency}"
 
 
 class EmployeeRemoveRequest(models.Model):
@@ -173,6 +244,13 @@ class EmployeeRemoveRequest(models.Model):
         verbose_name = "درخواست حذف کارمند"
         verbose_name_plural = "درخواست‌های حذف کارمند"
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "agency"),
+                condition=models.Q(status="pending"),
+                name="uniq_pending_remove_user_agency",
+            ),
+        ]
 
     def __str__(self):
         return f"حذف {self.user} از {self.agency}"

@@ -51,31 +51,31 @@
               {% endif %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'listing_add' %}active fw-bold{% endif %}" href="{% url 'panel:listing_add' %}">
-                  <i class="fi-plus me-2 opacity-70"></i>ثبت ملک جدید
+                  <i class="fi-plus me-2 opacity-70"></i>ثبت آگهی
                 </a>
               </li>
-              {% if user|is_agency_owner %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'agency_list' or request.resolver_match.url_name == 'agency_edit' or request.resolver_match.url_name == 'agency_add' %}active fw-bold{% endif %}" href="{% url 'panel:agency_list' %}">
-                  <i class="fi-building me-2 opacity-70"></i>مشاوره‌های املاک
+                  <i class="fi-building me-2 opacity-70"></i>املاک‌های من
                 </a>
               </li>
+              {% if user|has_agency %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'agency_employees' %}active fw-bold{% endif %}" href="{% url 'panel:agency_employees' %}">
-                  <i class="fi-users me-2 opacity-70"></i>کارمندان مشاوره
+                  <i class="fi-users me-2 opacity-70"></i>همکاران املاک
                 </a>
               </li>
               {% endif %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'employee_request_join' %}active fw-bold{% endif %}" href="{% url 'panel:employee_request_join' %}">
+                  <i class="fi-user-plus me-2 opacity-70"></i>دعوت‌های همکاری
+                  {% if pending_invites_count %}<span class="badge bg-danger ms-1">{{ pending_invites_count }}</span>{% endif %}
+                </a>
+              </li>
               {% if user.agency %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'employee_my_agency' %}active fw-bold{% endif %}" href="{% url 'panel:employee_my_agency' %}">
-                  <i class="fi-building me-2 opacity-70"></i>مشاوره املاک من
-                </a>
-              </li>
-              {% elif user|is_agency_employee %}
-              <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'employee_request_join' %}active fw-bold{% endif %}" href="{% url 'panel:employee_request_join' %}">
-                  <i class="fi-user-plus me-2 opacity-70"></i>درخواست عضویت در مشاوره
+                  <i class="fi-building me-2 opacity-70"></i>املاک محل همکاری
                 </a>
               </li>
               {% endif %}
@@ -93,13 +93,8 @@
               </li>
               {% endif %}
               <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'role_change_request' %}active fw-bold{% endif %}" href="{% url 'panel:role_change_request' %}">
-                  <i class="fi-user-check me-2 opacity-70"></i>درخواست تغییر نقش
-                </a>
-              </li>
-              <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'profile_edit' %}active fw-bold{% endif %}" href="{% url 'panel:profile_edit' %}">
-                  <i class="fi-user me-2 opacity-70"></i>اطلاعات شخصی
+                  <i class="fi-user me-2 opacity-70"></i>پروفایل کاربری
                 </a>
               </li>
             </ul>
@@ -107,6 +102,19 @@
         </nav>
       </aside>
       <div class="col-lg-9">
+        {% if messages %}
+        <div class="mb-3">
+          {% for m in messages %}
+          <div
+            class="alert alert-{% if 'error' in m.tags %}danger{% elif 'success' in m.tags %}success{% elif 'warning' in m.tags %}warning{% else %}info{% endif %} alert-dismissible fade show"
+            role="alert"
+          >
+            {{ m }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% block panel_content %}{% endblock %}
       </div>
     </div>

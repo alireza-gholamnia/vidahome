@@ -5,7 +5,7 @@
 </div>
 <div class="card shadow-sm">
   <div class="card-body p-4">
-    <h2 class="h5 mb-4">ویرایش اطلاعات شخصی</h2>
+    <h2 class="h5 mb-4">ویرایش پروفایل کاربری</h2>
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       {% if form.non_field_errors %}
@@ -25,6 +25,7 @@
         <div class="col-md-6">
           <label class="form-label" for="id_phone">شماره موبایل</label>
           {{ form.phone }}
+          <div class="form-text">شماره موبایل قابل تغییر نیست.</div>
           {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors }}</div>{% endif %}
         </div>
         <div class="col-md-6">
