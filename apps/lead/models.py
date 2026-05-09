@@ -61,6 +61,7 @@ class LandingLead(models.Model):
         CITY_CATEGORY = "city_category", "لندینگ شهر+دسته"
         AREA_CATEGORY = "area_category", "لندینگ محله+دسته"
         CONTACT = "contact", "صفحه تماس با ما"
+        SERVICE_PROVIDER = "service_provider", "ارائه‌دهنده خدمات"
         OTHER = "other", "سایر"
 
     source_type = models.CharField(

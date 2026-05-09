@@ -23,13 +23,13 @@
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="h5 mb-0">استعلام‌های آگهی (لیدها)</h2>
+  <h2 class="h5 mb-0">لیدها و استعلام‌ها</h2>
   <div class="d-flex gap-2 align-items-center">
     {% if new_count %}
     <span class="badge bg-danger">{{ new_count }} مورد جدید</span>
     {% endif %}
-    {% if is_site_admin and landing_new_count %}
-    <span class="badge bg-secondary">لندینگ: {{ landing_new_count }} مورد جدید</span>
+    {% if landing_new_count %}
+    <span class="badge bg-secondary">سایر لیدها: {{ landing_new_count }} مورد جدید</span>
     {% endif %}
   </div>
 </div>
@@ -119,9 +119,8 @@
 </div>
 {% endif %}
 
-{% if is_site_admin %}
 <hr class="my-4">
-<h3 class="h6 mb-3">لیدهای لندینگ</h3>
+<h3 class="h6 mb-3">{% if is_site_admin %}لیدهای لندینگ و خدمات{% else %}لیدهای خدمات من{% endif %}</h3>
 {% if landing_leads %}
 <div id="landing-leads-table" class="card shadow-sm">
   <div class="table-responsive overflow-visible">
@@ -204,6 +203,5 @@
     <p class="mb-0">هنوز لیدی از صفحات لندینگ ثبت نشده است.</p>
   </div>
 </div>
-{% endif %}
 {% endif %}
 {% endblock %}

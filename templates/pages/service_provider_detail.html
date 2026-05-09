@@ -109,6 +109,61 @@
             {% endif %}
           </div>
         </div>
+
+        <div class="card shadow-sm p-2">
+          <div class="card-body">
+            <h4 class="h5 mb-3">ارسال درخواست خدمات</h4>
+            {% if not user.is_authenticated %}
+            <p class="text-muted mb-3">برای ثبت درخواست و پیگیری آن ابتدا وارد شوید.</p>
+            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#inquiry-login-modal">
+              <i class="fi-user me-2"></i>ورود برای ارسال درخواست
+            </button>
+            {% include "partials/InquiryLoginModal.html" %}
+            {% else %}
+            <form method="post" action="{{ provider.get_absolute_url }}">
+              {% csrf_token %}
+              <input type="hidden" name="service_lead" value="1">
+              {% if service_lead_form.non_field_errors %}
+              <div class="alert alert-danger">{{ service_lead_form.non_field_errors }}</div>
+              {% endif %}
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ service_lead_form.first_name.id_for_label }}">نام</label>
+                  {{ service_lead_form.first_name }}
+                  {% if service_lead_form.first_name.errors %}<div class="text-danger small">{{ service_lead_form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ service_lead_form.last_name.id_for_label }}">نام خانوادگی</label>
+                  {{ service_lead_form.last_name }}
+                  {% if service_lead_form.last_name.errors %}<div class="text-danger small">{{ service_lead_form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ service_lead_form.phone.id_for_label }}">تلفن</label>
+                  {{ service_lead_form.phone }}
+                  {% if service_lead_form.phone.errors %}<div class="text-danger small">{{ service_lead_form.phone.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="{{ service_lead_form.email.id_for_label }}">ایمیل</label>
+                  {{ service_lead_form.email }}
+                  {% if service_lead_form.email.errors %}<div class="text-danger small">{{ service_lead_form.email.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="{{ service_lead_form.subject.id_for_label }}">موضوع</label>
+                  {{ service_lead_form.subject }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="{{ service_lead_form.message.id_for_label }}">پیام</label>
+                  {{ service_lead_form.message }}
+                  {% if service_lead_form.message.errors %}<div class="text-danger small">{{ service_lead_form.message.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary w-100">ارسال درخواست</button>
+                </div>
+              </div>
+            </form>
+            {% endif %}
+          </div>
+        </div>
       </aside>
     </div>
   </section>

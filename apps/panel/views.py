@@ -31,10 +31,10 @@ from apps.accounts.roles import (
     set_exclusive_business_role,
     user_owns_any_agency,
 )
-from apps.listings.models import Listing
+from apps.listings.models import Listing, ListingImage
 from apps.lead.models import ListingLead, LandingLead
 from apps.locations.models import Area, City
-from apps.services.models import ServiceProvider
+from apps.services.models import ServiceProvider, ServiceProviderImage
 from apps.common.sms import normalize_phone
 
 from .forms import (
@@ -143,20 +143,21 @@ def _save_listing_attributes_from_post(listing, post_data):
     attrs = Attribute.objects.filter(
         categories=listing.category,
         is_active=True,
-    ).values_list("id", flat=True)
-    for attr_id in attrs:
-        key = f"attr_{attr_id}"
+    )
+    for attr in attrs:
+        key = f"attr_{attr.id}"
         if key not in post_data:
             continue
         val = post_data.get(key)
-        attr = Attribute.objects.get(pk=attr_id)
         la, _ = ListingAttribute.objects.get_or_create(
             listing=listing,
-            attribute_id=attr_id,
-            defaults={"attribute_id": attr_id},
+            attribute=attr,
         )
         if attr.value_type == Attribute.ValueType.INTEGER:
-            la.value_int = int(val) if val and str(val).strip() else None
+            try:
+                la.value_int = int(val) if val and str(val).strip() else None
+            except (TypeError, ValueError):
+                la.value_int = None
             la.value_bool = None
             la.value_str = ""
             la.value_option = None
@@ -180,6 +181,88 @@ def _save_listing_attributes_from_post(listing, post_data):
             la.value_bool = None
             la.value_option = None
         la.save()
+
+
+def _coerce_int_list(values):
+    ids = []
+    for value in values:
+        try:
+            ids.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    return ids
+
+
+def _save_listing_images_from_request(listing, request):
+    """آپلود، حذف و انتخاب تصویر شاخص آگهی از پنل."""
+    delete_ids = _coerce_int_list(request.POST.getlist("delete_image_ids"))
+    if delete_ids:
+        ListingImage.objects.filter(listing=listing, id__in=delete_ids).delete()
+
+    sort_start = listing.images.count()
+    for index, uploaded_image in enumerate(request.FILES.getlist("images")):
+        ListingImage.objects.create(
+            listing=listing,
+            image=uploaded_image,
+            alt=listing.title[:180],
+            sort_order=sort_start + index,
+            is_cover=False,
+        )
+
+    cover_id = request.POST.get("cover_image_id")
+    if cover_id:
+        try:
+            cover = ListingImage.objects.get(listing=listing, id=int(cover_id))
+        except (TypeError, ValueError, ListingImage.DoesNotExist):
+            cover = None
+        if cover:
+            listing.images.update(is_cover=False)
+            cover.is_cover = True
+            cover.save(update_fields=["is_cover"])
+
+    if not listing.images.filter(is_cover=True).exists():
+        first_image = listing.images.order_by("sort_order", "id").first()
+        if first_image:
+            first_image.is_cover = True
+            first_image.save(update_fields=["is_cover"])
+
+
+def _save_service_provider_images_from_request(provider, request):
+    """آپلود، حذف و انتخاب کاور ارائه‌دهنده خدمات از پنل."""
+    delete_ids = _coerce_int_list(request.POST.getlist("delete_provider_image_ids"))
+    if delete_ids:
+        ServiceProviderImage.objects.filter(provider=provider, id__in=delete_ids).delete()
+
+    sort_start = provider.images.count()
+    for index, uploaded_image in enumerate(request.FILES.getlist("provider_images")):
+        ServiceProviderImage.objects.create(
+            provider=provider,
+            image=uploaded_image,
+            alt=provider.name[:180],
+            caption=provider.name[:200],
+            sort_order=sort_start + index,
+            is_cover=False,
+            is_landing_cover=False,
+        )
+
+    cover_id = request.POST.get("provider_cover_image_id")
+    if cover_id:
+        try:
+            cover = ServiceProviderImage.objects.get(provider=provider, id=int(cover_id))
+        except (TypeError, ValueError, ServiceProviderImage.DoesNotExist):
+            cover = None
+        if cover:
+            provider.images.update(is_cover=False, is_landing_cover=False)
+            cover.is_cover = True
+            cover.is_landing_cover = True
+            cover.save(update_fields=["is_cover", "is_landing_cover"])
+
+    if not provider.images.filter(is_landing_cover=True).exists():
+        first_image = provider.images.order_by("sort_order", "id").first()
+        if first_image:
+            first_image.is_cover = True
+            first_image.is_landing_cover = True
+            first_image.save(update_fields=["is_cover", "is_landing_cover"])
 
 
 @login_required(login_url="/accounts/login/")
@@ -269,10 +352,8 @@ class ListingListView(LoginRequiredMixin, ListView):
 
 @login_required(login_url="/accounts/login/")
 def listing_inquiries(request):
-    """استعلام‌های آگهی — فقط برای ادمین سایت. مشاهده و تغییر وضعیت لیدهای آگهی و لندینگ."""
-    if not _is_site_admin(request.user):
-        messages.warning(request, "دسترسی به استعلام‌های آگهی فقط برای ادمین سایت امکان‌پذیر است.")
-        return redirect("panel:dashboard")
+    """استعلام‌ها و لیدها برای مدیر سایت، مشاور املاک و ارائه‌دهنده خدمات."""
+    is_site_admin = _is_site_admin(request.user)
     user_listing_ids = _get_user_listings_queryset(request.user).values_list("id", flat=True)
     inquiries = (
         ListingLead.objects.filter(listing_id__in=user_listing_ids)
@@ -280,18 +361,29 @@ def listing_inquiries(request):
         .order_by("-created_at")
     )
 
-    landing_leads = []
-    landing_new_count = 0
-    is_site_admin = _is_site_admin(request.user)
+    owned_service_provider_ids = list(
+        ServiceProvider.objects.filter(owner=request.user).values_list("id", flat=True)
+    )
     if is_site_admin:
-        landing_leads = list(LandingLead.objects.all().order_by("-created_at")[:200])
-        landing_new_count = LandingLead.objects.filter(status=ListingLead.LeadStatus.NEW).count()
+        landing_leads_qs = LandingLead.objects.all().order_by("-created_at")
+    elif owned_service_provider_ids:
+        landing_leads_qs = LandingLead.objects.filter(
+            source_type=LandingLead.SourceType.SERVICE_PROVIDER,
+            source_path__in=[str(provider_id) for provider_id in owned_service_provider_ids],
+        ).order_by("-created_at")
+    else:
+        landing_leads_qs = LandingLead.objects.none()
+    landing_leads = list(landing_leads_qs[:200])
+    landing_new_count = landing_leads_qs.filter(status=ListingLead.LeadStatus.NEW).count()
 
     if request.method == "POST":
         inquiry_id = request.POST.get("inquiry_id")
         new_status = request.POST.get("status")
         if inquiry_id and new_status and new_status in dict(ListingLead.LeadStatus.choices):
-            inv = inquiries.filter(pk=int(inquiry_id)).first()
+            try:
+                inv = inquiries.filter(pk=int(inquiry_id)).first()
+            except (TypeError, ValueError):
+                inv = None
             if inv:
                 inv.status = new_status
                 inv.save()
@@ -300,19 +392,22 @@ def listing_inquiries(request):
 
         landing_lead_id = request.POST.get("landing_lead_id")
         landing_status = request.POST.get("landing_status")
-        if is_site_admin and landing_lead_id and landing_status and landing_status in dict(ListingLead.LeadStatus.choices):
-            ll = LandingLead.objects.filter(pk=int(landing_lead_id)).first()
+        if landing_lead_id and landing_status and landing_status in dict(ListingLead.LeadStatus.choices):
+            try:
+                ll = landing_leads_qs.filter(pk=int(landing_lead_id)).first()
+            except (TypeError, ValueError):
+                ll = None
             if ll:
                 ll.status = landing_status
                 ll.save()
-                messages.success(request, "وضعیت لید لندینگ به‌روز شد.")
+                messages.success(request, "وضعیت لید به‌روز شد.")
                 return redirect("panel:listing_inquiries")
 
     new_count = inquiries.filter(status=ListingLead.LeadStatus.NEW).count()
     breadcrumbs = [
         {"title": "صفحه اصلی", "url": "/"},
         {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
-        {"title": "استعلام‌های آگهی", "url": None},
+        {"title": "لیدها و استعلام‌ها", "url": None},
     ]
     return render(
         request,
@@ -378,6 +473,7 @@ class ListingCreateView(LoginRequiredMixin, CreateView):
         obj.status = Listing.Status.PENDING
         obj.save()
         _save_listing_attributes_from_post(obj, self.request.POST)
+        _save_listing_images_from_request(obj, self.request)
         return redirect(reverse("panel:listing_list"))
 
 
@@ -448,6 +544,7 @@ class ListingUpdateView(LoginRequiredMixin, UpdateView):
             obj.status = Listing.Status.PENDING
         obj.save()
         _save_listing_attributes_from_post(obj, self.request.POST)
+        _save_listing_images_from_request(obj, self.request)
         return redirect(self.get_success_url())
 
     def get_success_url(self):
@@ -618,6 +715,7 @@ def service_provider_add(request):
             provider.is_active = True
             provider.save()
             form.save_m2m()
+            _save_service_provider_images_from_request(provider, request)
             messages.success(
                 request,
                 "پروفایل خدماتی شما ثبت شد و بعد از تأیید مدیر سایت در دایرکتوری سرویس‌ها نمایش داده می‌شود.",
@@ -654,6 +752,7 @@ def service_provider_edit(request, pk):
             provider.is_active = True
             provider.save()
             form.save_m2m()
+            _save_service_provider_images_from_request(provider, request)
             messages.success(
                 request,
                 "تغییرات پروفایل خدماتی ذخیره شد و برای بررسی مدیر سایت ارسال شد.",

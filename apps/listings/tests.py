@@ -64,3 +64,42 @@ class LandingInternalLinkTests(TestCase):
         self.assertContains(response, f"/s/{self.city.slug}/{self.category.slug}/")
         self.assertContains(response, f"ویلا در {self.area.fa_name} {self.city.fa_name}")
         self.assertContains(response, f"/s/{self.city.slug}/{self.area.slug}/{self.category.slug}/")
+
+
+class CatalogFilterTests(TestCase):
+    def setUp(self):
+        self.province = Province.objects.create(fa_name="تهران", en_name="tehran")
+        self.city = City.objects.create(province=self.province, fa_name="تهران", en_name="tehran", is_active=True)
+        self.category = Category.objects.create(fa_name="آپارتمان", en_name="apartment", is_active=True)
+        self.low_mortgage = Listing.objects.create(
+            title="رهن کم",
+            city=self.city,
+            category=self.category,
+            deal=Listing.Deal.MORTGAGE_RENT,
+            status=Listing.Status.PUBLISHED,
+            price=20_000_000,
+            price_mortgage=500_000_000,
+        )
+        self.high_mortgage = Listing.objects.create(
+            title="رهن زیاد",
+            city=self.city,
+            category=self.category,
+            deal=Listing.Deal.MORTGAGE_RENT,
+            status=Listing.Status.PUBLISHED,
+            price=10_000_000,
+            price_mortgage=900_000_000,
+        )
+
+    def test_catalog_filters_by_mortgage_range(self):
+        response = self.client.get("/listings/", {"mortgage_min": "800000000"})
+
+        self.assertEqual(response.status_code, 200)
+        listings = list(response.context["listings"].object_list)
+        self.assertEqual(listings, [self.high_mortgage])
+
+    def test_catalog_sorts_by_price_ascending(self):
+        response = self.client.get("/listings/", {"sort": "price_asc"})
+
+        self.assertEqual(response.status_code, 200)
+        listings = list(response.context["listings"].object_list)
+        self.assertEqual(listings[:2], [self.high_mortgage, self.low_mortgage])

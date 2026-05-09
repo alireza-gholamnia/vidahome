@@ -1,7 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.categories.models import Category
+from apps.lead.models import LandingLead
 from apps.services.models import ServiceProvider
+
+User = get_user_model()
 
 
 class ServicesSmokeTests(TestCase):
@@ -59,3 +63,29 @@ class ServicesSmokeTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.provider.name)
+
+    def test_logged_in_user_can_submit_service_provider_lead(self):
+        user = User.objects.create_user(
+            username="service-lead-user",
+            phone="09120000001",
+            password="x",
+            first_name="علی",
+            last_name="رضایی",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            self.provider.get_absolute_url(),
+            {
+                "service_lead": "1",
+                "service-email": "ali@example.com",
+                "service-subject": "درخواست بازسازی",
+                "service-message": "برای بازسازی خانه تماس بگیرید.",
+            },
+        )
+
+        self.assertRedirects(response, self.provider.get_absolute_url(), fetch_redirect_response=False)
+        lead = LandingLead.objects.get(source_type=LandingLead.SourceType.SERVICE_PROVIDER)
+        self.assertEqual(lead.source_path, str(self.provider.id))
+        self.assertEqual(lead.name, "علی رضایی")
+        self.assertEqual(lead.phone, "09120000001")

@@ -28,7 +28,7 @@ VidaHome از ابتدا با رویکردی **سیستمی، الگوریتمی
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12+
 - pip
 
 ### Setup
@@ -45,6 +45,9 @@ source venv/bin/activate   # Linux/macOS
 # Install dependencies
 pip install -r requirements.txt
 
+# Create local environment file
+cp .env.example .env
+
 # Run migrations
 python manage.py migrate
 
@@ -54,7 +57,7 @@ python manage.py createsuperuser
 # Seed sample data (optional)
 python manage.py seed_data --clear
 
-# Generate placeholder images (optional — برای شهرها، محلات، دسته‌ها، آگهی‌ها، مشاوره‌ها، بلاگ)
+# Generate placeholder images (optional — برای شهرها، محلات، دسته‌ها، آگهی‌ها، مشاوره‌ها، سرویس‌دهنده‌ها، بلاگ)
 python manage.py generate_placeholder_images
 
 # Run development server
@@ -186,6 +189,10 @@ vidahome/
 | `/s/{city}/{area}/{category}/` | Area + Category landing |
 | `/l/{id}-{slug}/` | Listing detail (canonical) |
 | `/l/{id}/` | Listing detail (ID-only) |
+| `/services/` | دایرکتوری دسته‌بندی سرویس‌ها |
+| `/services/providers/` | لیست ارائه‌دهندگان خدمات |
+| `/services/<slug>/` | صفحه دسته‌بندی سرویس |
+| `/services/p/{id}-{slug}/` | صفحه جزئیات ارائه‌دهنده خدمات |
 | `/blog/` | بلاگ (لیست پست‌ها) |
 | `/blog/category/<slug>/` | پست‌های دسته‌بندی بلاگ |
 | `/blog/<slug>/` | صفحه تک پست |
@@ -884,15 +891,15 @@ This README is a **living document** and the only authoritative reference.
 
 ---
 
-## Known Issues & Findings (2026-02-17 Analysis)
+## Known Issues & Findings (Updated 2026-05-10)
 
 این بخش نتیجه یک مرور منطقی/امنیتی روی کد است تا **ایرادهای فعلی** شفاف ثبت شوند.  
 هر موردی که رفع شد، لطفاً این لیست را به‌روزرسانی کنید.
 
 - **Settings & Security**
-  - `SECRET_KEY` در `config/settings/base.py` هاردکد است و `DEBUG=True` است. در محیط واقعی باید `SECRET_KEY` فقط از `.env` و `DEBUG=False` باشد.
+  - `SECRET_KEY`، `DEBUG` و `ALLOWED_HOSTS` از `.env` خوانده می‌شوند؛ در پروداکشن باید مقدار واقعی `SECRET_KEY` و `DEBUG=False` ست شود.
   - در `config/settings/dev.py` مقدار `ALLOWED_HOSTS = ["*"]` است (برای dev قابل قبول، اما هرگز برای prod).
-  - در `config/settings/prod.py` مقدار `ALLOWED_HOSTS = []` خالی است و در صورت استفاده مستقیم از این کانفیگ، منجر به خطای `DisallowedHost` می‌شود؛ باید با دامنه/هاست‌های واقعی پر شود.
+  - در `config/settings/prod.py` مقدار پیش‌فرض `ALLOWED_HOSTS` روی `vidahome.ir,www.vidahome.ir` است؛ برای دامنه واقعی پروژه باید از `.env` override شود.
   - پکیج `django-ckeditor` از CKEditor 4 استفاده می‌کند که طبق هشدار `manage.py check` دیگر پشتیبانی امنیتی رسمی ندارد؛ برای محیط واقعی باید به CKEditor 5 یا راه‌حل امن‌تر مهاجرت شود.
 
 - **OTP Login Flow**
@@ -900,11 +907,11 @@ This README is a **living document** and the only authoritative reference.
   - در `apps/accounts/services.py` تابع `verify_otp` بعد از موفقیت، رکورد `OTPRequest` را حذف یا مصرف‌شده علامت‌گذاری نمی‌کند؛ تا قبل از انقضا، امکان استفادهٔ مجدد از همان کد (replay) وجود دارد.
 
 - **Panel & Listings Logic**
-  - در `apps/panel/views.py` تابع `_save_listing_attributes_from_post` برای ویژگی‌های عددی (`INTEGER`) مقدار را بدون `try/except` به `int(val)` تبدیل می‌کند؛ ورودی نامعتبر می‌تواند باعث خطای runtime در ذخیره آگهی شود.
   - در `apps/panel/views.py` ویوی `agency_employees`:
     - `pending_removes` فقط درخواست‌های حذف با `requested_by=request.user` را در UI نشان می‌دهد.
     - اما در هنگام POST، برای جلوگیری از ایجاد درخواست تکراری، فقط روی `(user, agency, status=PENDING)` فیلتر می‌شود و **`requested_by` را در نظر نمی‌گیرد**؛ نتیجه: اگر کاربر دیگری قبلاً درخواست حذف داده باشد، صاحب مشاوره جدید دکمه را می‌زند ولی هیچ تغییری در «در انتظار» خود نمی‌بیند.
-  - در `apps/agencies/models.py` فیلد `approval_status` در مدل `Agency` پیش‌فرض را `APPROVED` قرار داده است؛ در حالی که در پنل هنگام ساخت، وضعیت به `PENDING` ست می‌شود. برای سازگاری منطقی، بهتر است پیش‌فرض مدل هم `PENDING` باشد تا هیچ Agency به‌طور ناخواسته auto-approved نشود.
+  - علاقه‌مندی، ذخیره جستجو، مقایسه آگهی‌ها و اعلان‌ها هنوز پیاده‌سازی نشده‌اند.
+  - تصمیم معماری نهایی برای «آگهی مستقل سرویس» هنوز باز است؛ فعلاً سرویس‌دهنده پروفایل/دایرکتوری و فرم لید دارد.
 
 - **Error Handling & Diagnostics**
   - چندین بلاک `except ...: pass` وجود دارد که خطا را کاملاً قورت می‌دهند و دیباگ را سخت می‌کنند:
@@ -917,13 +924,13 @@ This README is a **living document** and the only authoritative reference.
   - در `_save_listing_attributes_from_post` (`apps/panel/views.py`) داخل حلقهٔ ویژگی‌ها، برای هر ویژگی `Attribute.objects.get(pk=attr_id)` صدا زده می‌شود که با تعداد ویژگی بالا به N+1 تبدیل می‌شود؛ می‌توان همهٔ Attributeها را یک‌باره کش کرد.
 
 - **Dependency Versioning**
-  - در `requirements.txt` فقط `Django>=4.2` ذکر شده، در حالی که venv فعلی روی Django 6.0.2 است؛ برای ثبات محیط‌ها بهتر است نسخه Django و سایر پکیج‌ها به‌صورت مشخص (یا حداقل بازه محدود) پین شوند.
+  - وابستگی‌ها در `requirements.txt` پین شده‌اند؛ بعد از هر upgrade باید تست کامل و `makemigrations --check --dry-run` اجرا شود.
 
 > **Next Actions (پیشنهادی):**  
 > 1) اعتبارسنجی `next_url` با `django.utils.http.url_has_allowed_host_and_scheme`،  
 > 2) invalid کردن OTP پس از اولین استفاده،  
-> 3) اضافه کردن هندل امن برای `int(...)` و حذف/کاهش `except: pass`های کلی،  
-> 4) هم‌تراز کردن پیش‌فرض `Agency.approval_status` با فلوی پنل و تنظیم دقیق `ALLOWED_HOSTS` در prod.
+> 3) مهاجرت CKEditor 4 به CKEditor 5 یا جایگزین امن‌تر،
+> 4) تکمیل featureهای retention مثل علاقه‌مندی، ذخیره جستجو و اعلان.
 
 ---
 
@@ -1062,3 +1069,135 @@ This README is a **living document** and the only authoritative reference.
 
 - متن‌های حقوقی `terms` و `privacy` پیش از انتشار رسمی باید توسط مشاور حقوقی بازبینی شوند.
 - اطلاعات تماس واقعی، شبکه‌های اجتماعی و سیاست تبلیغات باید با داده‌های واقعی کسب‌وکار جایگزین شود.
+
+---
+
+### Version 31 — جرنی کاربر، سرویس‌دهنده و پایدارسازی کاتالوگ (Completed)
+
+**Scope:** تبدیل مسیر کاربر از بازدیدکننده به لید، مشاور/مدیر املاک یا ارائه‌دهنده خدمات و حذف بخش‌های دمو از مسیرهای اصلی.
+
+**What was implemented**
+
+- پنل «خدمات من» برای ثبت و ویرایش پروفایل ارائه‌دهنده خدمات اضافه شد.
+- ارائه‌دهنده خدمات بعد از ثبت یا ویرایش با وضعیت `pending` وارد صف تأیید مدیر سایت می‌شود.
+- مدیر سایت می‌تواند ارائه‌دهنده خدمات را از پنل تأیید/رد کند.
+- صفحه جزئیات ارائه‌دهنده خدمات فرم «ارسال درخواست خدمات» دارد و لید آن در `LandingLead` با نوع `service_provider` ذخیره می‌شود.
+- صفحه پنل کاربر مسیرهای واضح برای بازدیدکننده/لید، صاحب یا کارمند مشاوره املاک، و ارائه‌دهنده خدمات نشان می‌دهد.
+- صفحه اصلی از دیتابیس خوانده می‌شود: شهرهای فعال، دسته‌بندی‌های دارای آگهی، سرویس‌ها، آگهی‌های جدید/ویژه و مشاوران.
+- بخش‌های دمو و لینک‌های `real-estate-*.html` از hero، دسته‌بندی‌ها، شهرها، پیشنهادها و مشاوران صفحه اصلی حذف شدند.
+- ثبت و ویرایش آگهی در پنل امکان آپلود، حذف و انتخاب تصویر شاخص آگهی دارد.
+- ثبت و ویرایش ارائه‌دهنده خدمات امکان آپلود، حذف و انتخاب کاور گالری دارد.
+- دستور `generate_placeholder_images` برای `ServiceProvider` و `ServiceProviderImage` هم تصویر کاور/لوگو می‌سازد.
+- کاتالوگ آگهی‌ها مرتب‌سازی واقعی دارد: جدیدترین، قدیمی‌ترین، ارزان‌ترین، گران‌ترین، رهن کمتر و رهن بیشتر.
+- فیلتر رهن (`mortgage_min`, `mortgage_max`) مستقل از فیلتر اجاره/قیمت اضافه شد.
+- `Agency.approval_status` و `ServiceProvider.approval_status` در مدل‌ها به‌صورت پیش‌فرض `pending` شدند.
+- تنظیمات حساس (`SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`) از `.env` خوانده می‌شوند و `.env.example` کامل‌تر شد.
+- نسخه‌های `requirements.txt` پین شدند.
+- با اضافه شدن `apps/__init__.py`، دستور `python manage.py test` همه تست‌ها را پیدا می‌کند.
+
+**Validation commands already run**
+
+- `venv/bin/python manage.py check`
+- `venv/bin/python manage.py makemigrations --check --dry-run`
+- `venv/bin/python manage.py test`
+- smoke check مسیرهای `/`, `/listings/`, `/services/`, `/services/providers/`, `/panel/`
+
+**Known warning**
+
+- هشدار `ckeditor.W001` همچنان وجود دارد؛ این مورد باید در فاز migration ادیتور حل شود.
+
+**Next step**
+
+- اولویت بعدی امنیت OTP است: جلوگیری از open redirect در `next` و مصرف‌شدن کد بعد از اولین استفاده.
+- بعد از آن باید تصمیم گرفته شود سرویس‌ها فقط پروفایل/دایرکتوری باشند یا «آگهی مستقل سرویس» هم داشته باشند.
+
+---
+
+## Final Change Log — 2026-05-10
+
+این بخش خلاصه کامل تغییرات اجرایی همین مرحله است و باید به‌عنوان آخرین وضعیت پروژه برای ادامه توسعه در نظر گرفته شود.
+
+### 1. مسیر کاربری و پنل
+
+- لینک «خدمات من» به منوی پنل اضافه شد.
+- داشبورد پنل به مسیرهای واضح تبدیل شد: کاربر عادی/لیدگذار، مشاور یا مدیر املاک، ارائه‌دهنده خدمات.
+- صفحه لیست سرویس‌دهنده‌های کاربر در پنل ساخته شد.
+- فرم ثبت و ویرایش ارائه‌دهنده خدمات در پنل ساخته شد.
+- بعد از ثبت یا ویرایش سرویس‌دهنده، وضعیت به `pending` برمی‌گردد تا مدیر سایت تأیید کند.
+- صف تأیید مدیر سایت، ارائه‌دهنده‌های خدمات را هم کنار آگهی و مشاوره املاک نشان می‌دهد.
+- صفحه تأیید/رد سرویس‌دهنده خدمات برای مدیر سایت اضافه شد.
+- صفحه لیدها و استعلام‌ها برای سرویس‌دهنده‌ها هم فعال شد تا لیدهای سرویس خودشان را ببینند.
+
+### 2. سرویس‌ها و ارائه‌دهندگان خدمات
+
+- فرم لید در صفحه جزئیات ارائه‌دهنده خدمات اضافه شد.
+- لید سرویس‌دهنده در `LandingLead` با `source_type="service_provider"` ذخیره می‌شود.
+- اگر کاربر لاگین باشد، نام/موبایل از پروفایل پر و در صورت نیاز قفل می‌شود.
+- اگر کاربر لاگین نباشد، فرم درخواست خدمات به مسیر ورود OTP هدایت می‌شود و اطلاعات فرم در session نگه داشته می‌شود.
+- صفحه جزئیات ارائه‌دهنده خدمات علاوه بر اطلاعات تماس، فرم درخواست و ارائه‌دهندگان مشابه را نشان می‌دهد.
+- نوع جدید `SERVICE_PROVIDER` به مدل `LandingLead.SourceType` اضافه شد.
+- migration مربوط به لید سرویس‌دهنده اضافه شد: `apps/lead/migrations/0005_add_service_provider_source_type.py`.
+
+### 3. صفحه اصلی و حذف دیتای دمو
+
+- صفحه اصلی از دیتابیس داده می‌خواند، نه از کارت‌ها و لینک‌های استاتیک دمو.
+- شهرهای پیشنهادی بر اساس تعداد آگهی منتشرشده مرتب می‌شوند.
+- دسته‌بندی‌های ملک بر اساس آگهی‌های منتشرشده نمایش داده می‌شوند.
+- دسته‌بندی‌های سرویس بر اساس ارائه‌دهنده‌های تأییدشده نمایش داده می‌شوند.
+- آگهی‌های جدید، پیشنهادها و مشاوران برتر از دیتابیس خوانده می‌شوند.
+- لینک‌های دمو مثل `real-estate-*.html` از hero، دسته‌بندی‌ها، شهرها، پیشنهادها و مشاوران حذف شدند.
+- CTAهای صفحه اصلی به مسیرهای واقعی ثبت مشاوره املاک، ثبت سرویس‌دهنده و جستجوی آگهی وصل شدند.
+
+### 4. کاتالوگ آگهی و فیلترها
+
+- مرتب‌سازی واقعی کاتالوگ اضافه شد: جدیدترین، قدیمی‌ترین، ارزان‌ترین، گران‌ترین، رهن کمتر و رهن بیشتر.
+- فیلتر مبلغ رهن با `mortgage_min` و `mortgage_max` مستقل از قیمت/اجاره اضافه شد.
+- select مرتب‌سازی در UI به فرم فیلتر وصل شد و فقط ظاهری نیست.
+- پارامترهای جدید فیلتر در pagination حفظ می‌شوند.
+
+### 5. تصاویر و placeholder
+
+- فرم ثبت/ویرایش آگهی در پنل امکان آپلود چند تصویر دارد.
+- امکان حذف تصویر آگهی و انتخاب تصویر شاخص اضافه شد.
+- فرم ثبت/ویرایش سرویس‌دهنده امکان آپلود چند تصویر خدمات دارد.
+- امکان حذف تصویر سرویس‌دهنده و انتخاب کاور صفحه اضافه شد.
+- دستور `generate_placeholder_images` برای سرویس‌دهنده‌ها هم کاور و لوگو می‌سازد.
+- آمار `service_providers` به خروجی دستور placeholder اضافه شد.
+
+### 6. وضعیت تأیید و امنیت پایه
+
+- پیش‌فرض `Agency.approval_status` از `approved` به `pending` تغییر کرد.
+- پیش‌فرض `ServiceProvider.approval_status` از `approved` به `pending` تغییر کرد.
+- migrationهای مربوط به این پیش‌فرض‌ها در پروژه وجود دارند:
+  - `apps/agencies/migrations/0010_alter_agency_approval_status_default.py`
+  - `apps/services/migrations/0002_alter_serviceprovider_approval_status_default.py`
+- تبدیل عددی ویژگی‌های آگهی در پنل امن‌تر شد تا ورودی خراب باعث خطای runtime نشود.
+- تبدیل `int` برای وضعیت لیدها و idهای تصویر با خطای کاربر خراب نمی‌شود.
+
+### 7. تنظیمات، وابستگی‌ها و اجرا
+
+- `SECRET_KEY` از `.env` خوانده می‌شود.
+- `DEBUG` از `.env` خوانده می‌شود.
+- `ALLOWED_HOSTS` از `.env` خوانده می‌شود.
+- تنظیمات production برای `ALLOWED_HOSTS` پیش‌فرض دامنه واقعی‌تر دارد و از env قابل override است.
+- `.env.example` با تنظیمات اصلی Django، نقشه، OTP و KaveNegar کامل‌تر شد.
+- نسخه‌های `requirements.txt` پین شدند تا نصب محیط‌ها قابل تکرار باشد.
+- `apps/__init__.py` اضافه شد تا Django test discovery همه تست‌های داخل `apps` را پیدا کند.
+
+### 8. تست‌ها و صحت‌سنجی
+
+- تست پنل برای ثبت سرویس‌دهنده و تأیید مدیر سایت اضافه شد.
+- تست سرویس برای ثبت لید ارائه‌دهنده خدمات اضافه شد.
+- تست کاتالوگ برای فیلتر رهن و مرتب‌سازی قیمت اضافه شد.
+- دستورهای زیر اجرا و پاس شدند:
+  - `venv/bin/python manage.py check`
+  - `venv/bin/python manage.py makemigrations --check --dry-run`
+  - `venv/bin/python manage.py test`
+- مسیرهای اصلی `/`, `/listings/`, `/services/`, `/services/providers/`, `/panel/` smoke check شدند.
+
+### 9. مواردی که هنوز عمداً باقی مانده‌اند
+
+- مشکل امنیتی OTP هنوز باید جداگانه حل شود: اعتبارسنجی امن `next` و مصرف‌شدن کد بعد از اولین استفاده.
+- هشدار CKEditor 4 هنوز وجود دارد و مهاجرت به CKEditor 5 یا جایگزین امن‌تر باید جداگانه انجام شود.
+- تصمیم معماری برای «آگهی مستقل سرویس» هنوز نهایی نشده است؛ فعلاً سرویس‌دهنده پروفایل، دایرکتوری و لید دارد.
+- امکانات retention مثل علاقه‌مندی، ذخیره جستجو، مقایسه و اعلان هنوز پیاده‌سازی نشده‌اند.

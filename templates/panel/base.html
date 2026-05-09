@@ -42,13 +42,11 @@
                   <i class="fi-map-pin me-2 opacity-70"></i>آگهی‌های من
                 </a>
               </li>
-              {% if user|is_site_admin %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'listing_inquiries' %}active fw-bold{% endif %}" href="{% url 'panel:listing_inquiries' %}">
-                  <i class="fi-phone me-2 opacity-70"></i>استعلام‌های آگهی
+                  <i class="fi-phone me-2 opacity-70"></i>لیدها و استعلام‌ها
                 </a>
               </li>
-              {% endif %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'listing_add' %}active fw-bold{% endif %}" href="{% url 'panel:listing_add' %}">
                   <i class="fi-plus me-2 opacity-70"></i>ثبت آگهی

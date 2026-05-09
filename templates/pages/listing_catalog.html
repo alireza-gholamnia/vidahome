@@ -83,7 +83,7 @@
               </select>
             </div>
             <div class="border-bottom py-3">
-              <h3 class="h6">بازه قیمت (تومان)</h3>
+              <h3 class="h6">بازه قیمت/اجاره (تومان)</h3>
               <div class="row g-2">
                 <div class="col-6">
                   <input type="number" class="form-control form-control-sm" name="price_min" value="{{ filter_price_min|default:'' }}" placeholder="از" min="0" step="1000000">
@@ -92,6 +92,18 @@
                   <input type="number" class="form-control form-control-sm" name="price_max" value="{{ filter_price_max|default:'' }}" placeholder="تا" min="0" step="1000000">
                 </div>
               </div>
+            </div>
+            <div class="border-bottom py-3">
+              <h3 class="h6">بازه رهن (تومان)</h3>
+              <div class="row g-2">
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="mortgage_min" value="{{ filter_mortgage_min|default:'' }}" placeholder="از" min="0" step="1000000">
+                </div>
+                <div class="col-6">
+                  <input type="number" class="form-control form-control-sm" name="mortgage_max" value="{{ filter_mortgage_max|default:'' }}" placeholder="تا" min="0" step="1000000">
+                </div>
+              </div>
+              <small class="text-muted">برای نوع معامله «رهن و اجاره» استفاده می‌شود.</small>
             </div>
             {% for af in attr_filters %}
             <div class="border-bottom py-3">
@@ -122,8 +134,10 @@
         <div class="d-flex flex-sm-row flex-column align-items-sm-center align-items-stretch my-2">
           <div class="d-flex align-items-center flex-shrink-0">
             <label class="fs-sm me-2 pe-1 text-nowrap" for="sortby"><i class="fi-arrows-sort text-muted mt-n1 me-2"></i>مرتب‌سازی</label>
-            <select class="form-select form-select-sm" id="sortby" onchange="window.location.href=this.value">
-              <option value="?{{ request.GET.urlencode }}">جدیدترین</option>
+            <select class="form-select form-select-sm" id="sortby" name="sort" form="catalog-filters" onchange="document.getElementById('catalog-filters').submit()">
+              {% for value, label in sort_options.items %}
+              <option value="{{ value }}" {% if filter_sort == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
             </select>
           </div>
           <hr class="d-none d-sm-block w-100 mx-4">

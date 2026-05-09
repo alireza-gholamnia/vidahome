@@ -1,7 +1,11 @@
 from .base import *
 
 DEBUG = False
-ALLOWED_HOSTS = []  # در پروداکشن باید پر شود، مثلاً ["vidahome.ir"]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "vidahome.ir,www.vidahome.ir").split(",")
+    if host.strip()
+]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True

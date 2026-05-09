@@ -6,7 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import Http404
 from django_ratelimit.decorators import ratelimit
 from django.views.generic import RedirectView
-from django.db.models import Q
+from django.db.models import F, Q
 from django.urls import reverse
 from django.utils.html import strip_tags
 
@@ -132,6 +132,9 @@ def listing_catalog(request):
     q = request.GET.get("q", "").strip()
     price_min_str = request.GET.get("price_min", "").strip()
     price_max_str = request.GET.get("price_max", "").strip()
+    mortgage_min_str = request.GET.get("mortgage_min", "").strip()
+    mortgage_max_str = request.GET.get("mortgage_max", "").strip()
+    sort = request.GET.get("sort", "newest").strip()
 
     if city_slug:
         qs = qs.filter(city__slug=city_slug)
@@ -153,6 +156,20 @@ def listing_catalog(request):
             price_max_val = int(price_max_str)
             if price_max_val > 0:
                 qs = qs.filter(price__isnull=False, price__lte=price_max_val)
+        except ValueError:
+            pass
+    if mortgage_min_str:
+        try:
+            mortgage_min_val = int(mortgage_min_str)
+            if mortgage_min_val > 0:
+                qs = qs.filter(price_mortgage__isnull=False, price_mortgage__gte=mortgage_min_val)
+        except ValueError:
+            pass
+    if mortgage_max_str:
+        try:
+            mortgage_max_val = int(mortgage_max_str)
+            if mortgage_max_val > 0:
+                qs = qs.filter(price_mortgage__isnull=False, price_mortgage__lte=mortgage_max_val)
         except ValueError:
             pass
     if q:
@@ -223,6 +240,29 @@ def listing_catalog(request):
             )
     if filter_attr_values:
         qs = qs.distinct()
+
+    sort_options = {
+        "newest": "جدیدترین",
+        "oldest": "قدیمی‌ترین",
+        "price_asc": "ارزان‌ترین",
+        "price_desc": "گران‌ترین",
+        "mortgage_asc": "رهن کمتر",
+        "mortgage_desc": "رهن بیشتر",
+    }
+    if sort not in sort_options:
+        sort = "newest"
+    if sort == "oldest":
+        qs = qs.order_by("published_at", "id")
+    elif sort == "price_asc":
+        qs = qs.order_by(F("price").asc(nulls_last=True), "-published_at", "-id")
+    elif sort == "price_desc":
+        qs = qs.order_by(F("price").desc(nulls_last=True), "-published_at", "-id")
+    elif sort == "mortgage_asc":
+        qs = qs.order_by(F("price_mortgage").asc(nulls_last=True), "-published_at", "-id")
+    elif sort == "mortgage_desc":
+        qs = qs.order_by(F("price_mortgage").desc(nulls_last=True), "-published_at", "-id")
+    else:
+        qs = qs.order_by("-published_at", "-id")
 
     paginator = Paginator(qs, 24)
     page = request.GET.get("page", 1)
@@ -307,6 +347,10 @@ def listing_catalog(request):
             "filter_q": q,
             "filter_price_min": price_min_str,
             "filter_price_max": price_max_str,
+            "filter_mortgage_min": mortgage_min_str,
+            "filter_mortgage_max": mortgage_max_str,
+            "filter_sort": sort,
+            "sort_options": sort_options,
             "pagination_query": pagination_query,
         },
     )

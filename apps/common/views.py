@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.db.models import Count, Prefetch, Q
 from django.http import HttpResponse
 from django.conf import settings
 from django.apps import apps
@@ -199,14 +200,99 @@ def home(request):
     City = apps.get_model("locations", "City")
     Category = apps.get_model("categories", "Category")
     Listing = apps.get_model("listings", "Listing")
+    User = apps.get_model("accounts", "User")
+    Agency = apps.get_model("agencies", "Agency")
+    AgencyMembership = apps.get_model("agencies", "AgencyMembership")
 
-    top_cities = City.objects.filter(is_active=True).order_by("sort_order")[:12]
-    top_categories = Category.landing_queryset().filter(is_active=True, parent__isnull=True).order_by("sort_order")[:12]
+    top_cities = (
+        City.objects.filter(is_active=True)
+        .annotate(
+            listing_count=Count(
+                "listings",
+                filter=Q(listings__status=Listing.Status.PUBLISHED),
+                distinct=True,
+            )
+        )
+        .prefetch_related("images")
+        .order_by("-listing_count", "sort_order", "fa_name")[:12]
+    )
+    top_categories = (
+        Category.listing_queryset()
+        .filter(is_active=True, parent__isnull=True)
+        .exclude(category_type=Category.CategoryType.SERVICE)
+        .annotate(
+            listing_count=Count(
+                "listings",
+                filter=Q(listings__status=Listing.Status.PUBLISHED),
+                distinct=True,
+            )
+            + Count(
+                "children__listings",
+                filter=Q(children__listings__status=Listing.Status.PUBLISHED),
+                distinct=True,
+            )
+        )
+        .prefetch_related("images", "children")
+        .order_by("-listing_count", "sort_order", "fa_name")[:12]
+    )
+    service_categories = (
+        Category.objects.filter(
+            category_type=Category.CategoryType.SERVICE,
+            is_active=True,
+            parent__isnull=True,
+        )
+        .annotate(
+            provider_count=Count(
+                "service_providers",
+                filter=Q(
+                    service_providers__approval_status="approved",
+                    service_providers__is_active=True,
+                ),
+                distinct=True,
+            )
+        )
+        .prefetch_related("images")
+        .order_by("-provider_count", "sort_order", "fa_name")[:6]
+    )
     recent_listings = (
         Listing.objects.filter(status=Listing.Status.PUBLISHED)
         .select_related("city", "area", "category")
         .prefetch_related("images", "attribute_values__attribute")
         .order_by("-published_at", "-id")[:8]
+    )
+    top_offers = (
+        Listing.objects.filter(status=Listing.Status.PUBLISHED, price__isnull=False)
+        .select_related("city", "area", "category")
+        .prefetch_related("images", "attribute_values__attribute")
+        .order_by("-published_at", "-id")[:8]
+    )
+    top_agents = (
+        User.objects.filter(is_active=True)
+        .filter(
+            (
+                Q(agency_memberships__status=AgencyMembership.Status.ACTIVE)
+                & Q(agency_memberships__agency__is_active=True)
+                & Q(agency_memberships__agency__approval_status=Agency.ApprovalStatus.APPROVED)
+            )
+            | Q(owned_agencies__is_active=True, owned_agencies__approval_status=Agency.ApprovalStatus.APPROVED)
+            | Q(agency__is_active=True, agency__approval_status=Agency.ApprovalStatus.APPROVED)
+        )
+        .select_related("agency")
+        .prefetch_related(
+            "owned_agencies",
+            Prefetch(
+                "agency_memberships",
+                queryset=AgencyMembership.objects.filter(
+                    status=AgencyMembership.Status.ACTIVE,
+                    agency__is_active=True,
+                    agency__approval_status=Agency.ApprovalStatus.APPROVED,
+                ).select_related("agency"),
+                to_attr="active_agency_memberships",
+            ),
+            "groups",
+        )
+        .distinct()
+        .order_by("first_name", "last_name", "username")[:6]
     )
 
     return render(
@@ -215,7 +301,10 @@ def home(request):
         {
             "top_cities": top_cities,
             "top_categories": top_categories,
+            "service_categories": service_categories,
             "recent_listings": recent_listings,
+            "top_offers": top_offers,
+            "top_agents": top_agents,
         },
     )
 

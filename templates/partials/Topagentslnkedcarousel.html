@@ -1,239 +1,41 @@
-{% load static %}
-<!-- Top agents (lnked carousel)-->
+<!-- Top agents -->
 <section class="container mb-5 pb-2 pb-lg-4">
-  <h2 class="h3 mb-4 pb-3 text-right text-md-start">برترین مشاوران املاک</h2>
-  <div class="tns-carousel-wrapper">
-    <div
-      class="tns-carousel-inner"
-      data-carousel-options='{"items": 1, "mode": "gallery", "controlsContainer": "#agents-carousel-controls", "nav": false}'
-    >
-      <div>
-        <div class="row align-items-center">
-          <div class="col-xl-4 d-none d-xl-block">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/01.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="h3 mb-0">مشاوران و کارشناسان فعال</h2>
+    <a class="btn btn-link p-0" href="{% url 'agent_list' %}">مشاهده همه <i class="fi-arrow-long-left me-2"></i></a>
+  </div>
+  {% if top_agents %}
+  <div class="row g-4">
+    {% for agent in top_agents %}
+    <div class="col-md-6 col-lg-4">
+      <article class="card border-0 shadow-sm h-100">
+        <a class="d-block rounded-top overflow-hidden" href="{{ agent.get_absolute_url }}">
+          {% if agent.avatar %}
+          <img class="w-100" src="{{ agent.avatar.url }}" alt="{{ agent.get_full_name|default:agent.username }}" loading="lazy" style="height: 220px; object-fit: cover;">
+          {% else %}
+          <div class="bg-faded-primary d-flex align-items-center justify-content-center" style="height: 220px;">
+            <i class="fi-user text-primary display-6 opacity-50"></i>
           </div>
-          <div class="col-xl-4 col-md-5 col-sm-4">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/02.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <div
-            class="col-xl-4 col-md-7 col-sm-8 px-4 px-sm-3 px-md-0 ms-md-n4 mt-n5 mt-sm-0 py-3"
-          >
-            <div class="card border-0 shadow-sm ms-sm-n5">
-              <blockquote class="blockquote card-body">
-                <h4 style="max-width: 22rem; font-family: vazir-bold">
-                  &quot;من بهترین اقامتگاه را برای شما انتخاب می کنم&quot;
-                </h4>
-                <p class="d-sm-none d-lg-block">
-                  لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-                  استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر
-                  می گیرد. لورم ایپسوم استاندارد صنعت بوده است.
-                </p>
-                <footer class="d-flex justify-content-between">
-                  <div class="pe-3">
-                    <a
-                      class="text-decoration-none"
-                      href="real-estate-vendor-properties.html"
-                    >
-                      <h6 class="mb-0">فلوید مایلز</h6>
-                      <div class="text-muted fw-normal fs-sm mb-3">
-                        نماینده گروه امپراتوری املاک
-                      </div></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-facebook"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-twitter"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-linkedin"></i
-                    ></a>
-                  </div>
-                  <div>
-                    <span class="star-rating"
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                    ></span>
-                    <div class="text-muted fs-sm mt-1">45 نظر</div>
-                  </div>
-                </footer>
-              </blockquote>
-            </div>
-          </div>
+          {% endif %}
+        </a>
+        <div class="card-body">
+          <h3 class="h5 mb-2"><a class="nav-link p-0 stretched-link" href="{{ agent.get_absolute_url }}">{{ agent.get_full_name|default:agent.username }}</a></h3>
+          <p class="text-muted fs-sm mb-2">{{ agent.get_role_display }}</p>
+          {% if agent.agency %}
+          <p class="fs-sm mb-0"><i class="fi-building me-1 opacity-70"></i>{{ agent.agency.name }}</p>
+          {% elif agent.owned_agencies.exists %}
+          <p class="fs-sm mb-0"><i class="fi-building me-1 opacity-70"></i>{{ agent.owned_agencies.first.name }}</p>
+          {% elif agent.active_agency_memberships %}
+          <p class="fs-sm mb-0"><i class="fi-building me-1 opacity-70"></i>{{ agent.active_agency_memberships.0.agency.name }}</p>
+          {% endif %}
         </div>
-      </div>
-      <div>
-        <div class="row align-items-center">
-          <div class="col-xl-4 d-none d-xl-block">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/02.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <div class="col-xl-4 col-md-5 col-sm-4">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/03.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <div
-            class="col-xl-4 col-md-7 col-sm-8 px-4 px-sm-3 px-md-0 ms-md-n4 mt-n5 mt-sm-0 py-3"
-          >
-            <div class="card border-0 shadow-sm ms-sm-n5">
-              <blockquote class="blockquote card-body">
-                <h4 style="max-width: 22rem; font-family: vazir-bold">
-                  &quot;بیش از 10 سال تجربه به عنوان مشاور املاک&quot;
-                </h4>
-                <p class="d-sm-none d-lg-block">
-                  لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-                  استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر
-                  می گیرد. لورم ایپسوم استاندارد صنعت بوده است.
-                </p>
-                <footer class="d-flex justify-content-between">
-                  <div class="pe-3">
-                    <a
-                      class="text-decoration-none"
-                      href="real-estate-vendor-properties.html"
-                    >
-                      <h6 class="mb-0">کریستین واتسون</h6>
-                      <div class="text-muted fw-normal fs-sm mb-3">
-                        نماینده گروه امپراتوری املاک
-                      </div></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-facebook"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-twitter"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-linkedin"></i
-                    ></a>
-                  </div>
-                  <div>
-                    <span class="star-rating"
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                    ></span>
-                    <div class="text-muted fs-sm mt-1">24 نظر</div>
-                  </div>
-                </footer>
-              </blockquote>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div class="row align-items-center">
-          <div class="col-xl-4 d-none d-xl-block">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/03.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <div class="col-xl-4 col-md-5 col-sm-4">
-            <img
-              class="rounded-3"
-              src="{% static 'img/real-estate/agents/01.jpg' %}"
-              alt="Agent picture"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          <div
-            class="col-xl-4 col-md-7 col-sm-8 px-4 px-sm-3 px-md-0 ms-md-n4 mt-n5 mt-sm-0 py-3"
-          >
-            <div class="card border-0 shadow-sm ms-sm-n5">
-              <blockquote class="blockquote card-body">
-                <h4 style="max-width: 22rem; font-family: vazir-bold">
-                  &quot;من نه نمی گویم ، من فقط راهی برای کار کردن پیدا
-                  کردم&quot;
-                </h4>
-                <p class="d-sm-none d-lg-block">
-                  لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-                  استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر
-                  می گیرد. لورم ایپسوم استاندارد صنعت بوده است.
-                </p>
-                <footer class="d-flex justify-content-between">
-                  <div class="pe-3">
-                    <a
-                      class="text-decoration-none"
-                      href="real-estate-vendor-properties.html"
-                    >
-                      <h6 class="mb-0">گای هاوکینز</h6>
-                      <div class="text-muted fw-normal fs-sm mb-3">
-                        نماینده گروه امپراتوری املاک
-                      </div></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-facebook"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-twitter"></i></a
-                    ><a
-                      class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle me-2 mb-2"
-                      href="#"
-                      ><i class="fi-linkedin"></i
-                    ></a>
-                  </div>
-                  <div>
-                    <span class="star-rating"
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                      ><i class="star-rating-icon fi-star-filled active"></i
-                    ></span>
-                    <div class="text-muted fs-sm mt-1">16 نظر</div>
-                  </div>
-                </footer>
-              </blockquote>
-            </div>
-          </div>
-        </div>
-      </div>
+      </article>
     </div>
+    {% endfor %}
   </div>
-  <div
-    class="tns-carousel-controls justify-content-center justify-content-md-start my-2 mt-md-4"
-    id="agents-carousel-controls"
-  >
-    <button class="mx-2" type="button"><i class="fi-chevron-left"></i></button>
-    <button class="mx-2" type="button"><i class="fi-chevron-right"></i></button>
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">هنوز مشاور فعالی برای نمایش ثبت نشده است.</div>
   </div>
+  {% endif %}
 </section>

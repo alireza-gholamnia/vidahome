@@ -27,7 +27,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         force = options["force"]
-        stats = {"cities": 0, "areas": 0, "categories": 0, "listings": 0, "agencies": 0, "city_cats": 0, "area_cats": 0, "blog": 0}
+        stats = {
+            "cities": 0,
+            "areas": 0,
+            "categories": 0,
+            "listings": 0,
+            "agencies": 0,
+            "service_providers": 0,
+            "city_cats": 0,
+            "area_cats": 0,
+            "blog": 0,
+        }
 
         # --- شهرها ---
         from apps.locations.models import City, CityImage, Area, AreaImage
@@ -114,6 +124,30 @@ class Command(BaseCommand):
                 content = create_placeholder_image(agency.slug or agency.name[:20], *SIZE_LOGO, font_size=24, color_index=(i + 5) % 6)
                 agency.logo.save("logo.png", content, save=True)
         self.stdout.write(f"  Agencies: {stats['agencies']}")
+
+        # --- ارائه‌دهندگان خدمات ---
+        from apps.services.models import ServiceProvider, ServiceProviderImage
+
+        for i, provider in enumerate(ServiceProvider.objects.all()):
+            if force or not provider.images.exists():
+                if force:
+                    provider.images.all().delete()
+                category = provider.categories.first()
+                text = category.en_name if category else (provider.slug or provider.name)
+                content = create_placeholder_image(text, *SIZE_LANDING, font_size=34, color_index=(i + 5) % 6)
+                spi = ServiceProviderImage(
+                    provider=provider,
+                    alt=provider.name,
+                    caption=provider.name,
+                    is_cover=True,
+                    is_landing_cover=True,
+                )
+                spi.image.save("cover.png", content, save=True)
+                stats["service_providers"] += 1
+            if force or not provider.logo:
+                content = create_placeholder_image(provider.slug or provider.name[:20], *SIZE_LOGO, font_size=22, color_index=i % 6)
+                provider.logo.save("logo.png", content, save=True)
+        self.stdout.write(f"  Service providers: {stats['service_providers']}")
 
         # --- لندینگ شهر+دسته ---
         from apps.seo.models import CityCategory, CityCategoryImage

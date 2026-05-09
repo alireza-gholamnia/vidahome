@@ -30,7 +30,7 @@
         <tr>
           <td>
             <strong>{{ provider.name }}</strong>
-            {% if provider.approval_status == provider.ApprovalStatus.APPROVED and provider.is_active %}
+            {% if provider.approval_status == "approved" and provider.is_active %}
             <div class="small"><a href="{{ provider.get_absolute_url }}" target="_blank" rel="noopener">مشاهده در سایت</a></div>
             {% endif %}
           </td>
@@ -43,9 +43,9 @@
             {% endfor %}
           </td>
           <td>
-            {% if provider.approval_status == provider.ApprovalStatus.APPROVED and provider.is_active %}
+            {% if provider.approval_status == "approved" and provider.is_active %}
             <span class="badge bg-success">تأیید شده</span>
-            {% elif provider.approval_status == provider.ApprovalStatus.REJECTED %}
+            {% elif provider.approval_status == "rejected" %}
             <span class="badge bg-danger">رد شده</span>
             {% else %}
             <span class="badge bg-warning text-dark">در انتظار تأیید</span>

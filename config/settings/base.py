@@ -18,9 +18,19 @@ PROJECT_DIR = BASE_DIR.parent
 load_dotenv(PROJECT_DIR / ".env", override=True)
 
 
-SECRET_KEY = 'django-insecure-sc&5zea_zsxyfgxqw_2e3@y5u7fpgl$)u+&)x(8h@3@+6l5l5q'
-DEBUG = True
-ALLOWED_HOSTS = []
+def _env_bool(value, *, default=False):
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-only-change-me")
+DEBUG = _env_bool(os.environ.get("DEBUG"), default=True)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
 
 
 INSTALLED_APPS = [

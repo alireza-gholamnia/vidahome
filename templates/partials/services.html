@@ -1,94 +1,40 @@
 {% load static %}
-<!-- Services-->
+<!-- User journeys -->
 <section class="container mb-5 mt-n3 mt-lg-0">
-  <div
-    class="tns-carousel-wrapper tns-nav-outside tns-nav-outside-flush mx-n2"
-    dir="ltr"
-  >
-    <div
-      class="tns-carousel-inner row gx-4 mx-0 py-3"
-      data-carousel-options='{"items": 3, "controls": false, "responsive": {"0":{"items":1},"500":{"items":2},"768":{"items":3}}}'
-    >
-      <div class="col">
-        <div
-          class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center"
-        >
-          <img
-            class="d-block mx-auto my-3"
-            src="{% static 'img/real-estate/illustrations/buy.svg' %}"
-            width="256"
-            alt="Illustration"
-            loading="eager"
-          />
-          <div class="card-body">
-            <h2 class="h5 card-title">خرید یک ملک</h2>
-            <p class="card-text fs-sm">
-              لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-              استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر می
-              گیرد.
-            </p>
-          </div>
-          <div class="card-footer pt-0 border-0">
-            <a
-              class="btn btn-outline-primary stretched-link"
-              href="real-estate-catalog-sale.html"
-              >جستجوی خانه</a
-            >
-          </div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center shadow-sm">
+        <img class="d-block mx-auto my-3" src="{% static 'img/real-estate/illustrations/buy.svg' %}" width="220" alt="جستجوی ملک" loading="lazy" />
+        <div class="card-body">
+          <h2 class="h5 card-title">بازدیدکننده و لیدگذار</h2>
+          <p class="card-text fs-sm text-muted">ملک را جستجو کنید، استعلام بفرستید و درخواست مشاوره خود را از صفحات شهر، محله، آگهی یا سرویس ثبت کنید.</p>
+        </div>
+        <div class="card-footer pt-0 border-0 bg-transparent">
+          <a class="btn btn-outline-primary stretched-link" href="{% url 'listing_catalog' %}">شروع جستجو</a>
         </div>
       </div>
-      <div class="col">
-        <div
-          class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center"
-        >
-          <img
-            class="d-block mx-auto my-3"
-            src="{% static 'img/real-estate/illustrations/sell.svg' %}"
-            width="256"
-            alt="Illustration"
-            loading="eager"
-          />
-          <div class="card-body">
-            <h2 class="h5 card-title">فروش یک ملک</h2>
-            <p class="card-text fs-sm">
-              لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-              استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر می
-              گیرد.
-            </p>
-          </div>
-          <div class="card-footer pt-0 border-0">
-            <a class="btn btn-outline-primary stretched-link" href="#"
-              >مکان کسب و کار</a
-            >
-          </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center shadow-sm">
+        <img class="d-block mx-auto my-3" src="{% static 'img/real-estate/illustrations/sell.svg' %}" width="220" alt="مشاور املاک" loading="lazy" />
+        <div class="card-body">
+          <h2 class="h5 card-title">مشاور یا مدیر املاک</h2>
+          <p class="card-text fs-sm text-muted">بعد از ورود، مشاوره املاک خود را ثبت کنید؛ پس از تأیید مدیر سایت می‌توانید آگهی منتشر کنید و لیدها را مدیریت کنید.</p>
+        </div>
+        <div class="card-footer pt-0 border-0 bg-transparent">
+          <a class="btn btn-outline-primary stretched-link" href="{% url 'panel:agency_add' %}">ثبت مشاوره املاک</a>
         </div>
       </div>
-      <div class="col">
-        <div
-          class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center"
-        >
-          <img
-            class="d-block mx-auto my-3"
-            src="{% static 'img/real-estate/illustrations/rent.svg' %}"
-            width="256"
-            alt="Illustration"
-            loading="eager"
-          />
-          <div class="card-body">
-            <h2 class="h5 card-title">اجاره یک ملک</h2>
-            <p class="card-text fs-sm">
-              لورم ایپسوم ساختار چاپ و متن را در بر می گیرد. لورم ایپسوم
-              استاندارد صنعت بوده است. لورم ایپسوم ساختار چاپ و متن را در بر می
-              گیرد.
-            </p>
-          </div>
-          <div class="card-footer pt-0 border-0">
-            <a
-              class="btn btn-outline-primary stretched-link"
-              href="real-estate-catalog-rent.html"
-              >یافتن اجاره خانه</a
-            >
-          </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card card-hover border-0 h-100 pb-2 pb-sm-3 px-sm-3 text-center shadow-sm">
+        <img class="d-block mx-auto my-3" src="{% static 'img/real-estate/illustrations/rent.svg' %}" width="220" alt="ارائه‌دهنده خدمات" loading="lazy" />
+        <div class="card-body">
+          <h2 class="h5 card-title">ارائه‌دهنده خدمات</h2>
+          <p class="card-text fs-sm text-muted">شرکت یا پروفایل خدماتی بسازید، دسته و شهرهای تحت پوشش را مشخص کنید و بعد از تأیید در دایرکتوری سرویس‌ها دیده شوید.</p>
+        </div>
+        <div class="card-footer pt-0 border-0 bg-transparent">
+          <a class="btn btn-outline-primary stretched-link" href="{% url 'panel:service_provider_add' %}">ثبت خدمات</a>
         </div>
       </div>
     </div>

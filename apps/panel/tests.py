@@ -7,6 +7,7 @@ from apps.attributes.models import Attribute, ListingAttribute
 from apps.categories.models import Category
 from apps.listings.models import Listing
 from apps.locations.models import City, Province
+from apps.services.models import ServiceProvider
 
 User = get_user_model()
 
@@ -149,3 +150,69 @@ class InvitePolicyTests(TestCase):
                 status=AgencyMembership.Status.ACTIVE,
             ).exists()
         )
+
+
+class ServiceProviderPanelTests(TestCase):
+    def setUp(self):
+        self.province = Province.objects.create(fa_name="تهران", en_name="tehran")
+        self.city = City.objects.create(province=self.province, fa_name="تهران", en_name="tehran", is_active=True)
+        self.category = Category.objects.create(
+            category_type=Category.CategoryType.SERVICE,
+            fa_name="بازسازی",
+            en_name="renovation",
+            is_active=True,
+        )
+        self.user = User.objects.create_user(username="service-owner", phone="09120000900", password="x")
+        self.admin = User.objects.create_superuser(username="admin", phone="09120000999", password="x")
+
+    def test_user_can_create_pending_service_provider_from_panel(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("panel:service_provider_add"),
+            {
+                "name": "گروه خدمات تست",
+                "provider_type": ServiceProvider.ProviderType.COMPANY,
+                "categories": [self.category.id],
+                "cities": [self.city.id],
+                "mobile": "09120000900",
+                "phone": "",
+                "email": "",
+                "website": "",
+                "address": "تهران",
+                "intro_content": "توضیح کوتاه خدمات",
+                "main_content": "",
+            },
+        )
+
+        self.assertRedirects(response, reverse("panel:service_provider_list"), fetch_redirect_response=False)
+        provider = ServiceProvider.objects.get(owner=self.user)
+        self.assertEqual(provider.approval_status, ServiceProvider.ApprovalStatus.PENDING)
+        self.assertEqual(provider.categories.get(), self.category)
+        self.assertEqual(provider.cities.get(), self.city)
+
+    def test_site_admin_can_approve_service_provider(self):
+        provider = ServiceProvider.objects.create(
+            name="ارائه‌دهنده در انتظار",
+            owner=self.user,
+            provider_type=ServiceProvider.ProviderType.PERSON,
+            mobile="09120000900",
+            approval_status=ServiceProvider.ApprovalStatus.PENDING,
+            is_active=True,
+        )
+        provider.categories.add(self.category)
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse("panel:approve_service_provider", args=[provider.id]),
+            {"action": "approve"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("panel:approve_dashboard") + "?tab=pending",
+            fetch_redirect_response=False,
+        )
+        provider.refresh_from_db()
+        self.assertEqual(provider.approval_status, ServiceProvider.ApprovalStatus.APPROVED)
+        self.assertTrue(provider.is_active)
