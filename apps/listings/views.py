@@ -34,6 +34,83 @@ def _category_listing_filter(category):
     return Q(category=category) | Q(category__parent=category)
 
 
+def _city_category_links(city, limit=24):
+    """لینک‌های دسته‌بندی‌های دارای آگهی در یک شهر."""
+    categories = (
+        Category.landing_queryset()
+        .filter(is_active=True)
+        .filter(
+            Q(listings__city=city, listings__status=Listing.Status.PUBLISHED)
+            | Q(children__listings__city=city, children__listings__status=Listing.Status.PUBLISHED)
+        )
+        .distinct()
+        .order_by("sort_order", "fa_name")[:limit]
+    )
+    return [
+        {
+            "title": f"{category.fa_name} در {city.fa_name}",
+            "url": f"/s/{city.slug}/{category.slug}/",
+        }
+        for category in categories
+    ]
+
+
+def _category_city_links(category, limit=24):
+    """لینک‌های شهرهای دارای آگهی برای یک دسته‌بندی."""
+    cities = (
+        City.objects.filter(is_active=True)
+        .filter(
+            Q(listings__status=Listing.Status.PUBLISHED, listings__category=category)
+            | Q(listings__status=Listing.Status.PUBLISHED, listings__category__parent=category)
+        )
+        .distinct()
+        .order_by("sort_order", "fa_name")[:limit]
+    )
+    return [
+        {
+            "title": f"{category.fa_name} در {city.fa_name}",
+            "url": f"/s/{city.slug}/{category.slug}/",
+        }
+        for city in cities
+    ]
+
+
+def _area_category_links_from_listings(listings_qs, *, forced_category=None, limit=36):
+    """لینک‌های ترکیبی شهر/محله/دسته بر اساس آگهی‌های موجود."""
+    links = []
+    seen = set()
+    listings = (
+        listings_qs.filter(
+            area__isnull=False,
+            city__is_active=True,
+            area__is_active=True,
+            category__is_active=True,
+        )
+        .select_related("city", "area", "category", "category__parent")
+        .order_by("city__sort_order", "area__sort_order", "category__sort_order", "id")[:500]
+    )
+    for listing in listings:
+        link_category = forced_category
+        if link_category is None:
+            parent = listing.category.parent
+            link_category = parent if parent and parent.is_active else listing.category
+        if not link_category or not link_category.is_active:
+            continue
+        key = (listing.city_id, listing.area_id, link_category.id)
+        if key in seen:
+            continue
+        seen.add(key)
+        links.append(
+            {
+                "title": f"{link_category.fa_name} در {listing.area.fa_name} {listing.city.fa_name}",
+                "url": f"/s/{listing.city.slug}/{listing.area.slug}/{link_category.slug}/",
+            }
+        )
+        if len(links) >= limit:
+            break
+    return links
+
+
 # =============================================================
 # /s  -> لیست آگهی‌ها با فیلتر (کاتالوگ)
 # =============================================================
@@ -503,6 +580,10 @@ def s_one_segment(request, slug):
     city = City.objects.filter(slug=slug, is_active=True).prefetch_related("images").first()
     if city:
         areas = Area.objects.filter(city=city, is_active=True).order_by("sort_order", "id")
+        city_category_links = _city_category_links(city)
+        city_area_category_links = _area_category_links_from_listings(
+            Listing.objects.filter(city=city, status=Listing.Status.PUBLISHED)
+        )
         listings = (
             Listing.objects.filter(city=city, status=Listing.Status.PUBLISHED)
             .select_related("category", "area")
@@ -531,6 +612,8 @@ def s_one_segment(request, slug):
             {
                 "city": city,
                 "areas": areas,
+                "city_category_links": city_category_links,
+                "city_area_category_links": city_area_category_links,
                 "listings": listings,
                 "city_posts": city_posts,
                 "breadcrumbs": breadcrumbs,
@@ -550,6 +633,11 @@ def s_one_segment(request, slug):
             .order_by("-published_at", "-id")[:24]
         )
         children = Category.objects.filter(parent=category, is_active=True).order_by("sort_order", "id")
+        category_city_links = _category_city_links(category)
+        category_area_links = _area_category_links_from_listings(
+            Listing.objects.filter(_category_listing_filter(category), status=Listing.Status.PUBLISHED),
+            forced_category=category,
+        )
         seo = _build_seo_for_category(request, category)
         breadcrumbs = [
             {"title": "صفحه اصلی", "url": "/"},
@@ -576,6 +664,8 @@ def s_one_segment(request, slug):
                 "category": category,
                 "listings": listings,
                 "children": children,
+                "category_city_links": category_city_links,
+                "category_area_links": category_area_links,
                 "category_posts": category_posts,
                 "breadcrumbs": breadcrumbs,
                 "landing_lead_form": lead_form,
@@ -598,6 +688,9 @@ def city_context(request, city_slug, context_slug):
 
     area = Area.objects.filter(city=city, slug=context_slug, is_active=True).prefetch_related("images").first()
     if area:
+        area_category_links = _area_category_links_from_listings(
+            Listing.objects.filter(city=city, area=area, status=Listing.Status.PUBLISHED)
+        )
         listings = (
             Listing.objects.filter(city=city, area=area, status=Listing.Status.PUBLISHED)
             .select_related("category", "area")
@@ -622,6 +715,7 @@ def city_context(request, city_slug, context_slug):
             {
                 "city": city,
                 "area": area,
+                "area_category_links": area_category_links,
                 "listings": listings,
                 "breadcrumbs": breadcrumbs,
                 "landing_lead_form": lead_form,

@@ -43,7 +43,7 @@ source venv/bin/activate   # Linux/macOS
 # or: venv\Scripts\activate  # Windows
 
 # Install dependencies
-pip install django django-ckeditor Pillow
+pip install -r requirements.txt
 
 # Run migrations
 python manage.py migrate
@@ -60,6 +60,11 @@ python manage.py generate_placeholder_images
 # Run development server
 python manage.py runserver
 ```
+
+### Development Notes
+
+- در محیط توسعه، اگر ارسال SMS واقعی فعال نباشد، مقدار `OTP_DELIVERY = "console"` باعث می‌شود کد ورود در ترمینال چاپ شود.
+- فایل‌های runtime مثل `db.sqlite3`, `.env`, `media/` و خروجی‌های آپلود نباید وارد git شوند.
 
 ### Git Hygiene (Important)
 
@@ -79,7 +84,7 @@ git commit -m "chore: stop tracking local media and sqlite db"
 ### Admin
 
 - URL: `/admin/`
-- Manage: Users, Groups, Agencies, Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings (با ویژگی‌های EAV), **Attributes** (ویژگی، گزینه ویژگی، ویژگی آگهی), SEO overrides (CityCategory, CityAreaCategory) هرکدام با گالری تصاویر
+- Manage: Users, Groups, Agencies, AgencyMembership, ServiceProvider, Provinces, Cities (با گالری تصاویر), Areas (با گالری تصاویر), Categories (با گالری تصاویر), Listings (با ویژگی‌های EAV), **Attributes** (ویژگی، گزینه ویژگی، ویژگی آگهی), SEO overrides (CityCategory, CityAreaCategory), Blog, SMS logs
 
 ---
 
@@ -103,14 +108,17 @@ vidahome/
 │       ├── dev.py
 │       └── prod.py
 ├── apps/
-│   ├── common/           # Home view, context processors, upload_utils
-│   ├── accounts/         # Custom User, login, signup, logout
-│   ├── agencies/         # Agency, AgencyImage
+│   ├── common/           # Home/contact, context processors, upload_utils, SMS, sitemaps
+│   ├── accounts/         # Custom User, OTP login, signup, logout, roles
+│   ├── agencies/         # Agency, AgencyMembership, AgencyImage, agents
+│   ├── panel/            # User/admin panel, listing management, approval flows
+│   ├── lead/             # Listing and landing leads
 │   ├── locations/        # Province, City, Area
 │   ├── categories/       # Category (tree-based)
 │   ├── attributes/       # EAV: Attribute, AttributeOption, ListingAttribute
 │   ├── listings/         # Listing, ListingImage, search & detail views
-│   ├── blog/             # (scaffolded)
+│   ├── services/         # Service categories/providers directory
+│   ├── blog/             # Blog categories/posts
 │   └── seo/              # BaseSEO, CityCategory, CityAreaCategory
 ├── templates/
 │   ├── base/             # base.html, head.html, scripts.html
@@ -910,3 +918,116 @@ This README is a **living document** and the only authoritative reference.
 > 3) اضافه کردن هندل امن برای `int(...)` و حذف/کاهش `except: pass`های کلی،  
 > 4) هم‌تراز کردن پیش‌فرض `Agency.approval_status` با فلوی پنل و تنظیم دقیق `ALLOWED_HOSTS` در prod.
 
+---
+
+## Latest Versions & Current State
+
+این بخش آخرین تغییرات عملی پروژه را ثبت می‌کند تا ادامه توسعه از همین نقطه روشن باشد.
+
+### Version 26 — سرویس‌ها و ارائه‌دهندگان خدمات (Completed)
+
+**Scope:** اضافه شدن دامنه سرویس‌ها برای معرفی خدمات مرتبط با ملک و شرکت/شخص ارائه‌دهنده.
+
+**What was implemented**
+
+- اپلیکیشن `apps.services` اضافه شد.
+- مدل `ServiceProvider` برای شرکت یا شخص ارائه‌دهنده سرویس ساخته شد.
+- مدل `ServiceProviderImage` برای گالری تصاویر ارائه‌دهنده سرویس اضافه شد.
+- ارائه‌دهنده سرویس به دسته‌بندی‌های نوع `service` و شهرهای تحت پوشش وصل می‌شود.
+- صفحه دایرکتوری سرویس‌ها در `/services/` پیاده‌سازی شد.
+- صفحه لیست ارائه‌دهندگان در `/services/providers/` با فیلتر جستجو، دسته، شهر و نوع ارائه‌دهنده اضافه شد.
+- صفحه دسته سرویس در `/services/<slug>/` و صفحه جزئیات ارائه‌دهنده در `/services/p/{id}-{slug}/` اضافه شد.
+- لینک «سرویس‌ها» در منوی اصلی به dropdown تبدیل شد و لینک «دسته‌بندی سرویس‌ها» و «ارائه‌دهندگان خدمات» دارد.
+- سرویس‌ها به sitemap اضافه شدند.
+- تست smoke برای دایرکتوری، لیست، فیلتر دسته و جزئیات ارائه‌دهنده اضافه شد.
+
+**Important notes**
+
+- فعلاً سرویس‌ها یک directory/landing دارند، نه آگهی مستقل شبیه ملک.
+- دسته‌های سرویس از همان مدل `Category` با `category_type="service"` استفاده می‌کنند.
+- مسیر آپلود تصاویر سرویس‌ها زیر `media/services/` است.
+
+**Next step**
+
+- اگر سرویس‌ها باید «آگهی» هم داشته باشند، بهتر است قبل از اضافه کردن فیلدهای مستقیم به `Listing`، مدل عمومی‌تر `Business`/`BusinessMember` طراحی شود.
+
+---
+
+### Version 27 — عضویت ساختاریافته مشاورین املاک (Completed)
+
+**Scope:** اصلاح ارتباط مالک/مدیر/کارمند با مشاوره املاک و حذف وابستگی منطقی به `User.agency` به‌عنوان منبع اصلی.
+
+**What was implemented**
+
+- مدل `AgencyMembership` اضافه شد.
+- نقش‌های عضویت: `owner`, `manager`, `employee`.
+- وضعیت‌های عضویت: `active`, `invited`, `left`, `rejected`.
+- فیلد `Agency.members` با through model به `AgencyMembership` اضافه شد.
+- هنگام ساخت/ذخیره `Agency`، عضویت مالک به‌صورت خودکار sync می‌شود.
+- migration بک‌فیل، داده‌های قبلی را از `Agency.owner` و `User.agency` به عضویت جدید منتقل می‌کند.
+- پنل مدیریت همکاران املاک بر اساس `AgencyMembership` کار می‌کند.
+- پذیرش دعوت همکاری، عضویت `employee` فعال ایجاد می‌کند.
+- حذف همکار، عضویت را `left` می‌کند و اگر لازم باشد فیلد legacy `User.agency` را هم پاک می‌کند.
+- ادمین `AgencyMembership` و inline عضویت‌ها در ادمین Agency اضافه شد.
+- دسترسی آگهی‌ها برای مالک/مدیر/کارمند از عضویت فعال خوانده می‌شود.
+
+**Compatibility**
+
+- فیلدهای قدیمی `Agency.owner` و `User.agency` فعلاً حذف نشده‌اند.
+- `Agency.owner` هنوز برای سازگاری و تعیین مالک اصلی باقی مانده است.
+- `User.agency` فقط legacy/compatibility است؛ منبع اصلی عضویت باید `AgencyMembership` باشد.
+
+**Next step**
+
+- در فاز بعد می‌توان `AgencyMembership` را به `BusinessMember` عمومی تبدیل کرد تا هم مشاور املاک و هم ارائه‌دهنده خدمات از یک ساختار مشترک استفاده کنند.
+
+---
+
+### Version 28 — لینک‌سازی داخلی شهر، محله و دسته‌بندی (Completed)
+
+**Scope:** تقویت SEO داخلی و UX در صفحات لندینگ شهر/محله/دسته.
+
+**What was implemented**
+
+- در صفحه شهر `/s/{city}/`، علاوه بر محله‌ها، دسته‌بندی‌های دارای آگهی همان شهر نمایش داده می‌شود.
+- در صفحه شهر، لینک‌های ترکیبی محله+دسته ساخته می‌شود؛ مثل `ویلا در الهیه تهران`.
+- در صفحه دسته `/s/{category}/`، شهرهای متناظر با همان دسته نمایش داده می‌شود؛ مثل `ویلا در تهران`.
+- در صفحه دسته، لینک‌های محله+شهر برای همان دسته نمایش داده می‌شود.
+- در صفحه محله `/s/{city}/{area}/`، دسته‌بندی‌های دارای آگهی در همان محله نمایش داده می‌شود.
+- لینک‌ها فقط از آگهی‌های `published` ساخته می‌شوند تا صفحه‌های خالی/بی‌داده تولید نشود.
+- تست `LandingInternalLinkTests` برای شهر و دسته اضافه شد.
+
+**URL examples**
+
+- `/s/tehran/`
+- `/s/tehran/villa/`
+- `/s/tehran/elahiyeh/villa/`
+- `/s/villa/`
+
+**Next step**
+
+- برای تعداد زیاد شهر/محله/دسته، بهتر است شمارنده و cache برای لینک‌های داخلی اضافه شود تا کوئری‌ها سبک‌تر شوند.
+
+---
+
+### Version 29 — وضعیت فعلی اجرا و تست (Completed)
+
+**Validation commands already run**
+
+- `python manage.py check`
+- `python manage.py makemigrations --check --dry-run`
+- `python manage.py test apps.services.tests`
+- `python manage.py test apps.listings.tests`
+- `python manage.py test apps.services.tests apps.panel.tests apps.accounts.tests`
+
+**Known warning**
+
+- هشدار `ckeditor.W001` همچنان وجود دارد، چون پروژه هنوز از CKEditor 4 استفاده می‌کند.
+
+**Current priority list**
+
+1. تکمیل مستندسازی README و هماهنگ کردن آن با وضعیت واقعی کد.
+2. تصمیم معماری برای `Business` عمومی قبل از اضافه کردن آگهی سرویس.
+3. رفع موارد امنیتی OTP: اعتبارسنجی `next_url` و مصرف‌شدن کد بعد از اولین استفاده.
+4. مهاجرت CKEditor 4 به جایگزین امن‌تر.
+5. بهینه‌سازی queryهای لینک‌سازی داخلی و فیلترهای EAV.

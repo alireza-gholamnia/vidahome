@@ -57,6 +57,34 @@
     </section>
     {% endif %}
 
+    {# دسته‌بندی‌ها در شهر #}
+    {% if city_category_links %}
+    <section class="mb-5">
+      <h2 class="h5 mb-3">دسته‌بندی‌های املاک در {{ city.fa_name }}</h2>
+      <div class="d-flex flex-wrap gap-2">
+        {% for item in city_category_links %}
+        <a href="{{ item.url }}" class="btn btn-outline-primary btn-sm">{{ item.title }}</a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# دسته‌بندی‌ها در محله‌های شهر #}
+    {% if city_area_category_links %}
+    <section class="mb-5">
+      <h2 class="h5 mb-3">جستجو بر اساس محله و دسته‌بندی</h2>
+      <div class="row g-2">
+        {% for item in city_area_category_links %}
+        <div class="col-sm-6 col-lg-4">
+          <a href="{{ item.url }}" class="d-block rounded border p-2 text-decoration-none">
+            <i class="fi-search mt-n1 me-1 align-middle opacity-70"></i>{{ item.title }}
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
     {# آگهی‌های شهر #}
     <section class="mb-5">
       <h2 class="h5 mb-4">آگهی‌های {{ city.fa_name }}</h2>
