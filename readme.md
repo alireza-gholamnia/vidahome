@@ -161,6 +161,13 @@ vidahome/
 | `/` | Home |
 | `/cities/` | Cities directory |
 | `/categories/` | Categories directory |
+| `/about/` | درباره VidaHome |
+| `/contact/` | تماس با ما + فرم ارسال پیام |
+| `/terms/` | قوانین و مقررات |
+| `/privacy/` | حریم خصوصی |
+| `/faq/` | سوالات متداول |
+| `/safety/` | راهنمای امنیت معاملات |
+| `/advertising/` | تبلیغات و همکاری |
 | `/accounts/` | Redirect to `/accounts/login/` |
 | `/accounts/login/` | ورود |
 | `/accounts/signup/` | ثبت‌نام |
@@ -198,9 +205,9 @@ vidahome/
 - slug = SEO only
 - Independent from city/category paths
 
-### Planned (Not Yet Implemented)
+### Static Pages
 
-- `/about`, `/contact`, `/terms`, `/privacy`
+صفحات استاتیک ضروری پروژه پیاده‌سازی شده‌اند: درباره ما، تماس با ما، قوانین، حریم خصوصی، سوالات متداول، امنیت معاملات، تبلیغات و همکاری. این صفحات در sitemap و footer لینک شده‌اند.
 
 ---
 
@@ -1031,3 +1038,27 @@ This README is a **living document** and the only authoritative reference.
 3. رفع موارد امنیتی OTP: اعتبارسنجی `next_url` و مصرف‌شدن کد بعد از اولین استفاده.
 4. مهاجرت CKEditor 4 به جایگزین امن‌تر.
 5. بهینه‌سازی queryهای لینک‌سازی داخلی و فیلترهای EAV.
+
+---
+
+### Version 30 — صفحات استاتیک ضروری سایت (Completed)
+
+**Scope:** ساخت صفحات پایه‌ای که برای اعتماد، SEO، قوانین و پشتیبانی پلتفرم لازم هستند.
+
+**What was implemented**
+
+- صفحه `درباره ما` در `/about/`.
+- صفحه `تماس با ما` در `/contact/` با فرم ثبت پیام در `LandingLead`.
+- صفحه `قوانین و مقررات` در `/terms/`.
+- صفحه `حریم خصوصی` در `/privacy/`.
+- صفحه `سوالات متداول` در `/faq/`.
+- صفحه `راهنمای امنیت معاملات` در `/safety/`.
+- صفحه `تبلیغات و همکاری` در `/advertising/`.
+- قالب عمومی `templates/pages/static_page.html` برای صفحات محتوایی تکرارپذیر.
+- لینک صفحات در footer و sitemap اضافه شد.
+- تست smoke برای همه صفحات استاتیک اضافه شد.
+
+**Next step**
+
+- متن‌های حقوقی `terms` و `privacy` پیش از انتشار رسمی باید توسط مشاور حقوقی بازبینی شوند.
+- اطلاعات تماس واقعی، شبکه‌های اجتماعی و سیاست تبلیغات باید با داده‌های واقعی کسب‌وکار جایگزین شود.

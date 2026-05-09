@@ -5,3 +5,22 @@
     <span>لطفا منتظر باشید</span>
   </div>
 </div>
+<script>
+  (function () {
+    function hidePageLoading() {
+      document.querySelectorAll('.page-loading').forEach(function (preloader) {
+        preloader.classList.remove('active');
+        window.setTimeout(function () {
+          preloader.remove();
+        }, 500);
+      });
+    }
+
+    if (document.readyState === 'complete') {
+      hidePageLoading();
+    } else {
+      window.addEventListener('load', hidePageLoading, { once: true });
+      window.setTimeout(hidePageLoading, 3000);
+    }
+  })();
+</script>

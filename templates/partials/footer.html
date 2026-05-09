@@ -17,17 +17,17 @@
               <li class="nav-item mb-2">
                 <a
                   class="nav-link p-0 fw-normal"
-                  href="mailto:example@email.com"
+                  href="mailto:info@vidahome.ir"
                   ><i class="fi-mail mt-n1 me-2 align-middle opacity-70"></i
-                  >example@email.com</a
+                  >info@vidahome.ir</a
                 >
               </li>
               <li class="nav-item">
-                <a class="nav-link p-0 fw-normal" href="tel:4065550120"
+                <a class="nav-link p-0 fw-normal" href="tel:02100000000"
                   ><i
                     class="fi-device-mobile mt-n1 me-2 align-middle opacity-70"
                   ></i
-                  >(406) 555-0120</a
+                  >۰۲۱-۰۰۰۰۰۰۰۰</a
                 >
               </li>
             </ul>
@@ -59,22 +59,22 @@
             <h4 class="h5">لینک های سریع</h4>
             <ul class="nav flex-column">
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">خرید یک ملک</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'listing_catalog' %}?deal=buy">خرید ملک</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">فروش یک ملک</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'panel:listing_add' %}">ثبت / فروش ملک</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">اجاره یک ملک</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'listing_catalog' %}?deal=rent">اجاره ملک</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">محاسبه یک ملک</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'categories:directory' %}">دسته‌بندی‌ها</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">پیشنهادهای ویژه</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'services:directory' %}">سرویس‌های ملک</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">شهرهای پیشنهادی</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'cities_directory' %}">شهرها</a>
               </li>
             </ul>
           </div>
@@ -82,19 +82,31 @@
             <h4 class="h5">درباره</h4>
             <ul class="nav flex-column">
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">درباره ما</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'about' %}">درباره ما</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">نمایندگان ما</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'agent_list' %}">کارشناسان</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">مشاوره رایگان</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'faq' %}">سوالات متداول</a>
               </li>
               <li class="nav-item mb-2">
                 <a class="nav-link p-0 fw-normal" href="{% url 'contact' %}">تماس با ما</a>
               </li>
               <li class="nav-item mb-2">
-                <a class="nav-link p-0 fw-normal" href="#">اخبار</a>
+                <a class="nav-link p-0 fw-normal" href="{% url 'safety' %}">امنیت معاملات</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link p-0 fw-normal" href="{% url 'advertising' %}">تبلیغات و همکاری</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link p-0 fw-normal" href="{% url 'terms' %}">قوانین</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link p-0 fw-normal" href="{% url 'privacy' %}">حریم خصوصی</a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link p-0 fw-normal" href="{% url 'blog:index' %}">بلاگ</a>
               </li>
             </ul>
           </div>
@@ -105,7 +117,7 @@
         <article class="d-flex align-items-start" style="max-width: 640px">
           <a
             class="d-none d-sm-block flex-shrink-0 me-sm-4 mb-sm-0 mb-3"
-            href="real-estate-blog-single.html"
+            href="{% url 'blog:index' %}"
             ><img
               class="rounded-3"
               src="{% static 'img/real-estate/blog/th01.jpg' %}"
@@ -118,7 +130,7 @@
               نکات و ترفندها
             </h6>
             <h5 class="mb-2 fs-base">
-              <a class="nav-link" href="real-estate-blog-single.html"
+              <a class="nav-link" href="{% url 'blog:index' %}"
                 >راهنمای ما برای جستجوی آپارتمان هوشمند</a
               >
             </h5>
@@ -128,14 +140,14 @@
             </p>
             <a
               class="nav-link nav-link-muted d-inline-block me-3 p-0 fs-xs fw-normal"
-              href="#"
+              href="{% url 'blog:index' %}"
               ><i
                 class="fi-calendar mt-n1 me-1 fs-sm align-middle opacity-70"
               ></i
               >24 خرداد</a
             ><a
               class="nav-link nav-link-muted d-inline-block me-3 p-0 fs-xs fw-normal"
-              href="#"
+              href="{% url 'blog:index' %}"
               ><i
                 class="fi-chat-circle mt-n1 me-1 fs-sm align-middle opacity-70"
               ></i
@@ -147,7 +159,7 @@
         <article class="d-flex align-items-start" style="max-width: 640px">
           <a
             class="d-none d-sm-block flex-shrink-0 me-sm-4 mb-sm-0 mb-3"
-            href="real-estate-blog-single.html"
+            href="{% url 'blog:index' %}"
             ><img
               class="rounded-3"
               src="{% static 'img/real-estate/blog/th02.jpg' %}"
@@ -160,7 +172,7 @@
               نکات و ترفندها
             </h6>
             <h5 class="mb-2 fs-base">
-              <a class="nav-link" href="real-estate-blog-single.html"
+              <a class="nav-link" href="{% url 'blog:index' %}"
                 >10 روش برتر برای تجدید فضای خود</a
               >
             </h5>
@@ -170,14 +182,14 @@
             </p>
             <a
               class="nav-link nav-link-muted d-inline-block me-3 p-0 fs-xs fw-normal"
-              href="#"
+              href="{% url 'blog:index' %}"
               ><i
                 class="fi-calendar mt-n1 me-1 fs-sm align-middle opacity-70"
               ></i
               >18 مرداد</a
             ><a
               class="nav-link nav-link-muted d-inline-block me-3 p-0 fs-xs fw-normal"
-              href="#"
+              href="{% url 'blog:index' %}"
               ><i
                 class="fi-chat-circle mt-n1 me-1 fs-sm align-middle opacity-70"
               ></i>

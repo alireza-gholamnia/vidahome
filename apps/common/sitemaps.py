@@ -17,7 +17,13 @@ class StaticSitemap(Sitemap):
             "agent_list",
             "services:directory",
             "services:provider_list",
+            "about",
             "contact",
+            "terms",
+            "privacy",
+            "faq",
+            "safety",
+            "advertising",
         ]
 
     def location(self, item):
