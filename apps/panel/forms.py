@@ -8,6 +8,7 @@ from apps.attributes.models import Attribute, AttributeOption
 from apps.listings.models import Listing
 from apps.locations.models import Area, City
 from apps.categories.models import Category
+from apps.services.models import ServiceProvider
 
 
 class ListingForm(forms.ModelForm):
@@ -171,6 +172,50 @@ class AgencyProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["cities"].queryset = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
+
+
+class ServiceProviderPanelForm(forms.ModelForm):
+    """فرم ثبت/ویرایش ارائه‌دهنده خدمات توسط کاربر."""
+
+    class Meta:
+        model = ServiceProvider
+        fields = (
+            "name",
+            "provider_type",
+            "categories",
+            "cities",
+            "mobile",
+            "phone",
+            "email",
+            "website",
+            "address",
+            "intro_content",
+            "main_content",
+            "logo",
+        )
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "نام شرکت یا شخص"}),
+            "provider_type": forms.Select(attrs={"class": "form-select"}),
+            "categories": forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+            "cities": forms.SelectMultiple(attrs={"class": "form-select"}),
+            "mobile": forms.TextInput(attrs={"class": "form-control", "placeholder": "۰۹۱۲۳۴۵۶۷۸۹", "dir": "ltr"}),
+            "phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "تلفن ثابت", "dir": "ltr"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "example@email.com"}),
+            "website": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://example.com", "dir": "ltr"}),
+            "address": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": "آدرس دفتر یا محل فعالیت"}),
+            "intro_content": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "معرفی کوتاه برای کارت و صفحه سرویس‌دهنده"}),
+            "main_content": forms.Textarea(attrs={"class": "form-control", "rows": 6}),
+            "logo": forms.FileInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["categories"].required = True
+        self.fields["categories"].queryset = Category.objects.filter(
+            category_type=Category.CategoryType.SERVICE,
+            is_active=True,
+        ).order_by("sort_order", "fa_name")
         self.fields["cities"].queryset = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
 
 

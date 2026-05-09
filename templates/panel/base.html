@@ -59,6 +59,11 @@
                   <i class="fi-building me-2 opacity-70"></i>املاک‌های من
                 </a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'service_provider_list' or request.resolver_match.url_name == 'service_provider_add' or request.resolver_match.url_name == 'service_provider_edit' %}active fw-bold{% endif %}" href="{% url 'panel:service_provider_list' %}">
+                  <i class="fi-briefcase me-2 opacity-70"></i>خدمات من
+                </a>
+              </li>
               {% if user|has_agency %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'agency_employees' %}active fw-bold{% endif %}" href="{% url 'panel:agency_employees' %}">

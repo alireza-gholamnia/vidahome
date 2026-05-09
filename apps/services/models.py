@@ -53,7 +53,7 @@ class ServiceProvider(BaseSEO, models.Model):
     approval_status = models.CharField(
         max_length=12,
         choices=ApprovalStatus.choices,
-        default=ApprovalStatus.APPROVED,
+        default=ApprovalStatus.PENDING,
         db_index=True,
         verbose_name="وضعیت تأیید",
     )

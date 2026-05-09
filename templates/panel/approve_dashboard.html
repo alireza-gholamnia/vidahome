@@ -8,19 +8,19 @@
   <li class="nav-item" role="presentation">
     <a class="nav-link {% if tab == 'pending' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=pending">
       <i class="fi-inbox me-1"></i>در انتظار تأیید
-      <span class="badge bg-primary ms-1">{{ pending_listings_count|add:pending_agencies_count }}</span>
+      <span class="badge bg-primary ms-1">{{ pending_listings_count|add:pending_agencies_count|add:pending_service_providers_count }}</span>
     </a>
   </li>
   <li class="nav-item" role="presentation">
     <a class="nav-link {% if tab == 'rejected' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=rejected">
       <i class="fi-x-circle me-1"></i>رد شده
-      <span class="badge bg-danger ms-1">{{ rejected_listings_count }}</span>
+      <span class="badge bg-danger ms-1">{{ rejected_listings_count|add:rejected_service_providers_count }}</span>
     </a>
   </li>
   <li class="nav-item" role="presentation">
     <a class="nav-link {% if tab == 'approved' %}active{% endif %}" href="{% url 'panel:approve_dashboard' %}?tab=approved">
       <i class="fi-check-circle me-1"></i>تأیید شده
-      <span class="badge bg-success ms-1">{{ approved_listings_count }}</span>
+      <span class="badge bg-success ms-1">{{ approved_listings_count|add:approved_service_providers_count }}</span>
     </a>
   </li>
   <li class="nav-item" role="presentation">
@@ -31,7 +31,7 @@
 </ul>
 
 {% if tab == 'pending' %}
-  {% if pending_listings or pending_agencies %}
+  {% if pending_listings or pending_agencies or pending_service_providers %}
   <div class="row g-4">
     {% if pending_listings %}
     <div class="col-12">
@@ -104,6 +104,44 @@
       </div>
     </div>
     {% endif %}
+
+    {% if pending_service_providers %}
+    <div class="col-12">
+      <h3 class="h6 mb-3">ارائه‌دهندگان خدمات در انتظار تأیید ({{ pending_service_providers_count }})</h3>
+      <div class="card shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>نام</th>
+                <th>نوع</th>
+                <th>دسته‌ها</th>
+                <th>مالک</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for provider in pending_service_providers %}
+              <tr>
+                <td>{{ provider.name }}</td>
+                <td>{{ provider.get_provider_type_display }}</td>
+                <td>
+                  {% for category in provider.categories.all|slice:":3" %}
+                  <span class="badge bg-secondary mb-1">{{ category.fa_name }}</span>
+                  {% empty %}—{% endfor %}
+                </td>
+                <td>{{ provider.owner.get_full_name|default:provider.owner.username|default:"-" }}</td>
+                <td>
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:approve_service_provider' provider.pk %}">مشاهده و تأیید</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% else %}
   <div class="card shadow-sm">
@@ -114,6 +152,7 @@
   {% endif %}
 
 {% elif tab == 'rejected' %}
+  {% if rejected_listings or rejected_service_providers %}
   {% if rejected_listings %}
   <div class="card shadow-sm">
     <h3 class="h6 mb-3 px-3 pt-3">آگهی‌های رد شده ({{ rejected_listings_count }})</h3>
@@ -146,15 +185,50 @@
       </table>
     </div>
   </div>
+  {% endif %}
+  {% if rejected_service_providers %}
+  <div class="card shadow-sm mt-4">
+    <h3 class="h6 mb-3 px-3 pt-3">ارائه‌دهندگان خدمات رد شده ({{ rejected_service_providers_count }})</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>نام</th>
+            <th>مالک</th>
+            <th>دسته‌ها</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for provider in rejected_service_providers %}
+          <tr>
+            <td>{{ provider.name }}</td>
+            <td>{{ provider.owner.get_full_name|default:provider.owner.username|default:"-" }}</td>
+            <td>
+              {% for category in provider.categories.all|slice:":3" %}
+              <span class="badge bg-secondary mb-1">{{ category.fa_name }}</span>
+              {% empty %}—{% endfor %}
+            </td>
+            <td>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'panel:approve_service_provider' provider.pk %}">مشاهده / تأیید مجدد</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
   {% else %}
   <div class="card shadow-sm">
     <div class="card-body text-center py-5">
-      <p class="text-muted mb-0">آگهی رد شده‌ای وجود ندارد.</p>
+      <p class="text-muted mb-0">مورد رد شده‌ای وجود ندارد.</p>
     </div>
   </div>
   {% endif %}
 
 {% elif tab == 'approved' %}
+  {% if approved_listings or approved_service_providers %}
   {% if approved_listings %}
   <div class="card shadow-sm">
     <h3 class="h6 mb-3 px-3 pt-3">آگهی‌های تأیید شده (منتشر شده)</h3>
@@ -187,10 +261,44 @@
       </table>
     </div>
   </div>
+  {% endif %}
+  {% if approved_service_providers %}
+  <div class="card shadow-sm mt-4">
+    <h3 class="h6 mb-3 px-3 pt-3">ارائه‌دهندگان خدمات تأیید شده</h3>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>نام</th>
+            <th>مالک</th>
+            <th>دسته‌ها</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for provider in approved_service_providers %}
+          <tr>
+            <td>{{ provider.name }}</td>
+            <td>{{ provider.owner.get_full_name|default:provider.owner.username|default:"-" }}</td>
+            <td>
+              {% for category in provider.categories.all|slice:":3" %}
+              <span class="badge bg-secondary mb-1">{{ category.fa_name }}</span>
+              {% empty %}—{% endfor %}
+            </td>
+            <td>
+              <a class="btn btn-sm btn-outline-primary" href="{{ provider.get_absolute_url }}" target="_blank">مشاهده</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
   {% else %}
   <div class="card shadow-sm">
     <div class="card-body text-center py-5">
-      <p class="text-muted mb-0">آگهی تأیید شده‌ای وجود ندارد.</p>
+      <p class="text-muted mb-0">مورد تأیید شده‌ای وجود ندارد.</p>
     </div>
   </div>
   {% endif %}

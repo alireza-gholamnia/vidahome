@@ -1,0 +1,100 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <h1 class="h4 mb-2">{% if provider %}ویرایش ارائه‌دهنده خدمات{% else %}ثبت ارائه‌دهنده خدمات{% endif %}</h1>
+    <p class="text-muted mb-4">اطلاعات را دقیق وارد کنید. پروفایل خدماتی پس از بررسی مدیر سایت در بخش سرویس‌ها منتشر می‌شود.</p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {{ form.media }}
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label class="form-label" for="{{ form.name.id_for_label }}">نام شرکت یا شخص</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.provider_type.id_for_label }}">نوع ارائه‌دهنده</label>
+          {{ form.provider_type }}
+          {% if form.provider_type.errors %}<div class="text-danger small">{{ form.provider_type.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">دسته‌های سرویس</label>
+          <div class="row row-cols-md-3 row-cols-1 g-2">
+            {% for checkbox in form.categories %}
+            <div class="col">
+              <label class="form-check">
+                {{ checkbox.tag }}
+                <span class="form-check-label">{{ checkbox.choice_label }}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+          {% if form.categories.errors %}<div class="text-danger small">{{ form.categories.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label" for="{{ form.cities.id_for_label }}">شهرهای تحت پوشش</label>
+          {{ form.cities }}
+          {% if form.cities.errors %}<div class="text-danger small">{{ form.cities.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.mobile.id_for_label }}">موبایل</label>
+          {{ form.mobile }}
+          {% if form.mobile.errors %}<div class="text-danger small">{{ form.mobile.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.phone.id_for_label }}">تلفن ثابت</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="text-danger small">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.email.id_for_label }}">ایمیل</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.website.id_for_label }}">وب‌سایت</label>
+          {{ form.website }}
+          {% if form.website.errors %}<div class="text-danger small">{{ form.website.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label" for="{{ form.address.id_for_label }}">آدرس</label>
+          {{ form.address }}
+          {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.intro_content.id_for_label }}">معرفی کوتاه</label>
+          {{ form.intro_content }}
+          {% if form.intro_content.errors %}<div class="text-danger small">{{ form.intro_content.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.main_content.id_for_label }}">محتوای کامل</label>
+          {{ form.main_content }}
+          {% if form.main_content.errors %}<div class="text-danger small">{{ form.main_content.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.logo.id_for_label }}">لوگو یا تصویر پروفایل</label>
+          {{ form.logo }}
+          {% if form.logo.errors %}<div class="text-danger small">{{ form.logo.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">ذخیره و ارسال برای تأیید</button>
+        <a class="btn btn-outline-secondary" href="{% url 'panel:service_provider_list' %}">انصراف</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

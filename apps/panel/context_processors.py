@@ -29,11 +29,15 @@ def panel_pending_count(request):
     if user.is_superuser or user.groups.filter(name="site_admin").exists():
         from apps.listings.models import Listing
         from apps.agencies.models import Agency
+        from apps.services.models import ServiceProvider
 
         pending_listings = Listing.objects.filter(status=Listing.Status.PENDING).count()
         pending_agencies = Agency.objects.filter(
             approval_status=Agency.ApprovalStatus.PENDING
         ).count()
-        ctx["pending_approve_count"] = pending_listings + pending_agencies
+        pending_service_providers = ServiceProvider.objects.filter(
+            approval_status=ServiceProvider.ApprovalStatus.PENDING
+        ).count()
+        ctx["pending_approve_count"] = pending_listings + pending_agencies + pending_service_providers
 
     return ctx

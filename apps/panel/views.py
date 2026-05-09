@@ -34,6 +34,7 @@ from apps.accounts.roles import (
 from apps.listings.models import Listing
 from apps.lead.models import ListingLead, LandingLead
 from apps.locations.models import Area, City
+from apps.services.models import ServiceProvider
 from apps.common.sms import normalize_phone
 
 from .forms import (
@@ -42,6 +43,7 @@ from .forms import (
     AttributeForm,
     AttributeOptionFormSet,
     ListingForm,
+    ServiceProviderPanelForm,
     UserProfileForm,
 )
 
@@ -57,6 +59,14 @@ def _get_user_agencies(user):
 def _get_user_agency(user):
     """اولین مشاوره مالکیت‌شده توسط کاربر (برای سازگاری)."""
     return _get_user_agencies(user).first()
+
+
+def _get_user_service_providers_queryset(user):
+    """ارائه‌دهندگان خدمات قابل مدیریت برای کاربر."""
+    qs = ServiceProvider.objects.prefetch_related("categories", "cities", "images").select_related("owner")
+    if user.is_superuser or _is_site_admin(user):
+        return qs
+    return qs.filter(owner=user)
 
 
 def _get_user_active_listing_agencies(user):
@@ -185,9 +195,16 @@ def dashboard(request):
     pending_listings = qs.filter(status=Listing.Status.PENDING).count()
     pending_listings_all = 0
     pending_agencies_all = 0
+    pending_service_providers_all = 0
     if _is_site_admin(request.user):
         pending_listings_all = Listing.objects.filter(status=Listing.Status.PENDING).count()
         pending_agencies_all = Agency.objects.filter(approval_status=Agency.ApprovalStatus.PENDING).count()
+        pending_service_providers_all = ServiceProvider.objects.filter(
+            approval_status=ServiceProvider.ApprovalStatus.PENDING
+        ).count()
+
+    owned_agencies = Agency.objects.filter(owner=request.user).order_by("-id")
+    service_providers = ServiceProvider.objects.filter(owner=request.user).order_by("-updated_at", "-id")
     return render(
         request,
         "panel/dashboard.html",
@@ -198,6 +215,23 @@ def dashboard(request):
             "pending_listings": pending_listings,
             "pending_listings_all": pending_listings_all,
             "pending_agencies_all": pending_agencies_all,
+            "pending_service_providers_all": pending_service_providers_all,
+            "agency_count": owned_agencies.count(),
+            "approved_agency_count": owned_agencies.filter(
+                approval_status=Agency.ApprovalStatus.APPROVED,
+                is_active=True,
+            ).count(),
+            "pending_agency_count": owned_agencies.filter(
+                approval_status=Agency.ApprovalStatus.PENDING,
+            ).count(),
+            "service_provider_count": service_providers.count(),
+            "approved_service_provider_count": service_providers.filter(
+                approval_status=ServiceProvider.ApprovalStatus.APPROVED,
+                is_active=True,
+            ).count(),
+            "pending_service_provider_count": service_providers.filter(
+                approval_status=ServiceProvider.ApprovalStatus.PENDING,
+            ).count(),
             "is_site_admin": _is_site_admin(request.user),
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
@@ -555,6 +589,95 @@ def agency_edit(request, pk):
 
 
 @login_required(login_url="/accounts/login/")
+def service_provider_list(request):
+    """لیست پروفایل‌های خدماتی کاربر."""
+    providers = _get_user_service_providers_queryset(request.user).order_by("-updated_at", "-id")
+    return render(
+        request,
+        "panel/service_provider_list.html",
+        {
+            "providers": providers,
+            "breadcrumbs": [
+                {"title": "صفحه اصلی", "url": "/"},
+                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                {"title": "خدمات من", "url": None},
+            ],
+        },
+    )
+
+
+@login_required(login_url="/accounts/login/")
+def service_provider_add(request):
+    """ثبت درخواست تبدیل به ارائه‌دهنده خدمات."""
+    if request.method == "POST":
+        form = ServiceProviderPanelForm(request.POST, request.FILES)
+        if form.is_valid():
+            provider = form.save(commit=False)
+            provider.owner = request.user
+            provider.approval_status = ServiceProvider.ApprovalStatus.PENDING
+            provider.is_active = True
+            provider.save()
+            form.save_m2m()
+            messages.success(
+                request,
+                "پروفایل خدماتی شما ثبت شد و بعد از تأیید مدیر سایت در دایرکتوری سرویس‌ها نمایش داده می‌شود.",
+            )
+            return redirect("panel:service_provider_list")
+    else:
+        form = ServiceProviderPanelForm()
+    return render(
+        request,
+        "panel/service_provider_form.html",
+        {
+            "form": form,
+            "provider": None,
+            "breadcrumbs": [
+                {"title": "صفحه اصلی", "url": "/"},
+                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                {"title": "خدمات من", "url": reverse("panel:service_provider_list")},
+                {"title": "ثبت ارائه‌دهنده خدمات", "url": None},
+            ],
+        },
+    )
+
+
+@login_required(login_url="/accounts/login/")
+def service_provider_edit(request, pk):
+    """ویرایش پروفایل خدماتی؛ تغییرات کاربر دوباره به تأیید می‌رود."""
+    provider = get_object_or_404(_get_user_service_providers_queryset(request.user), pk=pk)
+    if request.method == "POST":
+        form = ServiceProviderPanelForm(request.POST, request.FILES, instance=provider)
+        if form.is_valid():
+            provider = form.save(commit=False)
+            if not _is_site_admin(request.user):
+                provider.approval_status = ServiceProvider.ApprovalStatus.PENDING
+            provider.is_active = True
+            provider.save()
+            form.save_m2m()
+            messages.success(
+                request,
+                "تغییرات پروفایل خدماتی ذخیره شد و برای بررسی مدیر سایت ارسال شد.",
+            )
+            return redirect("panel:service_provider_list")
+    else:
+        form = ServiceProviderPanelForm(instance=provider)
+    return render(
+        request,
+        "panel/service_provider_form.html",
+        {
+            "form": form,
+            "provider": provider,
+            "breadcrumbs": [
+                {"title": "صفحه اصلی", "url": "/"},
+                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                {"title": "خدمات من", "url": reverse("panel:service_provider_list")},
+                {"title": f"ویرایش: {provider.name}", "url": None},
+            ],
+        },
+    )
+
+
+@login_required(login_url="/accounts/login/")
 def agency_employees(request):
     """مدیریت همکاران املاک توسط مالک: ارسال دعوت، لغو دعوت، حذف همکار."""
     agencies = _get_user_agencies(request.user).filter(
@@ -846,6 +969,12 @@ def approve_dashboard(request):
     pending_agencies_count = pending_agencies_qs.count()
     pending_agencies = list(pending_agencies_qs[:50])
 
+    pending_service_providers_qs = ServiceProvider.objects.filter(
+        approval_status=ServiceProvider.ApprovalStatus.PENDING
+    ).select_related("owner").prefetch_related("categories", "cities").order_by("-updated_at", "-id")
+    pending_service_providers_count = pending_service_providers_qs.count()
+    pending_service_providers = list(pending_service_providers_qs[:50])
+
     rejected_listings_qs = Listing.objects.filter(
         Q(status=Listing.Status.REJECTED)
         | (Q(status=Listing.Status.DRAFT) & ~Q(rejection_reason=""))
@@ -853,12 +982,25 @@ def approve_dashboard(request):
     rejected_listings_count = rejected_listings_qs.count()
     rejected_listings = list(rejected_listings_qs[:50])
 
+    rejected_service_providers_qs = ServiceProvider.objects.filter(
+        approval_status=ServiceProvider.ApprovalStatus.REJECTED
+    ).select_related("owner").prefetch_related("categories").order_by("-updated_at", "-id")
+    rejected_service_providers_count = rejected_service_providers_qs.count()
+    rejected_service_providers = list(rejected_service_providers_qs[:50])
+
     # آگهی‌های تأیید شده (منتشرشده)
     approved_listings_qs = Listing.objects.filter(
         status=Listing.Status.PUBLISHED
     ).select_related("city", "category", "created_by").order_by("-published_at", "-id")
     approved_listings_count = approved_listings_qs.count()
     approved_listings = list(approved_listings_qs[:50])
+
+    approved_service_providers_qs = ServiceProvider.objects.filter(
+        approval_status=ServiceProvider.ApprovalStatus.APPROVED,
+        is_active=True,
+    ).select_related("owner").prefetch_related("categories").order_by("-updated_at", "-id")
+    approved_service_providers_count = approved_service_providers_qs.count()
+    approved_service_providers = list(approved_service_providers_qs[:50])
 
     # کارمندان و مدیران دارای عضویت فعال
     employees_qs = AgencyMembership.objects.filter(
@@ -877,10 +1019,16 @@ def approve_dashboard(request):
             "pending_listings_count": pending_listings_count,
             "pending_agencies": pending_agencies,
             "pending_agencies_count": pending_agencies_count,
+            "pending_service_providers": pending_service_providers,
+            "pending_service_providers_count": pending_service_providers_count,
             "rejected_listings": rejected_listings,
             "rejected_listings_count": rejected_listings_count,
+            "rejected_service_providers": rejected_service_providers,
+            "rejected_service_providers_count": rejected_service_providers_count,
             "approved_listings": approved_listings,
             "approved_listings_count": approved_listings_count,
+            "approved_service_providers": approved_service_providers,
+            "approved_service_providers_count": approved_service_providers_count,
             "employees": employees,
             "employees_count": employees_count,
             "breadcrumbs": [
@@ -1123,6 +1271,47 @@ def approve_agency(request, pk):
         agency.save()
         return redirect("panel:approve_dashboard")
     return render(request, "panel/approve_agency.html", {"agency": agency})
+
+
+@login_required(login_url="/accounts/login/")
+def approve_service_provider(request, pk):
+    """تأیید یا رد ارائه‌دهنده خدمات — فقط ادمین سایت."""
+    if not _is_site_admin(request.user):
+        return redirect("panel:dashboard")
+    provider = get_object_or_404(
+        ServiceProvider.objects.select_related("owner").prefetch_related("categories", "cities", "images"),
+        pk=pk,
+        approval_status__in=(
+            ServiceProvider.ApprovalStatus.PENDING,
+            ServiceProvider.ApprovalStatus.REJECTED,
+        ),
+    )
+    action = request.POST.get("action")
+    if action == "approve":
+        provider.approval_status = ServiceProvider.ApprovalStatus.APPROVED
+        provider.is_active = True
+        provider.save(update_fields=["approval_status", "is_active", "updated_at"])
+        messages.success(request, "ارائه‌دهنده خدمات تأیید و در سایت منتشر شد.")
+        return redirect(reverse("panel:approve_dashboard") + "?tab=pending")
+    if action == "reject":
+        provider.approval_status = ServiceProvider.ApprovalStatus.REJECTED
+        provider.is_active = False
+        provider.save(update_fields=["approval_status", "is_active", "updated_at"])
+        messages.info(request, "ارائه‌دهنده خدمات رد شد.")
+        return redirect(reverse("panel:approve_dashboard") + "?tab=pending")
+    return render(
+        request,
+        "panel/approve_service_provider.html",
+        {
+            "provider": provider,
+            "breadcrumbs": [
+                {"title": "صفحه اصلی", "url": "/"},
+                {"title": "پنل کاربری", "url": reverse("panel:dashboard")},
+                {"title": "تأیید موارد", "url": reverse("panel:approve_dashboard")},
+                {"title": provider.name, "url": None},
+            ],
+        },
+    )
 
 
 # --- مدیریت ویژگی‌ها (فقط ادمین سایت) ---

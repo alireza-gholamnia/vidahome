@@ -1,0 +1,63 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-4">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+      <div>
+        <h1 class="h4 mb-1">{{ provider.name }}</h1>
+        <p class="text-muted mb-0">بررسی درخواست ارائه‌دهنده خدمات</p>
+      </div>
+      <span class="badge bg-warning text-dark">{{ provider.get_approval_status_display }}</span>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-7">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">مالک</dt>
+          <dd class="col-sm-8">{{ provider.owner.get_full_name|default:provider.owner.username|default:"-" }}</dd>
+          <dt class="col-sm-4">نوع</dt>
+          <dd class="col-sm-8">{{ provider.get_provider_type_display }}</dd>
+          <dt class="col-sm-4">دسته‌ها</dt>
+          <dd class="col-sm-8">
+            {% for category in provider.categories.all %}
+            <span class="badge bg-secondary mb-1">{{ category.fa_name }}</span>
+            {% empty %}—{% endfor %}
+          </dd>
+          <dt class="col-sm-4">شهرها</dt>
+          <dd class="col-sm-8">
+            {% for city in provider.cities.all %}
+            <span class="badge bg-light text-dark mb-1">{{ city.fa_name }}</span>
+            {% empty %}همه/ثبت نشده{% endfor %}
+          </dd>
+          <dt class="col-sm-4">موبایل</dt>
+          <dd class="col-sm-8">{{ provider.mobile|default:"-" }}</dd>
+          <dt class="col-sm-4">تلفن</dt>
+          <dd class="col-sm-8">{{ provider.phone|default:"-" }}</dd>
+          <dt class="col-sm-4">ایمیل</dt>
+          <dd class="col-sm-8">{{ provider.email|default:"-" }}</dd>
+          <dt class="col-sm-4">وب‌سایت</dt>
+          <dd class="col-sm-8">{% if provider.website %}<a href="{{ provider.website }}" target="_blank" rel="noopener">{{ provider.website }}</a>{% else %}—{% endif %}</dd>
+        </dl>
+      </div>
+      <div class="col-md-5">
+        <div class="border rounded-3 p-3 h-100">
+          <h2 class="h6">معرفی</h2>
+          <p class="text-muted mb-3">{{ provider.intro_content|default:"معرفی کوتاه ثبت نشده است." }}</p>
+          {% if provider.main_content %}
+          <div class="small">{{ provider.main_content|safe }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="d-flex gap-2 mt-4">
+      {% csrf_token %}
+      <button class="btn btn-success" type="submit" name="action" value="approve">تأیید و انتشار</button>
+      <button class="btn btn-outline-danger" type="submit" name="action" value="reject">رد کردن</button>
+      <a class="btn btn-outline-secondary" href="{% url 'panel:approve_dashboard' %}?tab=pending">بازگشت</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

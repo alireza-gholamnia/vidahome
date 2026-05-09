@@ -1,0 +1,73 @@
+{% extends "panel/base.html" %}
+{% block panel_content %}
+<div class="mb-3">{% include "partials/breadcrumbs.html" %}</div>
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+  <div>
+    <h1 class="h4 mb-1">خدمات من</h1>
+    <p class="text-muted mb-0">اینجا مسیر تبدیل کاربر به ارائه‌دهنده خدمات است. بعد از تأیید، پروفایل شما در بخش سرویس‌ها نمایش داده می‌شود.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'panel:service_provider_add' %}">
+    <i class="fi-plus me-2"></i>ثبت ارائه‌دهنده خدمات
+  </a>
+</div>
+
+{% if providers %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>نام</th>
+          <th>نوع</th>
+          <th>دسته‌ها</th>
+          <th>وضعیت</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for provider in providers %}
+        <tr>
+          <td>
+            <strong>{{ provider.name }}</strong>
+            {% if provider.approval_status == provider.ApprovalStatus.APPROVED and provider.is_active %}
+            <div class="small"><a href="{{ provider.get_absolute_url }}" target="_blank" rel="noopener">مشاهده در سایت</a></div>
+            {% endif %}
+          </td>
+          <td>{{ provider.get_provider_type_display }}</td>
+          <td>
+            {% for category in provider.categories.all|slice:":3" %}
+            <span class="badge bg-secondary mb-1">{{ category.fa_name }}</span>
+            {% empty %}
+            <span class="text-muted">—</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if provider.approval_status == provider.ApprovalStatus.APPROVED and provider.is_active %}
+            <span class="badge bg-success">تأیید شده</span>
+            {% elif provider.approval_status == provider.ApprovalStatus.REJECTED %}
+            <span class="badge bg-danger">رد شده</span>
+            {% else %}
+            <span class="badge bg-warning text-dark">در انتظار تأیید</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'panel:service_provider_edit' provider.pk %}">ویرایش</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card shadow-sm">
+  <div class="card-body text-center py-5">
+    <i class="fi-briefcase display-6 text-primary mb-3"></i>
+    <h2 class="h5">هنوز پروفایل خدماتی ندارید</h2>
+    <p class="text-muted">اگر شرکت یا شخص ارائه‌دهنده خدمات ملک هستید، پروفایل خود را ثبت کنید تا بعد از تأیید در دایرکتوری سرویس‌ها نمایش داده شوید.</p>
+    <a class="btn btn-primary" href="{% url 'panel:service_provider_add' %}">شروع ثبت خدمات</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
