@@ -120,7 +120,7 @@ USE_TZ = True
 
 
 # Static & media (root-based)
-STATIC_URL = 'static/'
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     PROJECT_DIR / "static",
 ]
@@ -163,6 +163,11 @@ NESHAN_SERVICE_API_KEY = os.environ.get("NESHAN_SERVICE_API_KEY", "") or os.envi
 KAVENEGAR_API_KEY = (os.environ.get("KAVENEGAR_API_KEY", "") or "").strip()
 KAVENEGAR_SENDER = (os.environ.get("KAVENEGAR_SENDER", "9982002624") or "9982002624").strip()
 KAVENEGAR_OTP_TEMPLATE = os.environ.get("KAVENEGAR_OTP_TEMPLATE", "login")
+
+# OTP delivery mode:
+# - "sms" (default): send via KaveNegar (requires KAVENEGAR_API_KEY)
+# - "console": don't send SMS; print OTP in terminal (useful for local/dev)
+OTP_DELIVERY = (os.environ.get("OTP_DELIVERY", "sms") or "sms").strip().lower()
 
 # SEO defaults
 SITE_NAME = os.environ.get("SITE_NAME", "VidaHome")

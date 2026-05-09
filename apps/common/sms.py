@@ -57,6 +57,8 @@ def _should_print_otp_in_terminal() -> bool:
     - پیش‌فرض: فقط وقتی DEBUG=True
     - قابل override با OTP_PRINT_TO_CONSOLE در settings
     """
+    if (getattr(settings, "OTP_DELIVERY", "") or "").strip().lower() in {"console", "terminal", "print"}:
+        return True
     return bool(getattr(settings, "OTP_PRINT_TO_CONSOLE", getattr(settings, "DEBUG", False)))
 
 
@@ -201,6 +203,12 @@ def send_otp(receptor: str, code: str) -> tuple[bool, str]:
     """
     receptor = normalize_phone(receptor)
     _print_otp_to_terminal(receptor, code)
+
+    delivery = (getattr(settings, "OTP_DELIVERY", None) or "sms").strip().lower()
+    if delivery in {"console", "terminal", "print"}:
+        logger.info("[DEV] OTP delivery=%s; SMS suppressed for receptor=%s", delivery, receptor)
+        return (True, "")
+
     if _should_skip_real_sms_send():
         logger.info("[TEST] Real OTP SMS suppressed for receptor=%s", receptor)
         return (True, "")
