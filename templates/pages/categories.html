@@ -130,15 +130,15 @@
               <ul class="mb-3 list-unstyled">
                 {% for child in category.children.all %}
                 <li class="mb-1">
-                  <a href="/s/{{ child.slug }}/">{{ child.fa_name }}</a>
+                  <a href="{% url 'services:category' child.slug %}">{{ child.fa_name }}</a>
                 </li>
                 {% endfor %}
               </ul>
               {% else %}
               <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
               {% endif %}
-              <a class="btn btn-sm btn-outline-primary" href="/s/{{ category.slug }}/">
-                مشاهده صفحه
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'services:category' category.slug %}">
+                مشاهده ارائه‌دهندگان
               </a>
             </div>
           </div>

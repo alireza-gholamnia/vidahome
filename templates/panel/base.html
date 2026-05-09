@@ -72,7 +72,7 @@
                   {% if pending_invites_count %}<span class="badge bg-danger ms-1">{{ pending_invites_count }}</span>{% endif %}
                 </a>
               </li>
-              {% if user.agency %}
+              {% if user|is_agency_employee %}
               <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'employee_my_agency' %}active fw-bold{% endif %}" href="{% url 'panel:employee_my_agency' %}">
                   <i class="fi-building me-2 opacity-70"></i>املاک محل همکاری

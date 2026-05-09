@@ -1,0 +1,89 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <div class="container mt-5 pt-md-3 py-4 py-lg-5">
+    {% include "partials/breadcrumbs.html" %}
+    <div class="mb-4">
+      <h1 class="mb-2">{{ seo_h1 }}</h1>
+      <p class="text-muted mb-0">شرکت‌ها و افراد ارائه‌دهنده سرویس‌های مرتبط با خرید، فروش، اجاره و نگهداری ملک را پیدا کنید.</p>
+    </div>
+
+    <section class="mb-5">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 mb-0">دسته‌بندی سرویس‌ها</h2>
+      </div>
+      <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            {% with cover=category.get_cover_image %}
+            {% if cover %}
+            <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="card-img-top" loading="lazy" style="height: 180px; object-fit: cover;">
+            {% endif %}
+            {% endwith %}
+            <div class="card-body">
+              <h3 class="h5 mb-3">{{ category.fa_name }}</h3>
+              {% if category.children.all %}
+              <ul class="mb-3 list-unstyled">
+                {% for child in category.children.all %}
+                <li class="mb-1"><a href="{% url 'services:category' child.slug %}">{{ child.fa_name }}</a></li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-3">زیردسته‌ای ثبت نشده است.</p>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'services:category' category.slug %}">مشاهده ارائه‌دهندگان</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info">هنوز دسته سرویس فعالی ثبت نشده است.</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h4 mb-0">ارائه‌دهندگان منتخب</h2>
+        <a class="btn btn-link p-0" href="{% url 'services:provider_list' %}">مشاهده همه{% if providers_count %} ({{ providers_count }}){% endif %}<i class="fi-arrow-long-left ms-2"></i></a>
+      </div>
+      <div class="row g-4">
+        {% for provider in providers %}
+        <div class="col-md-6 col-lg-4">
+          {% include "partials/service_provider_card.html" %}
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info">هنوز ارائه‌دهنده سرویسی ثبت نشده است.</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}

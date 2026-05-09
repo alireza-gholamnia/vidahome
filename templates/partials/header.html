@@ -91,6 +91,28 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'categories:directory' %}">دسته‌بندی‌ها</a>
         </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="{% url 'services:directory' %}"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            >سرویس‌ها</a
+          >
+          <ul class="dropdown-menu">
+            <li>
+              <a class="dropdown-item" href="{% url 'services:directory' %}"
+                ><i class="fi-grid fs-base opacity-50 me-2"></i>دسته‌بندی سرویس‌ها</a
+              >
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'services:provider_list' %}"
+                ><i class="fi-users fs-base opacity-50 me-2"></i>ارائه‌دهندگان خدمات</a
+              >
+            </li>
+          </ul>
+        </li>
         <li class="nav-item">
           <a class="nav-link" href="{% url 'agency_list' %}">مشاوران املاک</a>
         </li>

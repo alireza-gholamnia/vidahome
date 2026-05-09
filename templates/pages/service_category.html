@@ -1,0 +1,63 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <section class="container pt-5 mt-5 pb-4">
+    {% include "partials/breadcrumbs.html" %}
+    {% with cover=category.get_landing_cover_image %}
+    {% if cover %}
+    <div class="mb-4 rounded overflow-hidden">
+      <img src="{{ cover.image.url }}" alt="{{ cover.alt|default:category.fa_name }}" class="w-100 rounded-3" style="max-height: 320px; object-fit: cover;">
+    </div>
+    {% endif %}
+    {% endwith %}
+    <h1 class="h2 mb-3">{{ seo_h1 }}</h1>
+    {% if category.intro_content %}
+    <p class="lead text-muted">{{ category.intro_content }}</p>
+    {% endif %}
+    {% if category.main_content %}
+    <div class="content mb-4">{{ category.main_content|safe }}</div>
+    {% endif %}
+  </section>
+
+  <section class="container pb-5 mb-lg-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h2 class="h4 mb-0">ارائه‌دهندگان {{ category.fa_name }}</h2>
+      <span class="text-muted fs-sm">{{ providers.count }} نتیجه</span>
+    </div>
+    <div class="row g-4">
+      {% for provider in providers %}
+      <div class="col-md-6 col-lg-4">
+        {% include "partials/service_provider_card.html" %}
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="alert alert-info">فعلاً ارائه‌دهنده‌ای برای این سرویس ثبت نشده است.</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}

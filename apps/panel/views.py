@@ -16,15 +16,17 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from apps.agencies.models import (
     Agency,
+    AgencyMembership,
     AgencyJoinRequest,
     AgencyEmployeeInvite,
     EmployeeRemoveRequest,
 )
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
-from apps.accounts.models import RoleChangeRequest, GROUP_ROLE_LABELS
+from apps.accounts.models import RoleChangeRequest, GROUP_ROLE_LABELS, User
 from apps.accounts.roles import (
     assign_user_to_agency,
     clear_user_agency_membership,
+    get_user_agencies_for_roles,
     promote_user_to_owner,
     set_exclusive_business_role,
     user_owns_any_agency,
@@ -45,8 +47,11 @@ from .forms import (
 
 
 def _get_user_agencies(user):
-    """مشاوره‌های املاکی که کاربر مالک آن‌هاست."""
-    return Agency.objects.filter(owner=user)
+    """مشاوره‌های املاکی که کاربر حق مدیریت آن‌ها را دارد."""
+    return get_user_agencies_for_roles(
+        user,
+        roles=(AgencyMembership.Role.OWNER, AgencyMembership.Role.MANAGER),
+    )
 
 
 def _get_user_agency(user):
@@ -63,14 +68,15 @@ def _get_user_active_listing_agencies(user):
     if user.is_superuser or _is_site_admin(user):
         return Agency.objects.filter(**approved_active).order_by("name", "id")
 
-    owner_agencies = _get_user_agencies(user).filter(**approved_active).order_by("name", "id")
-    if owner_agencies.exists():
-        return owner_agencies
-
-    if getattr(user, "agency_id", None):
-        return Agency.objects.filter(id=user.agency_id, **approved_active)
-
-    return Agency.objects.none()
+    return get_user_agencies_for_roles(
+        user,
+        roles=(
+            AgencyMembership.Role.OWNER,
+            AgencyMembership.Role.MANAGER,
+            AgencyMembership.Role.EMPLOYEE,
+        ),
+        approved_only=True,
+    ).order_by("name", "id")
 
 
 def _resolve_listing_agency_for_user(user, selected_agency=None):
@@ -79,11 +85,6 @@ def _resolve_listing_agency_for_user(user, selected_agency=None):
 
     if selected_agency is not None:
         return agencies.filter(id=selected_agency.id).first()
-
-    if getattr(user, "agency_id", None):
-        current = agencies.filter(id=user.agency_id).first()
-        if current:
-            return current
 
     if agencies.count() == 1:
         return agencies.first()
@@ -504,6 +505,7 @@ def agency_add(request):
             agency.approval_status = Agency.ApprovalStatus.PENDING
             agency.save()
             form.save_m2m()
+            promote_user_to_owner(request.user)
             messages.success(request, "املاک شما ثبت شد و پس از تأیید مدیر سایت فعال می‌شود.")
             return redirect("panel:agency_list")
     else:
@@ -526,7 +528,7 @@ def agency_add(request):
 @login_required(login_url="/accounts/login/")
 def agency_edit(request, pk):
     """ویرایش پروفایل املاک — فقط برای مالک همان املاک."""
-    agency = get_object_or_404(Agency, pk=pk, owner=request.user)
+    agency = get_object_or_404(_get_user_agencies(request.user), pk=pk)
     if request.method == "POST":
         form = AgencyProfileForm(
             request.POST, request.FILES, instance=agency
@@ -563,13 +565,14 @@ def agency_employees(request):
         messages.info(request, "برای مدیریت همکاران، ابتدا حداقل یک املاک فعال/تأییدشده داشته باشید.")
         return redirect("panel:agency_list")
 
-    from apps.accounts.models import User
-
-    employee_ids = User.objects.filter(agency__in=agencies).values_list("id", flat=True)
     employees = list(
-        User.objects.filter(id__in=employee_ids)
-        .select_related("agency")
-        .order_by("agency__name", "first_name", "username")
+        AgencyMembership.objects.filter(
+            agency__in=agencies,
+            status=AgencyMembership.Status.ACTIVE,
+            role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+        )
+        .select_related("agency", "user")
+        .order_by("agency__name", "role", "user__first_name", "user__username")
     )
     pending_invites = list(
         AgencyEmployeeInvite.objects.filter(
@@ -584,11 +587,18 @@ def agency_employees(request):
         action = (request.POST.get("action") or "").strip()
         if action == "remove_employee":
             user_id = request.POST.get("user_id")
+            agency_id = request.POST.get("agency_id")
             try:
-                emp = User.objects.get(pk=int(user_id), agency__in=agencies)
-                clear_user_agency_membership(emp)
+                membership = AgencyMembership.objects.select_related("agency", "user").get(
+                    user_id=int(user_id),
+                    agency_id=int(agency_id),
+                    agency__in=agencies,
+                    status=AgencyMembership.Status.ACTIVE,
+                    role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+                )
+                clear_user_agency_membership(membership.user, agency=membership.agency)
                 messages.success(request, "همکار از املاک حذف شد.")
-            except (ValueError, User.DoesNotExist):
+            except (TypeError, ValueError, AgencyMembership.DoesNotExist):
                 messages.error(request, "کارمند انتخاب‌شده معتبر نیست.")
             return redirect("panel:agency_employees")
 
@@ -644,7 +654,11 @@ def agency_employees(request):
                 messages.error(request, "این کاربر مالک املاک است و نمی‌تواند به عنوان همکار ثبت شود.")
                 return redirect("panel:agency_employees")
 
-            if target.agency_id == agency.id:
+            if AgencyMembership.objects.filter(
+                user=target,
+                agency=agency,
+                status=AgencyMembership.Status.ACTIVE,
+            ).exists() or target.agency_id == agency.id:
                 messages.info(request, "این کاربر هم‌اکنون همکار همین املاک است.")
                 return redirect("panel:agency_employees")
 
@@ -789,10 +803,15 @@ def employee_request_join(request):
 
 @login_required(login_url="/accounts/login/")
 def employee_my_agency(request):
-    """نمایش اطلاعات مشاوره‌ای که کاربر عضو آن است — فقط برای کارمندان با user.agency."""
-    if not request.user.agency_id:
+    """نمایش اطلاعات مشاوره‌ای که کاربر در آن عضویت فعال دارد."""
+    membership = AgencyMembership.objects.filter(
+        user=request.user,
+        status=AgencyMembership.Status.ACTIVE,
+        role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+    ).select_related("agency").first()
+    if not request.user.agency_id and not membership:
         return redirect("panel:dashboard")
-    agency = request.user.agency
+    agency = request.user.agency if request.user.agency_id else membership.agency
     return render(
         request,
         "panel/employee_my_agency.html",
@@ -841,12 +860,11 @@ def approve_dashboard(request):
     approved_listings_count = approved_listings_qs.count()
     approved_listings = list(approved_listings_qs[:50])
 
-    # کارمندان (کاربران با agency)
-    from apps.accounts.models import User
-
-    employees_qs = User.objects.filter(agency__isnull=False).select_related(
-        "agency"
-    ).order_by("agency__name", "first_name", "username")
+    # کارمندان و مدیران دارای عضویت فعال
+    employees_qs = AgencyMembership.objects.filter(
+        status=AgencyMembership.Status.ACTIVE,
+        role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+    ).select_related("agency", "user").order_by("agency__name", "role", "user__first_name", "user__username")
     employees_count = employees_qs.count()
     employees = list(employees_qs[:100])
 
@@ -1037,15 +1055,24 @@ def employee_manage_agency(request, user_id):
     """تغییر یا حذف مشاوره کارمند — فقط ادمین سایت."""
     if not _is_site_admin(request.user):
         return redirect("panel:dashboard")
-    from apps.accounts.models import User
 
     emp = get_object_or_404(User, pk=user_id)
-    if not emp.agency_id:
+    current_agency_id = request.POST.get("current_agency") or request.GET.get("agency")
+    membership = AgencyMembership.objects.filter(
+        user=emp,
+        status=AgencyMembership.Status.ACTIVE,
+        role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+    )
+    if current_agency_id:
+        membership = membership.filter(agency_id=current_agency_id)
+    membership = membership.select_related("agency").first()
+    current_agency = emp.agency if emp.agency_id else (membership.agency if membership else None)
+    if not current_agency:
         return redirect("panel:approve_dashboard")
     if request.method == "POST":
         new_agency_id = request.POST.get("agency")
         if new_agency_id == "" or new_agency_id == "remove":
-            clear_user_agency_membership(emp)
+            clear_user_agency_membership(emp, agency=current_agency)
         else:
             try:
                 agency = Agency.objects.get(
@@ -1066,6 +1093,7 @@ def employee_manage_agency(request, user_id):
         "panel/employee_manage_agency.html",
         {
             "emp": emp,
+            "current_agency": current_agency,
             "agencies": agencies,
             "breadcrumbs": [
                 {"title": "صفحه اصلی", "url": "/"},
@@ -1370,5 +1398,3 @@ def attributes_json(request):
             item["current_value"] = current_values.get(attr.id)
         result.append(item)
     return JsonResponse(result, safe=False)
-
-

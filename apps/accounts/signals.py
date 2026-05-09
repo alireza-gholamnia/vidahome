@@ -4,6 +4,7 @@
 from django.contrib.auth.models import Group
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from .models import User
 
@@ -35,14 +36,39 @@ def transfer_listings_on_agency_change(sender, instance, **kwargs):
     new_agency_id = instance.agency_id
     if old_agency_id == new_agency_id:
         return  # مشاوره تغییری نکرده
-    if not old_agency_id:
-        return  # قبلاً مشاوره‌ای نداشت
-    from apps.listings.models import Listing
+    from apps.agencies.models import AgencyMembership
 
-    old_agency = old_user.agency
-    if not old_agency or not old_agency.owner_id:
+    if old_agency_id:
+        AgencyMembership.objects.filter(
+            user_id=instance.pk,
+            agency_id=old_agency_id,
+            status=AgencyMembership.Status.ACTIVE,
+            role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+        ).update(status=AgencyMembership.Status.LEFT, left_at=timezone.now())
+
+        from apps.listings.models import Listing
+
+        old_agency = old_user.agency
+        if old_agency and old_agency.owner_id:
+            Listing.objects.filter(
+                created_by_id=instance.pk,
+                agency_id=old_agency_id,
+            ).update(created_by_id=old_agency.owner_id)
+
+
+@receiver(post_save, sender=User)
+def sync_employee_membership_from_legacy_agency(sender, instance, created, **kwargs):
+    """اگر فیلد قدیمی user.agency مستقیم تغییر کند، عضویت جدید هم همگام شود."""
+    if not instance.agency_id:
         return
-    Listing.objects.filter(
-        created_by_id=instance.pk,
-        agency_id=old_agency_id,
-    ).update(created_by_id=old_agency.owner_id)
+    from apps.agencies.models import AgencyMembership
+
+    AgencyMembership.objects.update_or_create(
+        user=instance,
+        agency_id=instance.agency_id,
+        role=AgencyMembership.Role.EMPLOYEE,
+        defaults={
+            "status": AgencyMembership.Status.ACTIVE,
+            "left_at": None,
+        },
+    )

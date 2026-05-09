@@ -79,3 +79,11 @@ def listing_image_upload_to(instance, filename):
 
 def blog_cover_upload_to(instance, filename):
     return f"blog/{timezone.now().strftime('%Y/%m')}/{uuid.uuid4().hex}.{OUTPUT_EXT}"
+
+
+def service_provider_logo_upload_to(instance, filename):
+    return f"services/logos/{timezone.now().strftime('%Y/%m')}/{uuid.uuid4().hex}.{OUTPUT_EXT}"
+
+
+def service_provider_image_upload_to(instance, filename):
+    return f"services/providers/{timezone.now().strftime('%Y/%m')}/{uuid.uuid4().hex}.{OUTPUT_EXT}"

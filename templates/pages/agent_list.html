@@ -90,6 +90,8 @@
                 <li class="list-inline-item pe-1"><i class="fi-building mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.agency.name }}</li>
                 {% elif agent.owned_agencies.exists %}
                 <li class="list-inline-item pe-1"><i class="fi-building mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.owned_agencies.first.name }}</li>
+                {% elif agent.active_agency_memberships %}
+                <li class="list-inline-item pe-1"><i class="fi-building mt-n1 me-1 fs-base text-muted align-middle"></i>{{ agent.active_agency_memberships.0.agency.name }}</li>
                 {% endif %}
               </ul>
             </article>

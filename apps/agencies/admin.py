@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from .models import (
     Agency,
     AgencyImage,
+    AgencyMembership,
     AgencyJoinRequest,
     AgencyEmployeeInvite,
     EmployeeRemoveRequest,
@@ -22,6 +23,15 @@ class AgencyImageInline(admin.TabularInline):
     ordering = ("sort_order", "id")
 
 
+class AgencyMembershipInline(admin.TabularInline):
+    model = AgencyMembership
+    extra = 0
+    fields = ("user", "role", "status", "created_by", "joined_at", "left_at")
+    autocomplete_fields = ("user", "created_by")
+    readonly_fields = ("joined_at",)
+    ordering = ("role", "user__username")
+
+
 @admin.register(Agency)
 class AgencyAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "owner", "phone", "approval_status", "is_active", "_view_link")
@@ -29,7 +39,7 @@ class AgencyAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug", "owner__username")
     prepopulated_fields = {"slug": ("name",)}
     filter_horizontal = ("cities",)
-    inlines = (AgencyImageInline,)
+    inlines = (AgencyMembershipInline, AgencyImageInline)
 
     fieldsets = (
         ("اطلاعات اصلی", {"fields": ("name", "slug", "owner", "phone", "address", "approval_status", "is_active")}),
@@ -42,6 +52,15 @@ class AgencyAdmin(admin.ModelAdmin):
         return _view_link(obj.get_absolute_url() if obj else None)
 
     _view_link.short_description = "مشاهده"
+
+
+@admin.register(AgencyMembership)
+class AgencyMembershipAdmin(admin.ModelAdmin):
+    list_display = ("user", "agency", "role", "status", "joined_at", "left_at")
+    list_filter = ("role", "status", "agency")
+    search_fields = ("user__username", "user__phone", "agency__name")
+    autocomplete_fields = ("user", "agency", "created_by")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(AgencyJoinRequest)

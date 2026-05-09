@@ -10,11 +10,13 @@ def has_agency(user):
     """آیا کاربر حداقل یک املاک فعال و تاییدشده دارد؟"""
     if not user or not user.is_authenticated:
         return False
-    from apps.agencies.models import Agency
-    return Agency.objects.filter(
-        owner=user,
-        is_active=True,
-        approval_status=Agency.ApprovalStatus.APPROVED,
+    from apps.agencies.models import AgencyMembership
+    from apps.accounts.roles import get_user_agencies_for_roles
+
+    return get_user_agencies_for_roles(
+        user,
+        roles=(AgencyMembership.Role.OWNER, AgencyMembership.Role.MANAGER),
+        approved_only=True,
     ).exists()
 
 
@@ -23,12 +25,13 @@ def is_agency_owner(user):
     """آیا کاربر مالک حداقل یک املاک است؟"""
     if not user or not user.is_authenticated:
         return False
-    from apps.agencies.models import Agency
+    from apps.agencies.models import AgencyMembership
+    from apps.accounts.roles import get_user_agencies_for_roles
 
-    return Agency.objects.filter(
-        owner=user,
-        is_active=True,
-        approval_status=Agency.ApprovalStatus.APPROVED,
+    return get_user_agencies_for_roles(
+        user,
+        roles=(AgencyMembership.Role.OWNER,),
+        approved_only=True,
     ).exists()
 
 
@@ -37,7 +40,13 @@ def is_agency_employee(user):
     """آیا کاربر در حال حاضر عضو یک املاک است؟"""
     if not user or not user.is_authenticated:
         return False
-    return bool(getattr(user, "agency_id", None))
+    from apps.agencies.models import AgencyMembership
+
+    return AgencyMembership.objects.filter(
+        user=user,
+        status=AgencyMembership.Status.ACTIVE,
+        role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+    ).exists() or bool(getattr(user, "agency_id", None))
 
 
 @register.filter
@@ -63,20 +72,20 @@ def _can_edit(user, listing):
         return False
     if user.is_superuser:
         return True
-    from apps.agencies.models import Agency
+    from apps.agencies.models import AgencyMembership
+    from apps.accounts.roles import get_user_agencies_for_roles
     if not listing.agency_id:
         return False
 
-    approved_active = {
-        "approval_status": Agency.ApprovalStatus.APPROVED,
-        "is_active": True,
-    }
-    if Agency.objects.filter(owner=user, id=listing.agency_id, **approved_active).exists():
-        return True
-    return Agency.objects.filter(
-        id=listing.agency_id,
-        **approved_active,
-    ).exists() and bool(getattr(user, "agency_id", None) == listing.agency_id)
+    return get_user_agencies_for_roles(
+        user,
+        roles=(
+            AgencyMembership.Role.OWNER,
+            AgencyMembership.Role.MANAGER,
+            AgencyMembership.Role.EMPLOYEE,
+        ),
+        approved_only=True,
+    ).filter(id=listing.agency_id).exists()
 
 
 def _can_delete(user, listing):

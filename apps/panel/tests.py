@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.agencies.models import Agency, AgencyEmployeeInvite
+from apps.agencies.models import Agency, AgencyEmployeeInvite, AgencyMembership
 from apps.attributes.models import Attribute, ListingAttribute
 from apps.categories.models import Category
 from apps.listings.models import Listing
@@ -112,5 +112,40 @@ class InvitePolicyTests(TestCase):
                 invited_user=self.target,
                 agency=self.approved_agency,
                 status=AgencyEmployeeInvite.Status.PENDING,
+            ).exists()
+        )
+
+    def test_agency_owner_membership_is_created(self):
+        self.assertTrue(
+            AgencyMembership.objects.filter(
+                agency=self.approved_agency,
+                user=self.inviter,
+                role=AgencyMembership.Role.OWNER,
+                status=AgencyMembership.Status.ACTIVE,
+            ).exists()
+        )
+
+    def test_accept_invite_creates_employee_membership(self):
+        candidate = User.objects.create_user(username="candidate", phone="09120000300", password="x")
+        invite = AgencyEmployeeInvite.objects.create(
+            invited_user=candidate,
+            agency=self.approved_agency,
+            invited_by=self.inviter,
+            status=AgencyEmployeeInvite.Status.PENDING,
+        )
+
+        self.client.force_login(candidate)
+        response = self.client.post(
+            reverse("panel:employee_request_join"),
+            {"action": "accept_invite", "invite_id": invite.id},
+        )
+
+        self.assertRedirects(response, reverse("panel:employee_my_agency"), fetch_redirect_response=False)
+        self.assertTrue(
+            AgencyMembership.objects.filter(
+                agency=self.approved_agency,
+                user=candidate,
+                role=AgencyMembership.Role.EMPLOYEE,
+                status=AgencyMembership.Status.ACTIVE,
             ).exists()
         )

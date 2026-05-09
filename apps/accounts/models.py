@@ -64,7 +64,17 @@ class User(AbstractUser):
 
     def is_agent(self):
         """آیا کاربر صاحب یا کارمند مشاوره است و لندینگ دارد؟"""
-        from apps.agencies.models import Agency
+        from apps.agencies.models import Agency, AgencyMembership
+
+        active_approved = {
+            "agency__is_active": True,
+            "agency__approval_status": Agency.ApprovalStatus.APPROVED,
+        }
+        if self.agency_memberships.filter(
+            status=AgencyMembership.Status.ACTIVE,
+            **active_approved,
+        ).exists():
+            return True
 
         if self.owned_agencies.filter(
             is_active=True, approval_status=Agency.ApprovalStatus.APPROVED

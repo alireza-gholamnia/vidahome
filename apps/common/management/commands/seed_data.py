@@ -549,9 +549,10 @@ class Command(BaseCommand):
                 a.cities.add(*random.sample(cities, min(2, len(cities))))
             agencies.append(a)
 
+        from apps.accounts.roles import assign_user_to_agency
+
         for agency, emp in zip(agencies, employees[: len(agencies)]):
-            emp.agency = agency
-            emp.save()
+            assign_user_to_agency(emp, agency)
 
         self.stdout.write(f"  Agencies: {len(agencies)}")
         return agencies

@@ -4,7 +4,8 @@ from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
-from apps.agencies.models import Agency
+from apps.agencies.models import AgencyMembership
+from apps.accounts.roles import get_user_agencies_for_roles
 from apps.attributes.models import Attribute, AttributeOption, ListingAttribute
 from apps.categories.models import Category
 
@@ -73,11 +74,16 @@ class ListingAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        # صاحب مشاوره: تمام آگهی‌های مشاوره خودش
-        if Agency.objects.filter(owner=request.user).exists():
-            return qs.filter(agency__owner=request.user)
-        # کارمند مشاوره: فقط آگهی‌هایی که خودش ثبت کرده
-        return qs.filter(created_by=request.user)
+        agency_ids = get_user_agencies_for_roles(
+            request.user,
+            roles=(
+                AgencyMembership.Role.OWNER,
+                AgencyMembership.Role.MANAGER,
+                AgencyMembership.Role.EMPLOYEE,
+            ),
+            approved_only=True,
+        ).values_list("id", flat=True)
+        return qs.filter(agency_id__in=agency_ids)
 
     def get_readonly_fields(self, request, obj=None):
         fields = list(super().get_readonly_fields(request, obj))
@@ -92,7 +98,15 @@ class ListingAdmin(admin.ModelAdmin):
             if "created_by" in form.base_fields:
                 form.base_fields["created_by"].initial = request.user
             if "agency" in form.base_fields:
-                agency = getattr(request.user, "agency", None) or Agency.objects.filter(owner=request.user).first()
+                agency = get_user_agencies_for_roles(
+                    request.user,
+                    roles=(
+                        AgencyMembership.Role.OWNER,
+                        AgencyMembership.Role.MANAGER,
+                        AgencyMembership.Role.EMPLOYEE,
+                    ),
+                    approved_only=True,
+                ).first()
                 if agency:
                     form.base_fields["agency"].initial = agency
         return form
@@ -106,7 +120,15 @@ class ListingAdmin(admin.ModelAdmin):
         if not request.user.is_superuser:
             if not change:
                 obj.created_by = request.user
-                agency = getattr(request.user, "agency", None) or Agency.objects.filter(owner=request.user).first()
+                agency = get_user_agencies_for_roles(
+                    request.user,
+                    roles=(
+                        AgencyMembership.Role.OWNER,
+                        AgencyMembership.Role.MANAGER,
+                        AgencyMembership.Role.EMPLOYEE,
+                    ),
+                    approved_only=True,
+                ).first()
                 if agency:
                     obj.agency = agency
         super().save_model(request, obj, form, change)
@@ -197,5 +219,3 @@ class ListingAdmin(admin.ModelAdmin):
             )
         }),
     )
-
-

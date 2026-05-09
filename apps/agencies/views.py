@@ -1,9 +1,10 @@
 from django.http import Http404
 from django.shortcuts import redirect, render, get_object_or_404
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 
-from .models import Agency
+from .models import Agency, AgencyMembership
 from apps.accounts.models import User
+from apps.accounts.roles import get_user_agencies_for_roles
 from apps.listings.models import Listing
 
 
@@ -14,7 +15,11 @@ def _render_agency_landing(request, agency, seo_canonical=None):
         .prefetch_related("images")
         .order_by("-published_at", "-id")[:24]
     )
-    employees = agency.employees.filter(is_active=True).select_related("agency")
+    employee_ids = agency.memberships.filter(
+        status=AgencyMembership.Status.ACTIVE,
+        role__in=(AgencyMembership.Role.MANAGER, AgencyMembership.Role.EMPLOYEE),
+    ).values_list("user_id", flat=True)
+    employees = User.objects.filter(id__in=employee_ids, is_active=True).select_related("agency")
     landing_cover = agency.get_landing_cover_image()
     seo_title = agency.seo_title or f"{agency.name} | VidaHome"
     seo_h1 = agency.seo_h1 or agency.name
@@ -46,18 +51,35 @@ def agent_list(request):
     agents = (
         User.objects.filter(is_active=True)
         .filter(
-            Q(owned_agencies__is_active=True, owned_agencies__approval_status=Agency.ApprovalStatus.APPROVED)
+            Q(agency_memberships__status=AgencyMembership.Status.ACTIVE)
+            & Q(agency_memberships__agency__is_active=True)
+            & Q(agency_memberships__agency__approval_status=Agency.ApprovalStatus.APPROVED)
+            | Q(owned_agencies__is_active=True, owned_agencies__approval_status=Agency.ApprovalStatus.APPROVED)
             | Q(agency__is_active=True, agency__approval_status=Agency.ApprovalStatus.APPROVED)
         )
         .select_related("agency")
-        .prefetch_related("owned_agencies", "groups")
+        .prefetch_related(
+            "owned_agencies",
+            Prefetch(
+                "agency_memberships",
+                queryset=AgencyMembership.objects.filter(
+                    status=AgencyMembership.Status.ACTIVE,
+                    agency__is_active=True,
+                    agency__approval_status=Agency.ApprovalStatus.APPROVED,
+                ).select_related("agency"),
+                to_attr="active_agency_memberships",
+            ),
+            "groups",
+        )
         .distinct()
         .order_by("first_name", "last_name", "username")
     )
     city_slug = request.GET.get("city", "").strip()
     if city_slug:
         agents = agents.filter(
-            Q(owned_agencies__cities__slug=city_slug) | Q(agency__cities__slug=city_slug)
+            Q(agency_memberships__agency__cities__slug=city_slug)
+            | Q(owned_agencies__cities__slug=city_slug)
+            | Q(agency__cities__slug=city_slug)
         ).distinct()
     cities = City.objects.filter(is_active=True).order_by("sort_order", "fa_name")
     breadcrumbs = [
@@ -104,7 +126,7 @@ def agency_list(request):
 
 def agency_landing(request, agency_id, slug):
     agency = get_object_or_404(
-        Agency.objects.select_related("owner", "owner__agency").prefetch_related("images", "cities", "employees", "owner__owned_agencies"),
+        Agency.objects.select_related("owner", "owner__agency").prefetch_related("images", "cities", "memberships__user", "owner__owned_agencies"),
         id=agency_id,
         is_active=True,
         approval_status=Agency.ApprovalStatus.APPROVED,
@@ -114,7 +136,7 @@ def agency_landing(request, agency_id, slug):
 
 def agency_landing_by_id(request, agency_id):
     agency = get_object_or_404(
-        Agency.objects.select_related("owner", "owner__agency").prefetch_related("images", "cities", "employees", "owner__owned_agencies"),
+        Agency.objects.select_related("owner", "owner__agency").prefetch_related("images", "cities", "memberships__user", "owner__owned_agencies"),
         id=agency_id,
         is_active=True,
         approval_status=Agency.ApprovalStatus.APPROVED,
@@ -138,11 +160,17 @@ def _get_agent_listings(user):
     qs = Listing.objects.filter(
         status=Listing.Status.PUBLISHED
     ).select_related("city", "area", "category").prefetch_related("images")
-    owned = Agency.objects.filter(
-        owner=user, is_active=True, approval_status=Agency.ApprovalStatus.APPROVED
+    agency_ids = get_user_agencies_for_roles(
+        user,
+        roles=(
+            AgencyMembership.Role.OWNER,
+            AgencyMembership.Role.MANAGER,
+            AgencyMembership.Role.EMPLOYEE,
+        ),
+        approved_only=True,
     ).values_list("id", flat=True)
     return qs.filter(
-        Q(agency_id__in=owned) | Q(created_by=user) | Q(agency=user.agency)
+        Q(agency_id__in=agency_ids) | Q(created_by=user)
     ).order_by("-published_at", "-id")
 
 
@@ -158,7 +186,7 @@ def _split_listings_by_deal(listings_qs, limit=24):
 def agent_landing(request, user_id, slug=None):
     """لندینگ مشاور — صاحب یا کارمند مشاوره املاک."""
     agent = get_object_or_404(
-        User.objects.select_related("agency").prefetch_related("owned_agencies", "groups"),
+        User.objects.select_related("agency").prefetch_related("owned_agencies", "agency_memberships__agency", "groups"),
         pk=user_id,
         is_active=True,
     )
@@ -168,13 +196,16 @@ def agent_landing(request, user_id, slug=None):
     if agent.slug and slug != agent.slug:
         return redirect(agent.get_absolute_url(), permanent=True)
     agencies = list(
-        agent.owned_agencies.filter(
-            is_active=True, approval_status=Agency.ApprovalStatus.APPROVED
+        get_user_agencies_for_roles(
+            agent,
+            roles=(
+                AgencyMembership.Role.OWNER,
+                AgencyMembership.Role.MANAGER,
+                AgencyMembership.Role.EMPLOYEE,
+            ),
+            approved_only=True,
         )
     )
-    if agent.agency_id and agent.agency.is_active and agent.agency.approval_status == Agency.ApprovalStatus.APPROVED:
-        if agent.agency not in agencies:
-            agencies.append(agent.agency)
     listings_qs = _get_agent_listings(agent)
     rent_listings, buy_listings = _split_listings_by_deal(listings_qs)
     display_name = agent.get_full_name() or agent.username or f"کاربر {agent.id}"
@@ -208,7 +239,7 @@ def agent_landing(request, user_id, slug=None):
 def agent_landing_by_id(request, user_id):
     """لندینگ مشاور فقط با ID — برای canonical."""
     agent = get_object_or_404(
-        User.objects.select_related("agency").prefetch_related("owned_agencies"),
+        User.objects.select_related("agency").prefetch_related("owned_agencies", "agency_memberships__agency"),
         pk=user_id,
         is_active=True,
     )
@@ -218,13 +249,16 @@ def agent_landing_by_id(request, user_id):
     listings_qs = _get_agent_listings(agent)
     rent_listings, buy_listings = _split_listings_by_deal(listings_qs)
     agencies = list(
-        agent.owned_agencies.filter(
-            is_active=True, approval_status=Agency.ApprovalStatus.APPROVED
+        get_user_agencies_for_roles(
+            agent,
+            roles=(
+                AgencyMembership.Role.OWNER,
+                AgencyMembership.Role.MANAGER,
+                AgencyMembership.Role.EMPLOYEE,
+            ),
+            approved_only=True,
         )
     )
-    if agent.agency_id and agent.agency.is_active and agent.agency.approval_status == Agency.ApprovalStatus.APPROVED:
-        if agent.agency not in agencies:
-            agencies.append(agent.agency)
     display_name = agent.get_full_name() or agent.username or f"کاربر {agent.id}"
     return render(
         request,

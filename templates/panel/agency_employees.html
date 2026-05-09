@@ -95,15 +95,16 @@
       <tbody>
         {% for e in employees %}
         <tr>
-          <td>{{ e.first_name|default:"-" }}</td>
-          <td>{{ e.last_name|default:"-" }}</td>
-          <td>{{ e.phone|default:e.username }}</td>
+          <td>{{ e.user.first_name|default:"-" }}</td>
+          <td>{{ e.user.last_name|default:"-" }}</td>
+          <td>{{ e.user.phone|default:e.user.username }} <span class="badge bg-secondary">{{ e.get_role_display }}</span></td>
           <td>{{ e.agency.name }}</td>
           <td>
             <form method="post" class="d-inline" onsubmit="return confirm('این همکار حذف شود؟');">
               {% csrf_token %}
               <input type="hidden" name="action" value="remove_employee" />
-              <input type="hidden" name="user_id" value="{{ e.id }}" />
+              <input type="hidden" name="user_id" value="{{ e.user_id }}" />
+              <input type="hidden" name="agency_id" value="{{ e.agency_id }}" />
               <button type="submit" class="btn btn-sm btn-outline-danger">حذف همکار</button>
             </form>
           </td>

@@ -1,8 +1,9 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from apps.agencies.models import Agency, AgencyJoinRequest
+from apps.agencies.models import Agency, AgencyMembership, AgencyJoinRequest
 from apps.accounts.models import User, RoleChangeRequest
+from apps.accounts.roles import get_user_agencies_for_roles
 from apps.attributes.models import Attribute, AttributeOption
 from apps.listings.models import Listing
 from apps.locations.models import Area, City
@@ -87,7 +88,15 @@ class ListingForm(forms.ModelForm):
             if self.user.is_superuser or self.user.groups.filter(name="site_admin").exists():
                 agencies = approved_active.order_by("name", "id")
             else:
-                agencies = approved_active.filter(owner=self.user).order_by("name", "id")
+                agencies = get_user_agencies_for_roles(
+                    self.user,
+                    roles=(
+                        AgencyMembership.Role.OWNER,
+                        AgencyMembership.Role.MANAGER,
+                        AgencyMembership.Role.EMPLOYEE,
+                    ),
+                    approved_only=True,
+                ).order_by("name", "id")
 
             if agencies.count() > 1:
                 self.fields["agency"] = forms.ModelChoiceField(
@@ -185,7 +194,11 @@ class AgencyJoinRequestForm(forms.ModelForm):
             pending_agency_ids = AgencyJoinRequest.objects.filter(
                 user=user, status=AgencyJoinRequest.Status.PENDING
             ).values_list("agency_id", flat=True)
-            qs = qs.exclude(id__in=pending_agency_ids)
+            active_agency_ids = AgencyMembership.objects.filter(
+                user=user,
+                status=AgencyMembership.Status.ACTIVE,
+            ).values_list("agency_id", flat=True)
+            qs = qs.exclude(id__in=pending_agency_ids).exclude(id__in=active_agency_ids)
         self.fields["agency"].queryset = qs
 
 

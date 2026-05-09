@@ -1,0 +1,133 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block extra_head_js %}
+<script>
+  (function () {
+    window.onload = function () {
+      var preloader = document.querySelector('.page-loading');
+      if (preloader) {
+        preloader.classList.remove('active');
+        setTimeout(function () { preloader.remove(); }, 500);
+      }
+    };
+  })();
+</script>
+{% endblock extra_head_js %}
+{% block body %}
+<main class="page-wrapper">
+  {% include "partials/loading_spinner.html" %}
+  {% include "partials/SignInModal.html" %}
+  {% include "partials/SignUpModal.html" %}
+  {% include "partials/header.html" %}
+
+  <section class="container pt-5 mt-5">
+    {% include "partials/breadcrumbs.html" %}
+    <div class="d-sm-flex align-items-center justify-content-between mb-4 pb-sm-2">
+      <h1 class="h2 me-3 mb-sm-0">{{ seo_h1 }}</h1>
+      <span class="badge bg-faded-primary text-primary">{{ provider.get_provider_type_display }}</span>
+    </div>
+  </section>
+
+  <section class="container pb-5 mb-md-4">
+    <div class="row">
+      <div class="col-md-7 mb-md-0 mb-4 pb-md-0 pb-2">
+        {% if landing_cover %}
+        <div class="mb-4 rounded overflow-hidden">
+          <img src="{{ landing_cover.image.url }}" alt="{{ landing_cover.alt|default:provider.name }}" class="w-100 rounded-3" style="max-height: 320px; object-fit: cover;">
+        </div>
+        {% endif %}
+        <h2 class="h5">درباره {{ provider.name }}</h2>
+        {% if provider.intro_content %}
+        <p class="mb-3 line-h18">{{ provider.intro_content }}</p>
+        {% endif %}
+        {% if provider.main_content %}
+        <div class="content mb-4">{{ provider.main_content|safe }}</div>
+        {% endif %}
+        {% if not provider.intro_content and not provider.main_content %}
+        <p class="text-muted mb-4">اطلاعات تکمیلی برای این ارائه‌دهنده هنوز ثبت نشده است.</p>
+        {% endif %}
+
+        {% if provider.categories.exists %}
+        <div class="mb-4">
+          <h2 class="h5">سرویس‌ها</h2>
+          {% for category in provider.categories.all %}
+          <a class="badge bg-secondary text-decoration-none mb-1" href="{% url 'services:category' category.slug %}">{{ category.fa_name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if provider.cities.exists %}
+        <div class="mb-4">
+          <h2 class="h5">شهرهای تحت پوشش</h2>
+          <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1">
+            {% for city in provider.cities.all %}
+            <li class="col"><a href="/s/{{ city.slug }}/" class="text-decoration-none"><i class="fi-map-pin mt-n1 me-2 align-middle opacity-70"></i>{{ city.fa_name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+
+      <aside class="col-md-5">
+        <div class="card mb-4 p-2 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex align-items-start mb-3 pb-2 border-bottom">
+              {% if provider.logo %}
+              <img src="{{ provider.logo.url }}" alt="{{ provider.name }}" width="60" height="60" class="rounded flex-shrink-0 object-fit-cover">
+              {% else %}
+              <div class="rounded bg-faded-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 60px; height: 60px;">
+                <i class="fi-briefcase text-primary fs-3"></i>
+              </div>
+              {% endif %}
+              <div class="ps-2 ms-1">
+                <h3 class="h5 mb-2">{{ provider.name }}</h3>
+                <span class="badge bg-faded-primary text-primary">{{ provider.get_provider_type_display }}</span>
+              </div>
+            </div>
+            <div class="mb-3 pb-3 border-bottom">
+              <h4 class="h5 mb-2">اطلاعات تماس</h4>
+              <ul class="nav flex-column">
+                {% if provider.mobile %}
+                <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-inline-flex align-items-start" href="tel:{{ provider.mobile }}"><i class="fi-phone mt-1 me-2 align-middle opacity-70"></i>{{ provider.mobile }}</a></li>
+                {% endif %}
+                {% if provider.phone %}
+                <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-inline-flex align-items-start" href="tel:{{ provider.phone }}"><i class="fi-phone mt-1 me-2 align-middle opacity-70"></i>{{ provider.phone }}</a></li>
+                {% endif %}
+                {% if provider.email %}
+                <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-inline-flex align-items-start" href="mailto:{{ provider.email }}"><i class="fi-mail mt-1 me-2 align-middle opacity-70"></i>{{ provider.email }}</a></li>
+                {% endif %}
+                {% if provider.website %}
+                <li class="nav-item mb-2"><a class="nav-link p-0 fw-normal d-inline-flex align-items-start" href="{{ provider.website }}" target="_blank" rel="noopener"><i class="fi-globe mt-1 me-2 align-middle opacity-70"></i>وب‌سایت</a></li>
+                {% endif %}
+                {% if provider.address %}
+                <li class="nav-item mb-2"><span class="d-flex align-items-start"><i class="fi-map-pin mt-1 me-2 align-middle opacity-70"></i>{{ provider.address }}</span></li>
+                {% endif %}
+              </ul>
+            </div>
+            {% if provider.mobile or provider.phone %}
+            <a class="btn btn-primary btn-lg rounded-pill w-100" href="tel:{% firstof provider.mobile provider.phone %}"><i class="fi-phone me-2"></i>تماس با ارائه‌دهنده</a>
+            {% endif %}
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {% if related_providers %}
+  <section class="container pb-5 mb-lg-4">
+    <h2 class="h4 mb-4">ارائه‌دهندگان مشابه</h2>
+    <div class="row g-4">
+      {% for provider in related_providers %}
+      <div class="col-md-6 col-lg-4">
+        {% include "partials/service_provider_card.html" %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% include "partials/footer.html" %}
+  {% include "partials/Backtotopbutton.html" %}
+  {% include "base/scripts.html" %}
+</main>
+{% endblock body %}

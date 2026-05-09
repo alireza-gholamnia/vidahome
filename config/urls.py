@@ -26,7 +26,16 @@ from apps.listings import views as listing_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
-from apps.common.sitemaps import StaticSitemap, ListingSitemap, CitySitemap, CategorySitemap, AgencySitemap, BlogPostSitemap
+from apps.common.sitemaps import (
+    StaticSitemap,
+    ListingSitemap,
+    CitySitemap,
+    CategorySitemap,
+    AgencySitemap,
+    BlogPostSitemap,
+    ServiceProviderSitemap,
+    ServiceCategorySitemap,
+)
 
 sitemaps = {
     "static": StaticSitemap,
@@ -35,6 +44,8 @@ sitemaps = {
     "categories": CategorySitemap,
     "agencies": AgencySitemap,
     "blog": BlogPostSitemap,
+    "service_categories": ServiceCategorySitemap,
+    "service_providers": ServiceProviderSitemap,
 }
 
 urlpatterns = [
@@ -50,6 +61,7 @@ urlpatterns = [
     path("s/", include("apps.listings.search_urls")),
     path("l/", include("apps.listings.detail_urls")),
     path("categories/", include("apps.categories.urls")),
+    path("services/", include("apps.services.urls")),
     path("blog/", include("apps.blog.urls")),
     path("", common_views.home, name="home"),
     path("contact/", common_views.contact, name="contact"),

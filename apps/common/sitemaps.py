@@ -10,7 +10,15 @@ class StaticSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return ["home", "listing_catalog", "agency_list", "agent_list", "contact"]
+        return [
+            "home",
+            "listing_catalog",
+            "agency_list",
+            "agent_list",
+            "services:directory",
+            "services:provider_list",
+            "contact",
+        ]
 
     def location(self, item):
         return reverse(item)
@@ -89,3 +97,35 @@ class BlogPostSitemap(Sitemap):
 
     def lastmod(self, obj):
         return obj.updated_at if hasattr(obj, "updated_at") else obj.published_at
+
+
+class ServiceCategorySitemap(Sitemap):
+    """دسته‌های سرویس."""
+    changefreq = "monthly"
+    priority = 0.6
+
+    def items(self):
+        Category = apps.get_model("categories", "Category")
+        return Category.objects.filter(
+            category_type="service",
+            is_active=True,
+        ).order_by("sort_order", "id")
+
+    def location(self, obj):
+        return f"/services/{obj.slug}/"
+
+
+class ServiceProviderSitemap(Sitemap):
+    """ارائه‌دهندگان سرویس فعال."""
+    changefreq = "weekly"
+    priority = 0.6
+
+    def items(self):
+        ServiceProvider = apps.get_model("services", "ServiceProvider")
+        return ServiceProvider.objects.filter(
+            is_active=True,
+            approval_status="approved",
+        ).order_by("id")
+
+    def lastmod(self, obj):
+        return obj.updated_at
